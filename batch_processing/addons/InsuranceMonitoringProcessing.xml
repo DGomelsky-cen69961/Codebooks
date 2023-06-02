@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+# Name         : CpsQuittance.xml
+# Version      : 1.1
+# Author       : 
+# Date         : 30.06.2022
+# Description  : definice zpracování importu z CMT o provedeném monitoringu pojistných smluv 
+# Notes        : viz https://cnfl.csin.cz/display/COLMAN/CR_WBS879_Insurance_Monitoring_Next_Monitoring_Date_Calculation
+#================================================================================
+# Modified     :
+# init   date   mod id                  description
+#      ddmmmyy
+# PKU  30Jun22         DF-49040 Interní podmímka z Colmana - Doklad o zaplacení - chybné vygenerování a založení data příští kontroly,
+                       realizováno v rámci CR_WBS879_Insurance_Monitoring_Next_Monitoring_Date_Calculation
+#
+# 
+#================================================================================
+-->
+
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <bean id="propertyPlaceholderConfigurer"
+          class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+        <property name="locations">
+            <list>
+                <value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <import resource="classpath:addons-context.xml"/>
+
+    <import resource="classpath:addons-exports-parents.xml"/>
+    <batch:job id="InsuranceMonitoringProcessing">
+
+        <batch:step id="insuranceMonitoringProcessing" next="insuranceMonitoringProcessingLogInvalidRecords">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="10">
+                <batch:chunk commit-interval="1" reader="insuranceMonitoringProcessingDataReader"
+                             processor="insuranceMonitoringProcessingDataProcessor" writer="parentDummyWriter"/>
+                <batch:listeners>
+                    <batch:listener ref="processItemSkipListener"/>
+                </batch:listeners>
+            </batch:tasklet>
+        </batch:step>
+
+		<batch:step id="insuranceMonitoringProcessingLogInvalidRecords">
+			<batch:tasklet>
+				<batch:chunk commit-interval="1" reader="insuranceMonitoringProcessingInvalidRecordsDataReader"
+							 processor="insuranceMonitoringProcessingInvalidRecordsDataProcessor" writer="parentDummyWriter"/>
+			</batch:tasklet>
+		</batch:step>
+    </batch:job>
+
+	<bean id="insuranceMonitoringProcessingDataReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+				SELECT
+				CHECK_ID as CHECK_ID, COMPLETION_DATE as COMPLETION_DATE, LAST_RESOLVER as LAST_RESOLVER, INSURANCE_ID
+				as INSURANCE_ID
+				FROM
+				colmandata.cms_tmp_insurance_data
+				WHERE INSURANCE_ID IS NOT NULL
+			</value>
+		</property>
+	</bean>
+
+
+	<bean id="insuranceMonitoringProcessingDataProcessor"
+          class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step">
+        <property name="processorName" value="update_insuranceMonitoring"/>
+
+        <!-- !!!
+       The order of parameters (:PARAMX) in the SQL statement is very important, please see the comment below the statement
+       !!! -->
+        <property name="sql">
+            <value>
+                <![CDATA[
+DECLARE
+  v_check_id VARCHAR2(20) := :CHECK_ID;
+  v_completion_date DATE := :COMPLETION_DATE;
+  v_last_resolver VARCHAR2(10) := :LAST_RESOLVER;
+  v_insurance_id NUMBER(19) := :INSURANCE_ID;
+  v_technical_id NUMBER(19) := colmandata.hibernate_sequence.NEXTVAL * 10 + 1;
+BEGIN
+
+  INSERT INTO
+    colmandata.CMS_INSURANCE_MONITORING (
+    ID,
+    CREATE_TIME,
+    CREATE_USER,
+    IS_DELETED,
+    LAST_TIME,
+    LAST_TRANSITION,
+    LAST_USER,
+    STATE,
+    BUSINESS_ENTITY_DESCRIPTOR_ID,
+    DYNAMIC_XML,
+    PROCESSING_FLAGS,
+    ACCOUNT_PREMIUM_PAYMENT,
+    ADEQUACY,
+    MONITORING_DATE,
+    MONITORING_PERIOD,
+    NEXT_MONITORING_DATE,
+    NOTE,
+    PREMIUM_PAYMENT,
+    INSURANCE_ID
+  )
+  VALUES
+  (
+    v_technical_id,-- id,
+    SYSDATE,-- create_time
+    v_last_resolver,-- create_user
+    NULL,-- is_deleted
+    SYSDATE,-- last_time
+    'create',-- last_transition
+    v_last_resolver,-- last_user
+    'CREATED',-- state
+    'cscollateral/InsuranceMonitoring',-- business_entity_descriptor_id
+    '<tree-map/>',-- dynamic_xml
+    NULL,-- processing_flags
+    NULL,-- ACCOUNT_PREMIUM_PAYMENT
+    1,-- ADEQUACY,
+    v_completion_date,-- MONITORING_DATE,
+    'R',-- MONITORING_PERIOD,
+    add_months((select to_date( to_char( dt, 'dd/mm' ) || to_char( tm, 'yy' ), 'dd/mm/yy') from (select to_date(v_completion_date,'dd/mm/yyyy') as tm, to_date(DATE_OF_VALID_FROM,'dd/mm/yyyy') as dt from cms_insurance where id = v_insurance_id)), 12),-- NEXT_MONITORING_DATE,
+    v_check_id,-- NOTE,
+    1,-- PREMIUM_PAYMENT,
+    v_insurance_id -- INSURANCE_ID
+  );
+  
+  UPDATE
+    colmandata.CMS_INSURANCE
+  SET
+    ACTUAL_INSURANCE_MONITORING_ID = v_technical_id
+  WHERE ID=v_insurance_id;
+END;
+]]>
+            </value>
+        </property>
+        <property name="paramsMapping">
+            <!-- !!!
+              The order of parameters here is very important, there is a bug in the Oracle JDBC driver in the PreparedStatement.setObject(name, value) call,
+              where the name is completely ignored and the parameters are bound in the same order as they appear in the SQL statement.
+
+              As spring by default uses LinkedHashMap for <map> element, so the parameters are enumerated for PreparedStatement binding in the same
+              order as the appear.
+
+              So all parameters here must be listed in the same order as they appear in the SQL statement above.
+            !!! -->
+            <map>
+                <entry key="CHECK_ID" value="CHECK_ID"/>
+                <entry key="COMPLETION_DATE" value="COMPLETION_DATE"/>
+                <entry key="LAST_RESOLVER" value="LAST_RESOLVER"/>
+                <entry key="INSURANCE_ID" value="INSURANCE_ID"/>
+            </map>
+        </property>
+    </bean>
+
+	<bean id="insuranceMonitoringProcessingInvalidRecordsDataReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+				SELECT
+				CHECK_ID as CHECK_ID, COMPLETION_DATE as COMPLETION_DATE, LAST_RESOLVER as LAST_RESOLVER
+				FROM
+				colmandata.cms_tmp_insurance_data
+				WHERE INSURANCE_ID IS NULL
+			</value>
+		</property>
+	</bean>
+
+	<bean id="insuranceMonitoringProcessingInvalidRecordsDataProcessor"
+		  class="cz.csas.colmanbatch.addons.insurancemonitoring.InvalidInsuranceMonitoringRecordsProcessor" scope="step">
+	</bean>
+</beans>
+

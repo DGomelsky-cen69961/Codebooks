@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+                <value>classpath:refreshPartners.properties</value>                   
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    <batch:job id="RefreshPartners">
+   		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="selectPartnersForRefreshStep" />
+						
+			<batch:next on="START:selectPartnersForRefreshStep" to="selectPartnersForRefreshStep" /> 
+			<batch:next on="COMPLETED:selectPartnersForRefreshStep" to="refreshPartnersStep" />			
+
+			<batch:next on="START:refreshPartnersStep" to="refreshPartnersStep" />
+			<batch:end on="COMPLETED:refreshPartnersStep" />			
+    	</batch:decision>	
+    	    
+		<batch:step id="selectPartnersForRefreshStep" next="decision">
+			<batch:tasklet ref="selectPartnersForRefreshTask" />
+		</batch:step>
+		
+        <batch:step id="refreshPartnersStep" next="decision">
+            <batch:tasklet>
+                <batch:chunk commit-interval="1" reader="refreshPartnersReader" processor="refreshPartnersProcessor" writer="parentDummyWriter" skip-policy="refreshPartnersLimitCheckingSkipPolicy" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+	<bean id="refreshPartnersLimitCheckingSkipPolicy" parent="parentLimitCheckingSkipPolicy" >
+		<property name="skipLimit" value="${refreshPartners.skipLimit}" />
+	</bean> 
+		
+	<bean id="selectPartnersForRefreshTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* 1) refresh all partners which have maturity_date within 14 days and LAST_FULL_UPDATE_FROM_CRM is older than 30days. This refresh is important for ELNNV - quitance generation*/
+update 
+        cms_partner p
+    set 
+        processing_flags = 'LOAD_PARTNER_01,'||processing_flags
+
+    where
+         p.id in 
+        (
+            select 
+   provider.id
+		from cms_basic_loan loan, cms_partner_loan_role lrole, cms_partner_role role,
+				cms_partner partner, cms_loan_collateral_link link, cms_collateral coll,
+			(select c.id, b.collateral_id, cluid, c.description
+				from cms_partner_role a, cms_collateral_provider b, cms_partner c
+						where a.id = b.id
+							and c.id = a.partner_id
+							and to_char(trunc(LAST_FULL_UPDATE_FROM_CRM),'DD.MM.YYYY') > to_char(trunc(sysdate-30),'DD.MM.YYYY')) provider
+						where loan.main_debtor_id = lrole.id
+								and lrole.id = role.id
+								and role.partner_id = partner.id
+								and link.loan_id = loan.id
+								and coll.id = link.collateral_id
+								and coll.id = provider.collateral_id
+								and loan.source_system_id = 'SB'
+								and maturity_date > sysdate
+								and maturity_date < sysdate+14
+								and loan.logical_product_code in ('1000003-992.SB','1000003-993.SB','1000003-997.SB','1000003-26','1000003-27')
+								and status <>'4'
+        );
+        
+      
+
+	/* 2) refresh all partners which do not have client servicing information i.e. are "proxies" typically from some imports like Starbank OR which do not have a servicing set up*/
+	update 
+		cms_partner p
+	set 
+		processing_flags = 'LOAD_PARTNER_02,'||processing_flags
+	where
+		(p.processing_flags is null or p.processing_flags not like '%LOAD_PARTNER%')	 
+	    and p.id in 
+		(
+			select 
+				pa.ID 
+			from 
+				COLMANDATA.CMS_PARTNER pa 
+				join COLMANDATA.CMS_MODELING_ENTITY me on me.PARTNER_ID = pa.ID 
+				left join COLMANDATA.CMS_CLIENT_SERVICING cs on cs.PARTNER_ID = pa.ID 
+			where 
+				pa.IDENTIFIER is not null 
+				and me.SOURCE_SYSTEM_ID = 'BRASIL' 
+				and cs.id is null 
+		);
+
+	
+	/* 3) refresh all partners with high number of relations */
+	update 
+		cms_partner
+	set 
+		processing_flags = 'LOAD_PARTNER_03,'||processing_flags
+	where
+	 	(processing_flags is null or processing_flags not like '%LOAD_PARTNER%')	 
+	and id in
+	(
+		select 
+			id
+		from
+		(
+			select 
+			  p.id, p.identifier, p.unified_name, count(*) cnt 
+			from
+			   cms_partner_relationship s
+			   join cms_partner p on p.id =s.related_partner_id 
+			group by 
+			  p.id , p.identifier, p.unified_name 
+			having 
+				count(*) > 20
+		)
+	);
+
+	/* 4) refresh all partners in recently updated models */
+	update 
+	  cms_partner p
+	set
+	  processing_flags = 'LOAD_PARTNER_04,'||processing_flags
+	where
+	  (processing_flags is null or processing_flags not like '%LOAD_PARTNER%')
+	and p.id in   
+	(
+      WITH collateral_asset_partner_role AS
+      (
+        SELECT /*+ INLINE */ 
+          id, asset_id 
+        FROM
+          (
+            SELECT id, guarantee_asset_id asset_id FROM cms_guarantee_issuer i
+            UNION ALL
+            SELECT id, financial_guarantee_id asset_id FROM cms_fin_guarantee_issuer i
+            UNION ALL                                                                                    
+            SELECT id, deposit_id asset_id FROM cms_deposit_bank i
+            UNION ALL
+            SELECT id, securities_to_owner_id asset_id FROM cms_security_owner i
+            UNION ALL
+            SELECT id, securities_id asset_id FROM cms_security_custodian i
+            UNION ALL
+            SELECT id, securities_to_emitter_id asset_id FROM cms_security_emitter i
+            UNION ALL
+            SELECT id, bill_of_exchange_id asset_id FROM cms_boe_debtor i
+            UNION ALL                                                                                              
+            SELECT id, bill_of_exchange_id asset_id FROM cms_boe_endorsement i
+            UNION ALL                                                                                                               
+            SELECT id, bill_of_exchange_id asset_id FROM cms_boe_remmitter i
+            UNION ALL                                                                                                  
+            SELECT id, bill_of_exchange_id asset_id FROM cms_boe_emitter i
+            UNION ALL
+            SELECT id, bill_of_exchange_id asset_id FROM cms_boe_aval i
+            UNION ALL                                                                                             
+            SELECT id, deposit_id asset_id FROM cms_account_owner i                                               
+            UNION ALL
+            SELECT id, functional_unit_id asset_id FROM cms_re_pledger i                                    
+            UNION ALL
+            SELECT id, movable_asset_id asset_id FROM cms_movable_owner i
+            UNION ALL                                                                                              
+            SELECT id, other_asset_id asset_id FROM cms_other_asset_owner i                         
+            UNION ALL                                                                                              
+            SELECT id, receivable_asset_id asset_id FROM cms_receivable_subdebtor i                                            
+            UNION ALL
+            SELECT id, receivable_asset_id asset_id FROM cms_receivable_owner i
+            UNION ALL
+            SELECT id, life_insurance_id asset_id FROM cms_life_ins_collector i
+            UNION ALL
+            SELECT id, life_insurance_id asset_id FROM cms_life_ins_ins_person i
+            UNION ALL                                                                                                 
+            SELECT id, life_insurance_id asset_id FROM cms_life_ins_ins_company i
+            UNION ALL
+            SELECT id, other_asset_item_id asset_id FROM cms_pledged_company_share i
+        )
+      )
+      SELECT
+        DISTINCT NVL2(carl_pr.partner_id, colprov_pr.partner_id, plr_pr.partner_id) partner_id
+      FROM 
+        cms_modeling_entity m
+        JOIN cms_modeling_element_relation mr ON mr.model_id = m.id
+        /* assets in the model */
+        LEFT JOIN cms_collateral_asset asset ON mr.asset_id = asset.id
+        LEFT JOIN collateral_asset_partner_role carl ON asset.id =carl.asset_id
+        LEFT JOIN cms_partner_role carl_pr  ON carl.id = carl_pr.id
+        /* collaterals in the model */
+        LEFT JOIN cms_collateral coll ON mr.collateral_id = coll.id
+        LEFT JOIN cms_collateral_provider colprov ON colprov.collateral_id = coll.id
+        LEFT JOIN cms_partner_role colprov_pr ON colprov.id = colprov_pr.id
+        /* loans in the model */
+        LEFT JOIN cms_basic_loan bl ON mr.loan_id = bl.id
+        LEFT JOIN cms_partner_loan_role plr ON plr.id = bl.main_debtor_id
+        LEFT JOIN cms_partner_role plr_pr ON plr.id = plr_pr.id
+      WHERE
+        (TRUNC(m.create_time) >= TRUNC(sysdate) - 1  OR TRUNC(m.last_time) >= TRUNC(sysdate) - 1)  /* any change which has occured today/tommorow */ 
+        and (m.source_system_id != 'BRASIL' or m.source_system_id is null)
+  );
+    
+  /* 5) refresh all partners in big esso groups */   
+	update 
+	  cms_partner p
+	set
+	  processing_flags = 'LOAD_PARTNER_05,'||processing_flags
+	where
+	  (processing_flags is null or processing_flags not like '%LOAD_PARTNER%')
+	and p.cluid in   
+	(
+	with esso_group_with_loan
+	as
+	( 
+	    select 
+	      esso_group_cluid, cluid 
+	    from 
+	      cms_partner p
+	      join cms_partner_role r on r.partner_id = p.id
+	      join cms_basic_loan l on l.main_debtor_id = r.id 
+	)
+	select
+	 distinct cluid
+	from
+	  esso_group_with_loan
+	where
+	  esso_group_cluid in
+	  (
+	    select
+	      esso_group_cluid
+	    from
+	      esso_group_with_loan g
+	    group by
+	      esso_group_cluid
+	    having 
+	      count(distinct cluid) > 5   /* minimum size of the refreshed esso group */
+	  )
+	);
+END;
+]]>
+			</value>
+		</property>
+	</bean>		
+
+			
+	<bean id="refreshPartnersReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+				SELECT   
+					ID
+				FROM
+					cms_partner
+				WHERE
+					processing_flags LIKE '%LOAD_PARTNER_%'
+				ORDER BY
+					/* the LOAD_PARTNER flag is supposed to have format LOAD_PARTNER_nn, where NN is a numeric priority*/
+					SUBSTR(processing_flags, INSTR(processing_flags, 'LOAD_PARTNER_') + LENGTH('LOAD_PARTNER_'), 2), 
+					ID
+					
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="refreshPartnersProcessor" class="cz.csas.colmanbatch.addons.partner.LoadPartnersProcessor" scope="step">
+			<property name="loadPartnerTagRegex" value="LOAD_PARTNER_[0-9][0-9]" />
+			<property name="partnerLoadedTag" value="PARTNER_LOADED" />
+	</bean>	
+	
+</beans>

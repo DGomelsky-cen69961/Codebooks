@@ -1,0 +1,84 @@
+AccountingProcessing
+CheckInsuranceMonitoringDate
+ClearAllProcessingFlags
+ClusterProcessing
+CMTNotificationExport
+CollateralsCommonDataExport
+CopyOnlineSchemaToSnapshot
+CopyResultsToSnapshotSchema
+CopySnapshotToWorkSchema
+CRMClientDataStageImport
+CRMClientDataStageProcessing
+FactoringReceivablesStageImport
+FactoringReceivablesStageProcessing
+IRMAClientRatingStageImport
+IRMAClientRatingStageProcessing
+KondorSecurityPriceImport
+KondorSecurityPriceProcessing
+daughter companies skip ODSAssetGuaranteesStageImport
+daughter companies skip ODSBillOfExchangeStageImport
+daughter companies skip ODSClientStageImport
+daughter companies skip ODSCollateralAssetStageImport
+daughter companies skip ODSDaughterCompaniesStageProcessing
+daughter companies skip ODSFinancialGuranteesStageImport
+daughter companies skip ODSLoanStageImport
+ParentImport
+PutSystemOffline
+PutSystemOnline
+RefreshClusters
+RunStatisticsOnWorkSchema
+SAPCollateralAccountingExport
+SetSystemDate
+SymbolLoanDataImport
+SymbolLoanDataStageProcessing
+SymbolsClientMappingImport
+TableOfExchangeImport
+TerminateCollateralDueToCollateralExpiry
+TerminateCollateralDueToLoanTermination
+#-------------------------------------------------------------------------------
+Import job parameters:
+                date - date of the file in yymmdd format (date=140922)
+                daySeq - day seq number (daySeq=A001)
+Export job parameter:
+                daySeq - day seq number (daySeq=A001)
+
+#===============================================================================
+# Ordering of the EoD jobs running is the following:
+#----------------------------------------------------
+01. ClearAllProcessingFlags
+02. TableOfExchangeImport
+03. ODSAssetGuaranteeStageImport
+04. ODSBillsOfExchangeStageImport
+05. ODSClientStageImport
+06. ODSCollateralAssetStageImport
+07. ODSFinancialGuaranteeStageImport
+08. ODSLoanStageImport
+09. ODSDaughterCompaniesStageProcessing
+10. SymbolsClientMappingImport
+11. SymbolLoanDataImport
+12. SymbolLoanDataStageProcessing
+13. CRMClientDataStageImport
+14. CRMClientDataStageProcessing
+15. CRMClientAnonymizationStageImport
+16. CRMClientAnonymizationStageProcessing
+17. IRMAClientRatingStageImport
+18. IRMAClientRatingStageProcessing
+19. FactoringReceivablesStageImport
+20. FactoringReceivablesStageProcessing
+21. KondorSecurityPricesImport
+22. KondorSecurityPriceProcessing
+23. CheckInsuranceMonitoringDate
+24. TerminateCollateralDueToCollateralExpiry
+25. TerminateCollateralDueToLoanTermination
+26. TerminateInsurance
+27. RefreshClusters
+28. ClusterProcessing
+29. AccountingProcessing
+30. SAPCollateralAccountingExport
+31. CMTNotificationExport
+32. SymbolsLoanNotification
+33. NotificationProcessing
+#===-----------------------------------------------------------------
+# But lot of job (after the 2th job to the 20th) are parallelizable.
+#
+#===============================================================================

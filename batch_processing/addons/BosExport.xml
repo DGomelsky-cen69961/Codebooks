@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:bosExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="BosExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="bosExportTypeStep" />
+						
+			<batch:next on="START:bosExportTypeStep" to="bosExportTypeStep" /> 
+			<batch:end on="COMPLETED:bosExportTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="bosExportTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="bosExportReader" processor="bosExportProcessor" writer="bosExportWriter" />
+				<batch:listeners>
+					<batch:listener ref="bosExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="bosExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ bosExport ================ -->
+	<bean id="bosExportReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select asset.asset_id, partner.cluid,insl.pledge_agreement_number, asset.base_value, insl.insurance_contract_number, insl.contract_signature_date, insl.insurance_type,insl.date_of_valid_from, insl.date_of_valid_to, insl.insurance_amount,
+insl.regular_payment,insl.regular_payment_period, poj.partner_description,poj.insurance_company, poj.cluid as INSURANCE_COMPANY_CLUID,poj.identifier
+from cms_ins_asset_link lnk, cms_collateral_asset asset,
+cms_collateral coll, cms_insurance insl,
+cms_loan_collateral_link loanlnk,
+cms_basic_loan loan,
+cms_partner_loan_role plr,
+cms_partner_role pr,
+cms_partner partner,
+(select insurance_company, partner_description, cluid, identifier, partner_id,insurance_id
+from cms_insurance_company a, cms_partner_role b, cms_partner c
+where a.id = b.id
+and c.id = b.partner_id) poj,
+(SELECT ID, insurance_type
+FROM COLMANDATA.CMS_INSURANCE
+ WHERE (COLMANDATA.CMS_INSURANCE.DATE_OF_VALID_TO IS NULL)
+ OR (COLMANDATA.CMS_INSURANCE.DATE_OF_VALID_TO     > SYSDATE)) ins  
+where ins.id = lnk.insurances_id
+and lnk.assets_id = asset.id
+and coll.collateral_asset_id = asset.id
+and insl.id = ins.id
+and loanlnk.collateral_id = coll.id
+and loan.id = loanlnk.loan_id
+and loan.main_debtor_id = plr.id
+and pr.id = plr.id
+and partner.id = pr.partner_id
+and poj.insurance_id = insl.id
+and collateral_type_settings_id in ('200-PLE', '201-PLE', '202-PLE', '203-PLE', '204-PLE', '220-PLE', '200-LEA', '201-LEA', '202-LEA', '203-LEA', '204-LEA', '220-LE',
+'200-REB', '201-REB', '202-REB', '203-REB', '204-REB', '220-REB') 
+and ins.insurance_type in ('"7417"','"1001"','"28570"')
+and coll.state = 'activated'
+and loan.logical_product_code in ('1000003-992.SB','1000003-993.SB','1000003-997.SB','1000003-26','1000003-27')
+			</value>
+		</property>
+	</bean>
+
+	<bean id="bosExportWriter" parent="parentbosExportWriter" scope="step">		
+		<property name="extractName" value="HP" />	
+		<property name="manager" ref="bosExportManager" />
+		<property name="metadataProvider" ref="bosExportReader" />																																																																															
+	</bean>
+	
+	<bean id="bosExportProcessor" parent="bosExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="bosExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${mseFreeCollValueExport.resources}" />
+		<property name="agendaCode" value="COBS" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="bosExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="bosExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentbosExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="bosExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="bosExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="bosExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="bosExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>

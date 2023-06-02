@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<import resource="classpath:addons-context.xml" />
+	<import resource="classpath:addons-exports-parents.xml" />
+		
+	<bean id="propertyPlaceholderConfigurer"
+		class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer"
+		lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+				<value>classpath:application.properties</value>
+				<value>classpath:insuranceMonitoringImport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<batch:job id="InsuranceMonitoringImport">
+	<!-- start step decision -->	
+		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="InsuranceMonitoringStageImportCleanupStep" />
+
+			<batch:next on="START:InsuranceMonitoringStageImportCleanupStep" to="InsuranceMonitoringStageImportCleanupStep" />
+			<batch:end on="COMPLETED:InsuranceMonitoringStageImportConvertStep" />
+		</batch:decision>
+
+<!-- InsuranceMonitoring -->
+		<batch:step id="InsuranceMonitoringStageImportCleanupStep"	parent="parentStep" next="InsuranceMonitoringStageImportConvertStep">
+			<batch:tasklet ref="insuranceMonitoringCleanupTask" />
+		</batch:step>
+		<batch:step id="InsuranceMonitoringStageImportConvertStep" parent="parentChunkStep" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="insuranceMonitoringMultiResourceReader" processor="insuranceMonitoringDataProcessor" writer="insuranceMonitoringDataWriter" skip-policy="parentLimitCheckingSkipPolicy" />
+				<batch:listeners>
+					<batch:listener ref="parentItemReadListener" />
+					<batch:listener ref="parentItemSkipListener" />
+				</batch:listeners>				
+			</batch:tasklet>
+		</batch:step>	
+	</batch:job>
+	
+	<!-- CleanupTasks -->
+	<bean id="insuranceMonitoringCleanupTask" parent="parentTruncateTableTask">
+		<property name="parameters">
+			<map>
+				<entry key="tableName" value="CMS_TMP_INSURANCE_DATA" />
+			</map>
+		</property>
+	</bean>
+
+<!-- Import data -->
+	<bean id="insuranceMonitoringMultiResourceReader" parent="parentMultiResourceReader">
+		<property name="pathToResource" value="${importInsuranceMonitoring.resources}" />
+		<property name="delegate">
+			<bean parent="parentFlatFileItemReader">
+			    <property name="linesToSkip" value="8" />
+				<property name="lineMapper">
+					<bean parent="parentLineMapper">
+						<property name="lineTokenizer">
+							<bean parent="parentLineTokenizer">
+								<property name="names"	value="check_id,completion_date,last_resolver,insurance_id" />
+							</bean>
+						</property>		
+					</bean>
+				</property>
+			</bean>
+		</property>		
+	</bean>
+
+	<bean id="insuranceMonitoringDataProcessor" parent="parentFieldSetToMapConvertor">
+		<property name="fieldSpecificParsers">
+			<map key-type="java.lang.String" value-type="java.text.Format">
+				<entry key="completion_date">
+					<ref bean="dateFormat-emptyStringToNull-yyyyMMdd" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="insuranceMonitoringDataWriter" parent="parentMapTableWriter">
+	    <property name="sql">
+	        <value>
+	            <![CDATA[ INSERT INTO COLMANDATA.CMS_TMP_INSURANCE_DATA(check_id,completion_date,last_resolver,insurance_id) VALUES(:check_id,:completion_date,:last_resolver,:insurance_id) ]]>
+	        </value>
+	    </property>
+	</bean>
+</beans>

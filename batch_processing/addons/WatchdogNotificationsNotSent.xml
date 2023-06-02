@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<batch:job id="WatchdogNotificationsNotSent">
+    	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="step1" />
+												
+			<batch:next on="START:step1" to="step1" /> 
+			<batch:next on="COMPLETED:step1" to="step2" />			
+
+			<batch:next on="START:step2" to="step2" /> 
+			<batch:next on="COMPLETED:step2" to="step3" />			
+			
+			<batch:next on="START:step3" to="step3" /> 
+			<batch:next on="COMPLETED:step3" to="step4" />			
+
+			<batch:next on="START:step4" to="step4" /> 
+			<batch:end on="COMPLETED:step4" />			
+
+    	</batch:decision>	
+
+		<batch:step id="step1" next="decision">
+			<batch:tasklet ref="step1Task" />
+		</batch:step>
+		
+		<batch:step id="step2" next="decision">
+			<batch:tasklet ref="step2Task" />
+		</batch:step>
+
+        <batch:step id="step3" next="decision">
+            <batch:tasklet ref="step3Task" />
+        </batch:step>
+		
+		<batch:step id="step4" next="decision">
+            <batch:tasklet ref="step4Task" />
+        </batch:step>
+    </batch:job>		
+			
+	<bean id="step1Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+begin
+null;
+/*
+update cms_task_notification
+set state='NotSent',
+last_time = sysdate,
+last_user = 'WATCHDOG_NOT_SENT_1'
+where 1 = 0 AND id in (
+select 
+tn.id
+from cms_task_notification tn
+join CMS_WD_NOTIF_SUBJECT ns on ns.id = tn.wd_subject_id
+join CMS_WD_RE_MATCHING reg on ns.REAL_ESTATE_GROUP_ID = reg.id
+join cms_wd_cadastre_event e on e.id = reg.CADASTRE_EVENT_ID
+join cms_wd_message m on m.id = e.message_id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_Type != 'INTERNAL'
+and m.message_id < 110223
+)
+;
+*/
+end;
+]]>			
+			</value>
+		</property>
+	</bean>	
+
+	<bean id="step2Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+begin
+null;
+/*
+update cms_task_notification
+set state='NotSent',
+last_time = sysdate,
+last_user = 'WATCHDOG_NOT_SENT_2'
+where 1 = 0 AND  id in (
+select tn.id from
+cms_task_notification tn
+join cms_cps_task_notif cps on cps.id = tn.id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_Type = 'CPS'
+and (cps.notification_xml is null or length(cps.notification_xml) = 0)
+)
+;
+*/
+end;
+]]>				
+			</value>
+		</property>
+	</bean>	
+
+	<bean id="step3Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+begin
+update cms_task_notification
+set state='NotSent',
+last_time = sysdate,
+last_user = 'WATCHDOG_NOT_SENT_3'
+where id in (
+select distinct tn_id from (
+select
+tn.id tn_id,
+tn.event_id,
+row_number() over (partition by tn.wd_subject_id, tn.event_id order by tn.id) dup
+from cms_task_notification tn
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_type in ('UNO', 'CPS')
+) where dup > 1
+union 
+select distinct tn_id from (
+select
+tn.id tn_id,
+tn.event_id,
+row_number() over (partition by tn.wd_subject_id, tn.event_id, etn.email_to order by tn.id) dup
+from cms_task_notification tn
+join CMS_EMAIL_TASK_NOTIF etn on etn.id = tn.id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_type in ('EMAIL')
+) where dup > 1
+)
+;
+end;
+]]>				
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step4Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+begin
+update cms_task_notification
+set state='NotSent',
+last_time = sysdate,
+last_user = 'WATCHDOG_NOT_SENT_4'
+where id in (
+select distinct tn_id from (
+select
+tn.id tn_id,
+row_number() over (partition by cp.id order by tn.processing_type desc, tn.event_id desc, tn.id) dup
+from cms_task_notification tn
+join cms_wd_notif_subject ns on ns.id = tn.wd_subject_id
+join cms_wd_procedure cp on cp.id = ns.cadastre_procedure_id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_type in ('CPS', 'UNO')
+and tn.event_id in (
+'4004', 
+'4005', 
+'4006', 
+'4007', 
+'4008', 
+'4009', 
+'4010'
+)
+) where dup > 1
+UNION
+select distinct tn_id from (
+select
+tn.id tn_id,
+row_number() over (partition by cp.id order by tn.processing_type desc, tn.event_id desc, tn.id) dup
+from cms_task_notification tn
+join cms_wd_notif_subject ns on ns.id = tn.wd_subject_id
+join cms_wd_procedure cp on cp.id = ns.cadastre_procedure_id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_type in ('CPS', 'UNO')
+and tn.event_id in (
+'4039',
+'4040',
+'4041',
+'4042'
+)
+) where dup > 1
+UNION
+select distinct tn_id from (
+select
+tn.id tn_id,
+row_number() over (partition by cp.id order by tn.processing_type desc, tn.event_id desc, tn.id) dup
+from cms_task_notification tn
+join cms_wd_notif_subject ns on ns.id = tn.wd_subject_id
+join cms_wd_procedure cp on cp.id = ns.cadastre_procedure_id
+where 1=1
+and tn.wd_subject_id is not null
+and tn.state  = 'CREATED'
+and tn.processing_type in ('CPS', 'UNO')
+and tn.event_id in (
+'4027',
+'4028'
+)
+)where dup > 1
+)
+;
+end;
+]]>					
+			</value>
+		</property>
+	</bean>	
+	
+</beans>

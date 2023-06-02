@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    <batch:job id="EnableFulltextIndexes">
+        <batch:step id="enabledFulltextIndexes">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="20">
+                <batch:chunk commit-interval="1" reader="enabledFulltextIndexesReader" processor="enabledFulltextIndexesProcessor" writer="parentDummyWriter" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>		
+
+			
+	<bean id="enabledFulltextIndexesReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select column_value index_name from table(cms_utl_fulltext.get_disabled_fulltext_indexes)</value>
+		</property>
+	</bean>
+	
+	<bean id="enabledFulltextIndexesProcessor" class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step">
+		<property name="processorName" value="rebuild_index" />
+
+		<property name="sql">
+			<value>
+				{ call cms_utl_fulltext.recreate_fulltext_index(:indexName) }
+  			</value>
+  		</property>
+		<property name="paramsMapping">
+			<map>
+				<entry key="indexName" value="index_name" />
+			</map>
+		</property>		  		
+	</bean>	
+	
+</beans>

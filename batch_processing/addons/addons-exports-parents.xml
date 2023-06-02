@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <batch:step id="parentConvert" abstract="true">
+        <batch:tasklet>
+            <batch:chunk commit-interval="30" />
+			<batch:listeners>
+				<batch:listener ref="parentStepLoggingListener" />							
+			</batch:listeners>					
+        </batch:tasklet>
+    </batch:step>
+
+    <batch:step id="parentStep" abstract="true">
+        <batch:tasklet>
+			<batch:listeners>
+				<batch:listener ref="parentStepLoggingListener" />							
+			</batch:listeners>					
+        </batch:tasklet>
+    </batch:step>
+    
+    <batch:step id="parentChunkStep" abstract="true">
+        <batch:tasklet>
+            <batch:chunk commit-interval="1000" />
+        </batch:tasklet>
+    </batch:step>
+    
+	<bean id="parentTruncateTableTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" abstract="true">
+		<property name="sql">
+			<value>{ call cs_utl_ddl.truncate_table(:tableName) }</value>
+		</property>
+	</bean>	
+	
+  
+    
+    <bean id="parentThreadPoolTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="${batch.gridSize}"/>
+		<property name="maxPoolSize" value="${batch.gridSize}"/>
+	</bean>
+
+    <bean id="parentStepLoggingListener"  class="cz.csas.colmanbatch.addons.log.StepExecutionLoggingListener" /> 
+
+	<bean id="parentItemReadListener" class="cz.csas.colmanbatch.listener.StagingFileReadListener" />
+	<bean id="parentItemSkipListener" class="cz.csas.colmanbatch.listener.BatchSkipListener" />
+
+	<bean id="processItemSkipListener" class="cz.csas.colmanbatch.listener.BatchCompositeItemProcessListener" />    
+
+	<bean id="batchInterruptionPolicy" class="cz.csas.colmanbatch.policy.BatchInterruptionPolicy" scope="singleton" />
+
+	<bean id="parentLimitCheckingSkipPolicy" class="cz.csas.colmanbatch.policy.BatchLimitCheckingItemSkipPolicy">
+		<property name="skipLimit" value="${batch.skipLimit}" />
+		<property name="skippableExceptionMap">
+			<map>
+				<entry key="org.springframework.batch.item.WriteFailedException" value="true" />				
+				<entry key="org.springframework.batch.item.file.FlatFileParseException" value="true" />
+				<entry key="cz.csas.colmanbatch.processor.ProcessFailedException" value="true" />
+				<entry key="cz.csas.colmanbatch.writer.WriteFailedException" value="true" />	
+				<entry key="cz.csas.colmanbatch.writer.WriteNoLoggingFailedException" value="true" />
+			</map>
+		</property>
+		<property name="interruptionPolicy" ref="batchInterruptionPolicy" />
+	</bean>    
+    
+    <bean id="parentDummyWriter" class="cz.csas.colmanbatch.writer.DummyItemWriter" />
+
+    <bean id="parentMultiResourceReader" class="cz.csas.colmanbatch.reader.MultiResourceItemReaderWithFilter" abstract="true">
+    	<property name="strict" value="true" />
+    </bean>
+
+    <bean id="parentFlatFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" abstract="true">
+        <property name="linesToSkip" value="1" />
+        <property name="comments" value="END OF FILE" />
+        <property name="encoding" value="${character_encoding}" />
+    </bean>
+    
+    <bean id="parentLineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper" abstract="true">
+		<property name="fieldSetMapper">
+			<bean parent="parentFieldSetPassThroughMapper" /> 
+		</property>	        
+	</bean>     
+
+    <bean id="parentLineTokenizer" class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer" abstract="true">
+        <property name="delimiter" value="|"/>
+		<property name="strict" value="false" />        
+    </bean>
+    
+    <bean id="parentFieldSetToMapConvertor" parent="parentFormatter" abstract="true">
+		<property name="itemExtractor" ref="linkedHashFieldSetExtrator" />
+	</bean>
+    
+    
+    <bean id="parentFieldSetPassThroughMapper" class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper">
+    </bean>
+
+    <bean id="parentMapTableWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter" abstract="true">
+	    <property name="dataSource" ref="cscollDataSource" />   
+	    <property name="sql">
+	        <value>
+	            <![CDATA[
+	        - to be overriden in an inherited bean - 
+	            ]]>
+	        </value>
+	    </property>
+	    <property name="itemSqlParameterSourceProvider">
+		    <bean class="cz.csas.colmanbatch.addons.database.MapSqlParameterSourceProvider" />
+	    </property>        
+	</bean>
+
+
+    
+    <bean id="parentPrototypeBeanName" scope="prototype" abstract="true" />
+    
+	<bean id="parentDecider" class="cz.csas.colmanbatch.addons.task.JobStartingStepExecutionDecider" />
+    	
+	<bean id="parentSqlExportReader"
+		class="cz.csas.colmanbatch.addons.reader.JdbcCursorItemWithMetadataReader" abstract="true" >
+		<property name="sql" value="select 1 from dual" />
+ 		<property name="dataSource" ref="cscollDataSource" />  
+		<property name="rowMapper">
+			<bean class="org.springframework.jdbc.core.ColumnMapRowMapper" />
+		</property>
+	</bean>	
+	
+	<bean id="parentCSOPSExportWriter" class="cz.csas.colmanbatch.addons.writer.CSOPSFileItemWriter" abstract="true" scope="step">
+		<property name="resource" value="" />
+		<property name="encoding" value="ISO-8859-2" />
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>
+
+		<property name="extractName" value="AB" />
+		<property name="extractVersion" value="1.0" />
+		<property name="sourceSystem" value="COLMAN" />
+		<property name="incrementFlag" value="F" />
+				
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value="|" />
+				<property name="fieldExtractor">
+					<!-- just strip all non ISO-8859-2 characters -->
+					<bean
+						class="cz.csas.colmanbatch.addons.util.StripUnsupportedCharactersFieldExtractor" >
+						<property name="targetCharset" value="ISO-8859-2" />
+						<!--  replace CR, LF and pipe chars by space -->
+						<property name="charsReplacementSource">
+							<array>
+								<ref bean="lfCharacter" />
+								<ref bean="crCharacter" />								
+								<value>|</value>								
+							</array>
+						</property>
+						<property name="charsReplacementDest"   value="   " />
+						<property name="unmapableCharactersReplacement" value=" " />
+					</bean>
+				</property>
+			</bean>
+		</property>
+		<property name="headerCallback" ref="csopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" />
+		</property>		
+	</bean>	
+	
+	<bean id="dateFormat-yyyy.MM.dd" class="cz.csas.colmanejb.util.ConcurrentSimpleDateFormat">
+		<constructor-arg value="yyyy.MM.dd" />
+	</bean>
+            		
+	<bean id="dateFormat-yyyy-MM-dd" class="cz.csas.colmanejb.util.ConcurrentSimpleDateFormat">
+		<constructor-arg value="yyyy-MM-dd" />
+	</bean>
+
+	<bean id="dateFormat-yyyyMMdd" class="cz.csas.colmanejb.util.ConcurrentSimpleDateFormat">
+		<constructor-arg value="yyyyMMdd" />
+	</bean>
+
+	<bean id="dateFormat-dd.MM.yyyy" class="cz.csas.colmanejb.util.ConcurrentSimpleDateFormat">
+		<constructor-arg value="dd.MM.yyyy" />
+	</bean>
+
+	<bean id="dateFormat-yyyy.MM.dd-hh.mm.ss" class="cz.csas.colmanejb.util.ConcurrentSimpleDateFormat">
+		<constructor-arg value="yyyy.MM.dd HH:mm:ss" />
+	</bean>
+
+	<bean id="decimalFormat-dotDecimalSeparator" class="cz.csas.colmanejb.util.ConcurrentDecimalFormat">
+		<constructor-arg value="." />
+	</bean>
+
+    <bean id="parentEmptyStringHandlingFormat" abstract="true" class="cz.csas.colmanbatch.addons.util.EmptyStringHandlingPassThroughFormat" >
+	</bean>    
+    
+	<bean id="dateFormat-emptyStringToNull-yyyy.MM.dd" parent="parentEmptyStringHandlingFormat">
+		<property name="parentFormat">
+			<ref bean="dateFormat-yyyy.MM.dd" />
+		</property>
+	</bean>
+
+	<bean id="dateFormat-emptyStringToNull-yyyyMMdd" parent="parentEmptyStringHandlingFormat">
+		<property name="parentFormat">
+			<ref bean="dateFormat-yyyyMMdd" />
+		</property>
+	</bean>
+
+	<bean id="dateFormat-emptyStringToNull-dd.MM.yyyy" parent="parentEmptyStringHandlingFormat">
+		<property name="parentFormat">
+			<ref bean="dateFormat-dd.MM.yyyy" />
+		</property>
+	</bean>
+
+	<bean id="dateFormat-emptyStringToNull-yyyy.MM.dd-hh.mm.ss" parent="parentEmptyStringHandlingFormat">
+		<property name="parentFormat">
+			<ref bean="dateFormat-yyyy.MM.dd-hh.mm.ss" />
+		</property>
+	</bean>
+	    
+	<bean id="linkedHashMapExtrator" class="cz.csas.colmanbatch.addons.util.MapItemExtractor">
+		<property name="outputItemClass" value="org.springframework.util.LinkedCaseInsensitiveMap" />
+	</bean>	
+
+	<bean id="linkedHashFieldSetExtrator" class="cz.csas.colmanbatch.addons.util.FieldSetItemExtractor">
+		<property name="outputItemClass" value="org.springframework.util.LinkedCaseInsensitiveMap" />
+	</bean>	
+
+	<bean id="csopsHeaderFileCallback" class="cz.csas.colmanbatch.addons.csops.CSOPSHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="csopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="csopsHeaderWriter" class="cz.csas.colmanbatch.addons.csops.CSOPSHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="fieldNamesDelimiter" value="|" />		
+	</bean>	
+
+		
+	<bean id="lineSeparatorLf" class="cz.csas.colmanbatch.addons.util.CharacterFactory"
+		factory-method="getCharForAscii">
+		<constructor-arg value="10" />
+	</bean>	
+
+	<bean id="lineSeparatorCrLf" class="cz.csas.colmanbatch.addons.util.CharacterFactory"
+		factory-method="getStringForAsciiArray">
+		<constructor-arg>
+			<array>
+				<value>13</value>
+				<value>10</value>				
+			</array>
+		</constructor-arg>			
+	</bean>	
+	
+	<bean id="lfCharacter" class="cz.csas.colmanbatch.addons.util.CharacterFactory"
+		factory-method="getCharForAscii">
+		<constructor-arg value="10" />
+	</bean>	
+	<bean id="crCharacter" class="cz.csas.colmanbatch.addons.util.CharacterFactory"
+		factory-method="getCharForAscii">
+		<constructor-arg value="13" />
+	</bean>	
+
+	<bean id="parentCbcolCdmConverter" class="cz.csas.colmanbatch.addons.util.CodeTableConvertor" abstract="true">
+		<property name="targetSystem" value="CDM" />
+		<property name="dataSource" ref="cscollDataSource" />		
+	</bean>		
+	
+	<bean id="parentFormatter" class="cz.csas.colmanbatch.addons.processor.MultiTypeItemFormatter" abstract="true">
+	</bean>
+	
+	<bean id="parentCsopsHeaderFileCallback" class="cz.csas.colmanbatch.addons.csops.CSOPSHeaderFileCallback" abstract="true">
+	</bean>
+	
+	<bean id="parentExportManager" class="cz.csas.colmanbatch.addons.csops.CSOPSExportManager" abstract="true">
+	</bean>	
+	
+</beans>

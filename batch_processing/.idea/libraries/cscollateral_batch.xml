@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="cscollateral-batch">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/package/cscollateral-batch.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

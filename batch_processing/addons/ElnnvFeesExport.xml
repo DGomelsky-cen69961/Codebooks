@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+# Name         : ElnnvFeesExport.xml
+# Version      : 1.2
+# Author       : 
+# Date         : 6.10.2020
+# Description  : definice CLSC extractu pro SmartCase 
+# Notes        : extrakt pro generovani poplatnku klientum
+#================================================================================
+# Modified     :
+# init   date   mod id                  description
+#      ddmmmyy
+# ZEL  06Sep20         oprava INC15626625 - pridana podminka
+#                        AND wd.cadastre_procedure_number is not null
+# ZEL  02Nov20         oprava podminky zpusobujici duplicity v exportech
+#                        old: AND sub.LAST_TIME > (SELECT NVL (MAX (BIZDATE), TRUNC (SYSDATE - 1000)) FROM colmandata.CS_CSBIT_EXTRACTS WHERE NAME = 'ELNNV')  
+#                        new: AND sub.LAST_TIME > (SELECT NVL (TRUNC (MAX (BIZDATE) + 1) - 1/(24*60*60), TRUNC (SYSDATE - 1000)) FROM colmandata.CS_CSBIT_EXTRACTS WHERE NAME = 'ELNNV')
+# SMA  08.12.20        oprava podminky dle obou datumu 
+#                        old: AND sub.LAST_TIME > 
+#                        new: AND CASE WHEN wd.CREATE_TIME > sub.LAST_TIME THEN wd.CREATE_TIME ELSE sub.LAST_TIME END >
+# SMA  07.01.21        oprava 
+#                        DATE_OF_ORDER:
+#                          old: sub.submission_date          "DATE_OF_ORDER",
+#                          new: wd.create_time         "DATE_OF_ORDER",
+#                        DATE_OF_PAYMENT:
+#                          old: sub.submission_date + 10     "DATE_OF_PAYMENT",
+#                          new: wd.create_time + 7     "DATE_OF_PAYMENT",
+#                        přidání podminky:
+#                          old: -:- and sub.elnnv_file_name like '%z_nik%'
+#                          new: and sub.elnnv_file_name like '%automaticky_odesl%'
+#
+# DOGO 30.05.23			 Change of select for exportElnnvFeesValue 
+#================================================================================
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:elnnvFeesExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="ElnnvFeesExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportElnnvFeesTypeStep" />
+			<batch:next on="START:exportElnnvFeesTypeStep" to="exportElnnvFeesTypeStep" /> 
+			<batch:end on="COMPLETED:exportElnnvFeesTypeStep"/>
+  	</batch:decision>	
+    	
+		<batch:step id="exportElnnvFeesTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportElnnvFeesValueReader" processor="elnnvFeesValueProcessor" writer="exportelnnvFeesValueWriter" />
+				<batch:listeners>
+					<batch:listener ref="elnnvFeesExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	  <batch:listeners>
+		  <batch:listener ref="elnnvFeesValueExportManager" />	
+	  </batch:listeners>	
+			
+	</batch:job>    
+
+<!-- ================ exportElnnvFeesValue ================ -->
+	<bean id="exportElnnvFeesValueReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+    SELECT DECODE (partner.client_category, 'MSE', '107', 'CORPORATE', 'P098') "TYPE_OF_SERVICE",
+      partner.description          "CLIENT_NAME",
+      partner.identifier           "REGISTRATION_NUMBER",
+      coll.collection_bank_account "BANKS_ACCOUNT",
+      '2000'                       "SERVICE_FEE",
+      sub.submission_date          "DATE_OF_ORDER",
+      sub.submission_date + 7     "DATE_OF_PAYMENT",
+      wd.cadastre_procedure_number "NOTE"
+    FROM cms_elnnv_submission sub
+      LEFT JOIN cms_wd_procedure wd ON sub.cfr_nnv = wd.cadastre_procedure_number
+      LEFT JOIN cms_elnnv el ON sub.elnnv_id = el.id
+      LEFT JOIN cms_external_document ext ON ext.id = el.id
+      LEFT JOIN cms_document doc ON doc.id = ext.id
+      JOIN cms_collateral coll ON doc.main_collateral_id = coll.id
+      LEFT JOIN cms_partner partner ON doc.owner_in_dms_id = partner.id
+    WHERE 1 = 1
+      AND sub.cpr_nnv IS NOT NULL
+      AND sub.CFR_NNV IS NOT NULL
+      AND CASE WHEN wd.CREATE_TIME > sub.LAST_TIME THEN wd.CREATE_TIME ELSE sub.LAST_TIME END >
+          (SELECT NVL (TRUNC (MAX (BIZDATE) + 1) - 1/(24*60*60), TRUNC (SYSDATE - 1000))
+          FROM CS_CSBIT_EXTRACTS
+          WHERE NAME = 'ELNNV')
+      AND doc.DOCUMENT_TYPE = '900427'
+      and sub.elnnv_file_name like '%automaticky_odesl%'
+      AND partner.client_category NOT IN ('RETAIL')
+      AND coll.electronic_pledge_erasure = '1'
+      --and coll.collection_bank_account is not null
+      AND wd.cadastre_procedure_number is not null
+    ORDER BY sub.submission_date ASC
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportelnnvFeesValueWriter" parent="parentelnnvFeesValueExportWriter" scope="step">		
+		<property name="extractName" value="VR" />	
+		<property name="manager" ref="elnnvFeesValueExportManager" />
+		<property name="metadataProvider" ref="exportElnnvFeesValueReader" />																																																																															
+	</bean>
+	
+	<bean id="elnnvFeesValueProcessor" parent="elnnvFeesExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ Common ================ -->	
+	<bean id="elnnvFeesValueExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${elnnvFeesExport.resources}" />
+		<property name="agendaCode" value="CLSC" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="elnnvFeesExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+
+	<bean id="elnnvFeesExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentelnnvFeesValueExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="elnnvFeesExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+	</bean>	
+
+	<bean id="elnnvFeesExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="elnnvFeesExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="elnnvFeesExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value="|" />				
+	</bean>	
+</beans>

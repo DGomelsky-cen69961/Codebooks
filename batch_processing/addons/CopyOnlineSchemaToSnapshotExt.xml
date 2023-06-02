@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<batch:job id="CopyOnlineSchemaToSnapshotExt">
+    	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="backupStatisticsStep" />
+												
+			<batch:next on="START:backupStatisticsStep" to="backupStatisticsStep" /> 
+			<batch:next on="COMPLETED:backupStatisticsStep" to="truncateSnapshotPartitionsStep" />			
+
+			<batch:next on="START:truncateSnapshotPartitionsStep" to="truncateSnapshotPartitionsStep" /> 
+			<batch:next on="COMPLETED:truncateSnapshotPartitionsStep" to="copyTablesStep" />			
+
+			<batch:next on="START:copyTablesStep" to="copyTablesStep" /> 
+			<batch:end on="COMPLETED:copyTablesStep" />			
+
+    	</batch:decision>	
+
+		<batch:step id="backupStatisticsStep" next="decision">
+			<batch:tasklet ref="backupStatisticsTask" />
+		</batch:step>
+		
+		<batch:step id="truncateSnapshotPartitionsStep" next="decision">
+			<batch:tasklet ref="truncateSnapshotPartitionsTask" />
+		</batch:step>
+
+        <batch:step id="copyTablesStep" next="decision">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="20">
+                <batch:chunk commit-interval="1" reader="copyTablesReader" processor="copyTablesProcessor" writer="parentDummyWriter" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>		
+			
+	<bean id="backupStatisticsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call cms_snapshot.backup_schema_stats() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+
+	<bean id="truncateSnapshotPartitionsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call cms_snapshot.truncate_snapshot_partitions(:snapshotSchema, to_date(:snapshotDate,'YYMMDD')) }</value>
+		</property>
+		<property name="parameters">
+			<map>
+				<entry key="snapshotSchema" value="${batch.snapshotSchema}" />
+				<entry key="snapshotDate" value="#{jobParameters['date']}" />
+			</map>
+		</property>		
+	</bean>	
+	
+	<bean id="copyTablesReader" parent="parentSqlExportReader" scope="step">
+		<!--
+			Please notice that for calling cms_snapshot.get_online_tables_and_cluster(...) we set parameter p_cluster_instead_of_table to 0 
+			The reason for this is that maybe quite suprisingly copying whole clusters by using multi-table inserts has actually worse
+			performace that copying just plain tables within a cluster in parallel. 
+			The reason for this is that for TABLE ACCESS CLUSTER access pattern Oracle always use "db file sequential read" algorithm
+			which reads block one-by-one which is quite expensive (required many IOPs).
+			In contrary  just performing plang FULL TABLE SCAN typically uses more efficient algorithms as "db file parallel read"
+			or "db file scattered read" or event "direct read". Moreover if the tables belonging to one cluster are copied
+			simultaneously, the blocks loaded to the buffer cache by one session are reused by other sessions which 
+			also speeds-up the processing.
+		-->
+		<property name="sql">
+			<value>select sysdate flashback_date, object_type, object_name from table(cms_snapshot.get_online_tables_and_clusters('${batch.snapshotSchema}', 0))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor" class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step">
+		<property name="processorName" value="copy_tables_processor" />
+
+		<property name="sql">
+			<value>			
+				{ call cms_snapshot.copy_online_cluster_table_data('${batch.snapshotSchema}', :objectType, :objectName, :flashbackDate, to_date('#{jobParameters["date"]}', 'yymmdd')) }
+  			</value>
+  		</property>
+		<property name="paramsMapping">
+			<map>
+				<entry key="objectType" value="object_type" />
+				<entry key="objectName" value="object_name" />
+				<entry key="flashbackDate" value="flashback_date" />			
+			</map>
+		</property>		  		
+	</bean>	
+	
+</beans>

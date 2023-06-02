@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+                <value>classpath:loadNewPartners.properties</value>                
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    
+    <batch:job id="LoadNewPartners">
+        <batch:step id="loadNewPartners">
+            <batch:tasklet>
+                <batch:chunk commit-interval="1" reader="loadNewPartnersReader" processor="loadNewPartnersProcessor" writer="parentDummyWriter" skip-policy="loadNewPartnersLimitCheckingSkipPolicy" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+	<bean id="loadNewPartnersLimitCheckingSkipPolicy" parent="parentLimitCheckingSkipPolicy" >
+		<property name="skipLimit" value="${loadNewPartners.skipLimit}" />
+	</bean> 
+		
+	<bean id="loadNewPartnersReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+				SELECT   
+					ID
+				FROM
+					cms_partner
+				WHERE
+					last_full_update_from_crm IS NULL
+				ORDER BY
+					ID 
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="loadNewPartnersProcessor" class="cz.csas.colmanbatch.addons.partner.LoadPartnersProcessor" scope="step">
+	</bean>
+		
+</beans>

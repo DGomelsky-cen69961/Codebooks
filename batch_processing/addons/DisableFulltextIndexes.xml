@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    <batch:job id="DisableFulltextIndexes">
+		<batch:step id="disableFulltextIndexesStep">
+			<batch:tasklet ref="disableFulltextIndexesTask" />
+		</batch:step>
+    </batch:job>		
+
+	<bean id="disableFulltextIndexesTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call cms_utl_fulltext.disable_fulltext_indexes }</value>
+		</property>
+	</bean>
+	
+</beans>

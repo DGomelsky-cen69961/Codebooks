@@ -1,0 +1,133 @@
+<configuration>
+
+    <property name="LOG_DIR" value="${colman.log.root}" />	
+    <property name="PATTERN" value="%d [%thread] %-5level %logger{36} id:%X{batchJobId} name:%X{batchJobName}/%X{batchStepName} - %msg%n" />
+
+    <property name="PATTERN_BRIEF" value="%d [%thread] %-5level %logger{36} id:%X{batchJobId} name:%X{batchJobName}/%X{batchStepName} - %msg %nopexception %n" />
+
+    <property name="MAX_HISTORY" value="30" />
+	
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>	
+        <file>${LOG_DIR}/colman_batch_err.log</file>
+        <encoder>
+            <pattern>${PATTERN}</pattern>		
+        </encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>${LOG_DIR}/colman_online_err-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>${MAX_HISTORY}</maxHistory>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>		
+    </appender>
+
+	<appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>		
+		<file>${LOG_DIR}/colman_batch_all.log</file>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>${LOG_DIR}/colman_batch_all-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>${MAX_HISTORY}</maxHistory>
+		</rollingPolicy>		
+    </appender>
+	
+
+	<appender name="FILE_ALL_MSGS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>		
+		<file>${LOG_DIR}/colman_batch_all_msgs.log</file>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>${LOG_DIR}/colman_batch_all_msgs-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>${MAX_HISTORY}</maxHistory>
+		</rollingPolicy>		
+    </appender>
+
+	<appender name="FILE_BRIEF" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>		
+		<file>${LOG_DIR}/colman_batch_brief.log</file>
+        <encoder>
+            <pattern>${PATTERN_BRIEF}</pattern>
+        </encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>${LOG_DIR}/colman_batch_brief-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>${MAX_HISTORY}</maxHistory>
+		</rollingPolicy>		
+    </appender>
+		
+    <root level="ERROR">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE_BRIEF"/>
+        <appender-ref ref="FILE_ALL"/>
+	<appender-ref ref="FILE_ERROR"/>
+        <appender-ref ref="FILE_ALL_MSGS"/>
+    </root>
+	
+	<!--     openEJB use this special setting -->
+    <logger name="OpenEJB" level="ERROR"/>
+
+	<!-- General setup -->
+    <logger name="org.apache.activemq.broker.BrokerService" level="OFF" >
+    </logger>
+
+    <logger name="hu.appello" level="ERROR">
+    </logger>
+    
+    <logger name="cz.csas" level="ERROR">
+    </logger>
+	
+    <logger name="cz.csas.colmanbatch" level="INFO"/>
+
+	<!-- Display processed files -->
+    <logger name="cz.csas.colmanbatch.reader.MultiResourceItemReaderWithFilter" level="DEBUG" />
+
+	<!--  Batch errors logged by some Spring batch infrastructure are typically redundant, log them only in ERRORS file -->
+	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR" additivity="false">
+		<appender-ref ref="FILE_ERROR"/>
+	</logger>
+	<logger name="cz.csas.colmanbatch.processor.FaultTolerantCompositeItemProcessor" level="ERROR" additivity="false">
+		<appender-ref ref="FILE_ERROR"/>
+	</logger>	
+	<logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="ERROR" additivity="false">
+		<appender-ref ref="FILE_ERROR"/>
+    </logger>
+
+    <!-- Notifications processing -->
+    <logger name="cz.csas.colmanejb.notification.NotificationProcessingManagerBean" level="INFO" />
+
+	<!-- Account reservation service -->
+    <logger name="cz.csas.colmanejb.esbintegration.converter.AccountReservationServiceWrapper" level="DEBUG" />
+
+	<!-- Load client data scenario -->
+    <logger name="cz.csas.colmanejb.partner.PartnerManagerBean_loadPartnerData" level="DEBUG" />
+
+	<!-- General integration -->
+    <logger name="cz.csas.colman.integration.logging" level="DEBUG" additivity="false">
+        <appender-ref ref="FILE_ALL_MSGS"/>
+    </logger>
+
+	<!-- emails sending -->
+    <logger name="cz.csas.colmanejb.esbintegration.converter.EmailServiceWrapper" level="INFO" />
+
+    <!-- Example to an exact service
+    <logger name="cz.csas.colman.integration.logging.ClientLoggingHandler-OrganizationAlertService" level="DEBUG" additivity="false" />
+    <logger name="cz.csas.colman.integration.logging" level="DEBUG" additivity="false" />
+    -->
+
+    <logger name="cz.csas.colman.integration.logging.ClientLoggingHandler-AccountReservationService" level="DEBUG"  />
+    <logger name="cz.csas.colman.integration.logging.ClientLoggingHandler-AccountRestraintsService" level="DEBUG"  />
+</configuration>

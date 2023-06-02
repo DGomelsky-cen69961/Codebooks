@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:exportPairedCashDepositsSPZ.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="ExportPairedCashDepositsSPZ">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportPairedCashDepositsSPZStep" />
+						
+			<batch:next on="START:exportPairedCashDepositsSPZStep" to="exportPairedCashDepositsSPZStep" /> 
+			<batch:end on="COMPLETED:exportPairedCashDepositsSPZStep" />			
+
+		
+						
+			
+    	</batch:decision>	
+    	
+		<batch:step id="exportPairedCashDepositsSPZStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportPairedCashDepositsSPZReader" processor="exportPairedCashDepositsSPZProcessor" writer="exportPairedCashDepositsSPZWriter" />
+				<batch:listeners>
+					<batch:listener ref="exportPairedCashDepositsSPZCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+
+	
+		
+		
+		
+	<batch:listeners>
+		<batch:listener ref="exportPairedCashDepositsSPZManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ exportPairedCashDeposits ================ -->
+	<bean id="exportPairedCashDepositsSPZReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+distinct
+lpad(da.bank_account, 10, '0') as cislo_uctu_spz,
+ab.claim_value as blokovana_castka,
+(select (listagg(bl.loan_number, '; ') within group (order by bl.loan_number)) loan_list
+  from cms_loan_collateral_link lcl 
+  join cms_basic_loan bl on lcl.loan_id=bl.id
+  where 1=1
+  and lcl.collateral_id=co.id) as poznamka,
+ca.asset_id as variabilni_text,
+to_char(ab.blockage_start_date, 'dd.mm.yyyy') as platnost_od,
+to_char(ab.blockage_end_date, 'dd.mm.yyyy') as  platnost_do 
+from colmandata.cms_collateral co 
+join colmandata.cms_collateral_asset ca on co.collateral_asset_id=ca.id
+join colmandata.cms_deposit_asset da on ca.id=da.id
+join colmandata.cms_account_blockage ab on da.id=ab.deposit_id
+join colmandata.spz_paired_cashdeposit_stage pcs on ca.asset_id=pcs.cash_deposits_business_id 
+where 1=1
+and ca.base_value > 0
+and ab.state='Active'
+and ca.bank_code='0888'
+and co.state = 'activated'
+
+
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportPairedCashDepositsSPZWriter" parent="parentExportPairedCashDepositsSPZWriter" scope="step">		
+		<property name="extractName" value="DC" />	
+		<property name="manager" ref="exportPairedCashDepositsSPZManager" />
+		<property name="metadataProvider" ref="exportPairedCashDepositsSPZReader" />																																																																															
+	</bean>
+	
+	<bean id="exportPairedCashDepositsSPZProcessor" parent="exportPairedCashDepositsSPZItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+
+	
+<!-- ================ Common ================ -->	
+	<bean id="exportPairedCashDepositsSPZManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="true" />
+		<property name="summaryFileCode" value="LA" />
+		<property name="exportDirectory" value="${exportPairedCashDepositsSPZ.resources}" />
+		<property name="agendaCode" value="MILZ" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="exportPairedCashDepositsSPZCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="exportPairedCashDepositsSPZItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentExportPairedCashDepositsSPZWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="exportPairedCashDepositsSPZCsopsHeaderFileCallback" />																																																																																		
+	</bean>	
+
+	<bean id="exportPairedCashDepositsSPZCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="exportPairedCashDepositsSPZCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="exportPairedCashDepositsSPZCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+	</bean>	
+</beans>

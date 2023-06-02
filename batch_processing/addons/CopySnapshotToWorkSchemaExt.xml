@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<batch:job id="CopySnapshotToWorkSchemaExt">
+    	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="disableConstraintsStep" />
+												
+			<batch:next on="START:disableConstraintsStep" to="disableConstraintsStep" /> 
+			<batch:next on="COMPLETED:disableConstraintsStep" to="truncateWorkTablesStep" />			
+
+			<batch:next on="START:truncateWorkTablesStep" to="truncateWorkTablesStep" /> 
+			<batch:next on="COMPLETED:truncateWorkTablesStep" to="copyTablesStep" />			
+
+			<batch:next on="START:copyTablesStep" to="copyTablesStep" /> 
+			<batch:next on="COMPLETED:copyTablesStep" to="copyPrevDayResultsStep" />			
+
+			<batch:next on="START:copyPrevDayResultsStep" to="copyPrevDayResultsStep" /> 
+			<batch:next on="COMPLETED:copyPrevDayResultsStep" to="enableConstraintsStep" />			
+
+			<batch:next on="START:enableConstraintsStep" to="enableConstraintsStep" /> 
+			<batch:next on="COMPLETED:enableConstraintsStep" to="restoreStatisticsStep" />			
+
+			<batch:next on="START:restoreStatisticsStep" to="restoreStatisticsStep" /> 
+			<batch:end on="COMPLETED:restoreStatisticsStep" />			
+
+    	</batch:decision>	
+
+		<batch:step id="disableConstraintsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="disableConstraintsTask" />
+		</batch:step>
+
+		<batch:step id="truncateWorkTablesStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="truncateWorkTablesTask" />
+		</batch:step>
+
+        <batch:step id="copyTablesStep" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="4">
+                <batch:chunk commit-interval="1" reader="copyTablesReader" processor="copyTablesProcessor" writer="parentDummyWriter" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+
+		<batch:step id="enableConstraintsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="enableConstraintsTask" />
+		</batch:step>
+		
+		<batch:step id="copyPrevDayResultsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="copyPrevDayResultsTask" />
+		</batch:step>
+		
+		<batch:step id="restoreStatisticsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="restoreStatisticsTask" />
+		</batch:step>
+    </batch:job>		
+			
+	<bean id="disableConstraintsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.disable_all_contraints() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+	
+	<bean id="truncateWorkTablesTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.truncate_all_tables() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+	
+	<bean id="copyTablesReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_and_clusters('${batch.snapshotSchema}'))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor" class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step">
+		<property name="processorName" value="copy_tables_processor" />
+
+		<property name="sql">
+			<value>			
+				{ call ${batch.workSchema}.cms_work.copy_work_cluster_table_data('${batch.snapshotSchema}', :objectType, :objectName, to_date('#{jobParameters["date"]}', 'yymmdd')) }
+  			</value>
+  		</property>
+		<property name="paramsMapping">
+			<map>
+				<entry key="objectType" value="object_type" />
+				<entry key="objectName" value="object_name" />
+			</map>
+		</property>		  		
+	</bean>	
+	
+	<bean id="copyPrevDayResultsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.copy_prev_day_results(to_date(:snapshotDate,'YYMMDD')) }</value>
+		</property>
+		<property name="parameters">
+			<map>
+					<entry key="snapshotDate" value="#{jobParameters['date']}" />			
+			</map>
+		</property>		
+	</bean>	
+	
+	<bean id="enableConstraintsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.enable_all_contraints() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+		
+	<bean id="restoreStatisticsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cs_utl_ddl.restore_schema_stats() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+
+	
+</beans>

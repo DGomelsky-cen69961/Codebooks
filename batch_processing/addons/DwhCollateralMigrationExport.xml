@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:dwhCollateralMigrationExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<batch:job id="DwhCollateralMigrationExport">
+  		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportCollateralMigrationIdsStep" />
+						
+			<batch:next on="START:exportCollateralMigrationIdsStep" to="exportCollateralMigrationIdsStep" /> 
+			<batch:next on="COMPLETED:exportCollateralMigrationIdsStep" to="exportInsuranceMigrationIdsStep" />
+			
+			<batch:next on="START:exportInsuranceMigrationIdsStep" to="exportInsuranceMigrationIdsStep" /> 
+			<batch:next on="COMPLETED:exportInsuranceMigrationIdsStep" to="exportEvaluationMigrationIdsStep" />
+			
+			<batch:next on="START:exportEvaluationMigrationIdsStep" to="exportEvaluationMigrationIdsStep" /> 
+			<batch:next on="COMPLETED:exportEvaluationMigrationIdsStep" to="exportCollateralAssetMigrationIdsStep" />
+
+			<batch:next on="START:exportCollateralAssetMigrationIdsStep" to="exportCollateralAssetMigrationIdsStep" /> 
+			<batch:end on="COMPLETED:exportCollateralAssetMigrationIdsStep"/>
+
+    	</batch:decision>	
+    	
+		<batch:step id="exportCollateralMigrationIdsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportCollateralMigrationIdsReader" processor="exportCollateralMigrationIdsProcessor" writer="exportCollateralMigrationIdsWriter" />
+				<batch:listeners>
+					<batch:listener ref="dwhCollateralMigrationExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportInsuranceMigrationIdsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportInsuranceMigrationIdsReader" processor="exportInsuranceMigrationIdsProcessor" writer="exportInsuranceMigrationIdsWriter" />
+				<batch:listeners>
+					<batch:listener ref="dwhCollateralMigrationExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportEvaluationMigrationIdsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportEvaluationMigrationIdsReader" processor="exportEvaluationMigrationIdsProcessor" writer="exportEvaluationMigrationIdsWriter" />
+				<batch:listeners>
+					<batch:listener ref="dwhCollateralMigrationExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportCollateralAssetMigrationIdsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportCollateralAssetMigrationIdsReader" processor="exportCollateralAssetMigrationIdsProcessor" writer="exportCollateralAssetMigrationIdsWriter" />
+				<batch:listeners>
+					<batch:listener ref="dwhCollateralMigrationExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>		
+		
+	<batch:listeners>
+		<batch:listener ref="dwhCollateralMigrationExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ CollateralMigrationIds ================ -->
+	<bean id="exportCollateralMigrationIdsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  distinct
+  c.id,
+  c.migration_source_id,
+  c.migration_source_system,
+  c.collateral_id
+from 
+  cms_collateral c
+where
+  c.migration_source_id is not null and c.MIGRATION_SOURCE_SYSTEM = 'SB0'
+  and c.business_entity_descriptor_id not in ('cscollateral/CollateralBillOfExchange', 'cscollateral/CollateralGuarantee', 'cscollateral/CollateralFinancialGuarantee')
+  and c.note not like '%SB:FLOAT:799 %'
+order by 
+  1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralMigrationIdsWriter" parent="parentDwhCollateralMigrationExportWriter" scope="step">		
+		<property name="extractName" value="MC" />	
+		<property name="manager" ref="dwhCollateralMigrationExportManager" />
+		<property name="metadataProvider" ref="exportCollateralMigrationIdsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportCollateralMigrationIdsProcessor" parent="dwhCollateralMigrationExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ InsuranceMigrationIds ================ -->
+	<bean id="exportInsuranceMigrationIdsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  distinct
+  i.id,
+  i.migration_source_id,
+  i.migration_source_system
+from 
+  cms_insurance i
+where
+  i.migration_source_id is not null and i.MIGRATION_SOURCE_SYSTEM = 'SB0'
+order by 
+  1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportInsuranceMigrationIdsWriter" parent="parentDwhCollateralMigrationExportWriter" scope="step">		
+		<property name="extractName" value="MI" />	
+		<property name="manager" ref="dwhCollateralMigrationExportManager" />
+		<property name="metadataProvider" ref="exportInsuranceMigrationIdsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportInsuranceMigrationIdsProcessor" parent="dwhCollateralMigrationExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ EvaluationMigrationIds ================ -->
+	<bean id="exportEvaluationMigrationIdsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  distinct
+  re.id,
+  re.migration_source_id,
+  re.migration_source_system
+from 
+  CMS_RE_EVALUATION re
+where
+  re.migration_source_id is not null and re.MIGRATION_SOURCE_SYSTEM = 'SB0'
+order by 
+  1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportEvaluationMigrationIdsWriter" parent="parentDwhCollateralMigrationExportWriter" scope="step">		
+		<property name="extractName" value="ME" />	
+		<property name="manager" ref="dwhCollateralMigrationExportManager" />
+		<property name="metadataProvider" ref="exportEvaluationMigrationIdsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportEvaluationMigrationIdsProcessor" parent="dwhCollateralMigrationExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ CollateralAssetMigrationIds ================ -->
+	<bean id="exportCollateralAssetMigrationIdsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  distinct
+  a.id,
+  a.migration_source_id,
+  a.migration_source_system
+from 
+  cms_collateral_asset a
+where
+  a.migration_source_id is not null and a.MIGRATION_SOURCE_SYSTEM = 'SB0'
+order by 
+  1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralAssetMigrationIdsWriter" parent="parentDwhCollateralMigrationExportWriter" scope="step">		
+		<property name="extractName" value="MA" />	
+		<property name="manager" ref="dwhCollateralMigrationExportManager" />
+		<property name="metadataProvider" ref="exportCollateralAssetMigrationIdsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportCollateralAssetMigrationIdsProcessor" parent="dwhCollateralMigrationExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+		
+<!-- ================ Common ================ -->	
+	<bean id="dwhCollateralMigrationExportManager" parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${dwhCollateralMigrationExport.resources}" />
+		<property name="agendaCode" value="DWCN" />
+		<property name="sourceSystem" value="COLMAN" />
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="dwhCollateralMigrationExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>					
+		<property name="encoding" value="windows-1250" />	
+	</bean>
+		
+
+	<bean id="dwhCollateralMigrationExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentDwhCollateralMigrationExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+		<property name="encoding" value="windows-1250" />		
+		<property name="headerCallback" ref="dwhCollateralMigrationExportCsopsHeaderFileCallback" />																																																																																		
+	</bean>	
+
+	<bean id="dwhCollateralMigrationExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="dwhCollateralMigrationExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="dwhCollateralMigrationExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+	</bean>	
+	
+
+</beans>

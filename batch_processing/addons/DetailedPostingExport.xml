@@ -1,0 +1,385 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:detailedPostingExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="DetailedPostingExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportDpCollateralSubtypeSettingsStep" />
+						
+			<batch:next on="START:exportDpCollateralSubtypeSettingsStep" to="exportDpCollateralSubtypeSettingsStep" /> 
+			<batch:next on="COMPLETED:exportDpCollateralSubtypeSettingsStep" to="exportDpTradingPartnersStep" />			
+
+			<batch:next on="START:exportDpTradingPartnersStep" to="exportDpTradingPartnersStep" /> 
+			<batch:next on="COMPLETED:exportDpTradingPartnersStep" to="exportDpPostingRecordsStep" />			
+
+			<batch:next on="START:exportDpPostingRecordsStep" to="exportDpPostingRecordsStep" /> 
+			<batch:next on="COMPLETED:exportDpPostingRecordsStep" to="exportDpAllocationPostingDetailsStep" />
+						
+			<batch:next on="START:exportDpAllocationPostingDetailsStep" to="exportDpAllocationPostingDetailsStep" /> 
+			<batch:next on="COMPLETED:exportDpAllocationPostingDetailsStep" to="exportDpAllocationPostingProvidersDetailsStep"/>
+
+			<batch:next on="START:exportDpAllocationPostingProvidersDetailsStep" to="exportDpAllocationPostingProvidersDetailsStep" /> 
+			<batch:end on="COMPLETED:exportDpAllocationPostingProvidersDetailsStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="exportDpCollateralSubtypeSettingsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportDpCollateralSubtypeSettingsReader" processor="exportDpCollateralSubtypeSettingsProcessor" writer="exportDpCollateralSubtypeSettingsWriter" />
+				<batch:listeners>
+					<batch:listener ref="detailedPostingExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="exportDpTradingPartnersStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportDpTradingPartnersReader" processor="exportDpTradingPartnersProcessor" writer="exportDpTradingPartnersWriter" />
+				<batch:listeners>
+					<batch:listener ref="detailedPostingExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="exportDpPostingRecordsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportDpPostingRecordsReader" processor="exportDpPostingRecordsProcessor" writer="exportDpPostingRecordsWriter" />
+				<batch:listeners>
+					<batch:listener ref="detailedPostingExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportDpAllocationPostingDetailsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportDpAllocationPostingDetailsReader" processor="exportDpAllocationPostingDetailsProcessor" writer="exportDpAllocationPostingDetailsWriter" />
+				<batch:listeners>
+					<batch:listener ref="detailedPostingExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportDpAllocationPostingProvidersDetailsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportDpAllocationPostingProvidersDetailsReader" processor="exportDpAllocationPostingProvidersDetailsProcessor" writer="exportDpAllocationPostingProvidersDetailsWriter" />
+				<batch:listeners>
+					<batch:listener ref="detailedPostingExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+
+	<batch:listeners>
+		<batch:listener ref="detailedPostingExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ CollateralSubtypeSettings ================ -->
+	<bean id="exportDpCollateralSubtypeSettingsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select * from cms_coll_subtype_settings
+order by 1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDpCollateralSubtypeSettingsWriter" parent="parentDetailedPostingExportWriter" scope="step">		
+		<property name="extractName" value="CS" />	
+		<property name="manager" ref="detailedPostingExportManager" />
+		<property name="metadataProvider" ref="exportDpCollateralSubtypeSettingsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportDpCollateralSubtypeSettingsProcessor" parent="detailedPostingExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ TradingPartners ================ -->
+
+	<bean id="exportDpTradingPartnersReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select distinct 
+  cssm.trading_partner_id, 
+  cssm.cluid, 
+  decode(p.description,null,'Zatim v COLMANu neni zalozen',p.description) as description, 
+  decode(p.identifier, null,'Zatim v COLMANu neni zalozen', p.identifier) as identifier_ico_rc 
+from cms_client_source_sys_map cssm
+left join cms_partner p on (cssm.cluid = p.cluid) 
+where (trading_partner_id not like 'XNA')
+order by 1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDpTradingPartnersWriter" parent="parentDetailedPostingExportWriter" scope="step">		
+		<property name="extractName" value="TP" />	
+		<property name="manager" ref="detailedPostingExportManager" />
+		<property name="metadataProvider" ref="exportDpTradingPartnersReader" />																																																																															
+	</bean>
+	
+	<bean id="exportDpTradingPartnersProcessor" parent="detailedPostingExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ PostingRecords ================ -->
+	<bean id="exportDpPostingRecordsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  por.currency currency_1, 
+  por.trading_partner_id trading_partner_1, 
+  por.gl_account_number gl_account_number_1, 
+  to_char(por.posted_value,'999,999,999,990.99') as posted_value_fmt_1, 
+  por.posting_date posting_date_1,
+  'DB_DATA:' as DB_DATA, 
+  por.* 
+from 
+cms_posting_record por where por.posting_date=(select max(spr.posting_date) from cms_posting_record spr)
+order by por.currency, por.gl_account_number, por.trading_partner_id, por.posted_value
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDpPostingRecordsWriter" parent="parentDetailedPostingExportWriter" scope="step">		
+		<property name="extractName" value="PR" />	
+		<property name="manager" ref="detailedPostingExportManager" />
+		<property name="metadataProvider" ref="exportDpPostingRecordsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportDpPostingRecordsProcessor" parent="detailedPostingExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ AllocationPostingDetails ================ -->
+	<bean id="exportDpAllocationPostingDetailsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+with
+  loap as (
+    select 
+      loan_pr.id as partner_role_id,
+      listagg(loan_p.description, '| ') within group (order by loan_p.identifier) as dluznik_desc,
+      listagg(loan_p.identifier, '| ') within group (order by loan_p.identifier) as dluznik_ident,
+      listagg(loan_p.cluid, '| ') within group (order by loan_p.identifier) as dluznik_cluid,
+      listagg(loan_cssm.trading_partner_id, '| ') within group (order by loan_p.identifier, loan_cssm.trading_partner_id) as dluznik_trad_partner_id,
+      listagg(loan_p.identifier || '-' || loan_cssm.trading_partner_id, '| ') within group (order by loan_p.identifier, loan_cssm.trading_partner_id) as dluznik_trad_partner_id_pair
+    from cms_partner_role loan_pr
+    left join cms_partner loan_p on (loan_pr.partner_id = loan_p.id)
+    left join (
+      select distinct cluid, trading_partner_id from cms_client_source_sys_map
+    ) loan_cssm on (loan_p.cluid = loan_cssm.cluid)
+    where loan_pr.partner_role_type='LOAMD'
+    group by loan_pr.id
+  ),
+  col_class as (
+    SELECT DISTINCT e.reference_name refn, u.cz cla_cz FROM
+    wdp_code_element e LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+    WHERE fk_code_base_id like 'cscollateral/CBCOL_CollateralClass'
+    ORDER BY 1, 2 
+  ),
+  col_cat as (
+    SELECT DISTINCT e.reference_name refn, u.cz cat_cz FROM
+    wdp_code_element e LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+    WHERE fk_code_base_id like 'cscollateral/CBCOL_CollateralType'
+    ORDER BY 1, 2
+  ),
+  col_subc as (
+    SELECT DISTINCT e.reference_name refn, u.cz subcat_cz FROM
+    wdp_code_element e LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+    WHERE fk_code_base_id like 'cscollateral/CBCOL_CollateralSubType'
+    ORDER BY 1, 2
+  ),
+  col_code as (
+    SELECT DISTINCT e.reference_name refn, u.cz code_cz FROM
+    wdp_code_element e LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+    WHERE fk_code_base_id like 'cscollateral/CBCOL_CollateralCode'
+    ORDER BY 1, 2
+  ),
+  col_form as (
+    SELECT DISTINCT e.reference_name refn, u.cz form_cz FROM
+    wdp_code_element e LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+    WHERE fk_code_base_id like 'cscollateral/CBCOL_CollateralForm'
+    ORDER BY 1, 2
+  )
+select
+ laar.id as laar_id,
+ col_cat.cat_cz collateral_category,
+ col_subc.subcat_cz collateral_sub_category,
+ col_class.cla_cz collateral_class, 
+ col_code.code_cz collateral_code,
+ col_form.form_cz collateral_form,
+  css.code_form_description,
+  css.analytical_account,
+  ca.business_entity_descriptor_id as ca_bedi,
+  c.collateral_id, ca.asset_id, 
+  bl.loan_number, 
+  laar.allocated_value,
+  laar.allocated_value_bccy,
+  ca.currency as asset_ccy,
+  laar.posting_allocated_value, laar.posting_allocated_value_bccy, laar.posting_allo_value_currency,
+  bl.bs_outstanding,
+  bl.bs_outstanding_bccy,
+  bl.risk_value,
+  bl.risk_value_bccy,
+  bl.currency as loan_ccy,
+  laar.trading_partner_id,
+  loap.dluznik_desc, loap.dluznik_ident, loap.dluznik_cluid,
+  loap.dluznik_trad_partner_id_pair,
+  (select calculation_date from cms_allocation_run_batch where id=laar.allocation_run_batch_id) as calculation_date
+from cms_loan_asset_alloc_res laar
+left join cms_collateral c on (laar.collateral_id = c.id)
+left join cms_collateral_asset ca on (laar.collateral_asset_id = ca.id)
+left join cms_coll_subtype_settings css on (ca.collateral_type_settings_id = css.id)
+left join cms_basic_loan bl on (laar.loan_product_id = bl.id)
+left join loap on (bl.main_debtor_id=loap.partner_role_id)
+left join col_class on (css.collateral_class=col_class.refn)
+left join col_cat on (css.collateral_category=col_cat.refn)
+left join col_subc on (css.collateral_sub_category=col_subc.refn)
+left join col_code on (css.collateral_code=col_code.refn)
+left join col_form on (css.collateral_form=col_form.refn)
+where 
+ (laar.allocation_run_batch_id = (select max(allocation_run_batch_id) from cms_posting_batch))
+  and (laar.allocated_value_bccy > 0)
+order by
+	1  
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDpAllocationPostingDetailsWriter" parent="parentDetailedPostingExportWriter" scope="step">		
+		<property name="extractName" value="PD" />	
+		<property name="manager" ref="detailedPostingExportManager" />
+		<property name="metadataProvider" ref="exportDpAllocationPostingDetailsReader" />
+																																																																																	
+	</bean>
+	
+	<bean id="exportDpAllocationPostingDetailsProcessor" parent="detailedPostingExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ AllocationPostingProvidersDetails ================ -->
+	<bean id="exportDpAllocationPostingProvidersDetailsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select c.collateral_id,
+  collateral_p.description as provider_desc, 
+  collateral_p.identifier as provider_ident, 
+  collateral_p.cluid as provider_cluid,
+  collateral_cssm.trading_partner_id as provider_trad_part_id,
+  collateral_p.identifier as provider_trad_part_id_pair
+from cms_collateral_provider cp 
+left join cms_collateral c on (cp.collateral_id = c.id)
+left join cms_partner_role collateral_pr on (cp.id = collateral_pr.id)
+left join cms_partner collateral_p on (collateral_pr.partner_id = collateral_p.id)
+left join (
+  select distinct cluid, trading_partner_id from cms_client_source_sys_map
+) collateral_cssm on (collateral_p.cluid = collateral_cssm.cluid)
+where cp.collateral_id is not null
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDpAllocationPostingProvidersDetailsWriter" parent="parentDetailedPostingExportWriter" scope="step">		
+		<property name="extractName" value="PP" />	
+		<property name="manager" ref="detailedPostingExportManager" />
+		<property name="metadataProvider" ref="exportDpAllocationPostingProvidersDetailsReader" />
+																																																																																	
+	</bean>
+	
+	<bean id="exportDpAllocationPostingProvidersDetailsProcessor" parent="detailedPostingExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+
+	
+<!-- ================ Common ================ -->	
+	<bean id="detailedPostingExportManager" parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<!-- <property name="summaryFileCode" value="AA" /> -->
+		<property name="exportDirectory" value="${detailedPostingExport.resources}" />
+		<property name="agendaCode" value="CLDA" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="detailedPostingExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>					
+		<property name="encoding" value="windows-1250" />	
+	</bean>
+		
+
+	<bean id="detailedPostingExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentDetailedPostingExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+		<property name="encoding" value="windows-1250" />		
+		<property name="headerCallback" ref="detailedPostingExportCsopsHeaderFileCallback" />																																																																																		
+	</bean>	
+
+	<bean id="detailedPostingExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="detailedPostingExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="detailedPostingExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+	</bean>	
+	
+
+</beans>

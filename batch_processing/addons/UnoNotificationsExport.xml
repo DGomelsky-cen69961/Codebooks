@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:unoNotificationsExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<batch:job id="UnoNotificationsExport">
+  		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="unoNotificationsBeforeStep" />
+			
+			<batch:next on="START:unoNotificationsBeforeStep" to="unoNotificationsBeforeStep" /> 
+			<batch:next on="COMPLETED:unoNotificationsBeforeStep" to="exportUnoNotificationsStep" />
+						
+			<batch:next on="START:exportUnoNotificationsStep" to="exportUnoNotificationsStep" /> 
+			<batch:next on="COMPLETED:exportUnoNotificationsStep" to="unoNotificationsProcessedStep" />
+			
+			<batch:next on="START:unoNotificationsProcessedStep" to="unoNotificationsProcessedStep" /> 
+			<batch:end on="COMPLETED:unoNotificationsProcessedStep" />
+			
+    	</batch:decision>	
+
+		<batch:step id="unoNotificationsBeforeStep" next="decision">
+			<batch:tasklet ref="unoNotificationsBeforeTask" />
+		</batch:step>
+    	
+		<batch:step id="exportUnoNotificationsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportUnoNotificationsReader" processor="exportUnoNotificationsProcessor" writer="exportUnoNotificationsWriter" />
+				<batch:listeners>
+					<batch:listener ref="UnoNotificationsExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="unoNotificationsProcessedStep" next="decision">
+			<batch:tasklet ref="unoNotificationsProcessedTask" />
+		</batch:step>
+				
+	<batch:listeners>
+		<batch:listener ref="UnoNotificationsExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+<!-- ================ unoNotificationsBeforeProcessed ================ -->	
+	<bean id="unoNotificationsBeforeTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+begin 
+update cms_task_notification t 
+  set t.processing_flags = cms_common.append_to_processing_flag(t.processing_flags, 'SENDING') 
+where  1=1
+  and t.BUSINESS_ENTITY_DESCRIPTOR_ID = 'cscollateral/UNOTaskNotification' 
+  and  t.state = 'CREATED' 
+  and exists (select 1 from cms_uno_task_notification u where u.id = t.id) 
+  and ( (t.processing_flags not like cms_common.get_processing_flag_tag_like('SENDING') 
+  and t.processing_flags not like cms_common.get_processing_flag_tag_like('SENT')) or t.processing_flags is null);
+end;			
+			</value>
+		</property>
+	</bean>
+	
+	
+<!-- ================ ExportUnoNotifications ================ -->
+	<bean id="exportUnoNotificationsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select
+  cs_utl_validation.validate_varchar(caseType,'CMS_UNO_TAK_NOTIFICATION.CASE_TYPE',rownum,20,0,'') "caseType",
+  cs_utl_validation.validate_varchar(receivedDate,'CMS_TASK_NOTIFICATION.CREATE_TIME',rownum,40,0,'') "receivedDate",
+  cs_utl_validation.validate_varchar(attribute1_attributeType,'NotificationId',rownum,20,0,'') "attribute1_attributeType",
+  cs_utl_validation.validate_number(attribute1_attributeValue,'CMS_TASK_NOTIFICATION.ID',rownum,19,0,0,'') "attribute1_attributeValue",
+  cs_utl_validation.validate_varchar(attribute1_attributeDataType,'INT',rownum,20,0,'') "attribute1_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute2_attributeType,'EventId',rownum,20,0,'') "attribute2_attributeType",
+  cs_utl_validation.validate_varchar(attribute2_attributeValue,'CMS_TASK_NOTIFICATION.EVENT_ID',rownum,20,0,'') "attribute2_attributeValue",
+  cs_utl_validation.validate_varchar(attribute2_attributeDataType,'STR',rownum,20,0,'') "attribute2_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute3_attributeType,'Segment',rownum,20,0,'') "attribute3_attributeType",
+  cs_utl_validation.validate_varchar(attribute3_attributeValue,'PARTNER.CLIENT_CATEGORY',rownum,20,0,'') "attribute3_attributeValue",
+  cs_utl_validation.validate_varchar(attribute3_attributeDataType,'STR',rownum,20,0,'') "attribute3_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute4_attributeType,'Subject',rownum,20,0,'') "attribute4_attributeType",
+  cs_utl_validation.validate_varchar(attribute4_attributeValue,'CMS_TASK_NOTIFICATION.SUBJECT',rownum,255,0,'') "attribute4_attributeValue",
+  cs_utl_validation.validate_varchar(attribute4_attributeDataType,'STR',rownum,20,0,'') "attribute4_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute5_attributeType,'Description',rownum,20,0,'') "attribute5_attributeType",
+  cs_utl_validation.validate_varchar(attribute5_attributeValue,'CMS_TASK_NOTIFICATION.DESCRIPTION',rownum,255,0,'') "attribute5_attributeValue",
+  cs_utl_validation.validate_varchar(attribute5_attributeDataType,'STR',rownum,20,0,'') "attribute5_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute6_attributeType,'CreateTime',rownum,20,0,'') "attribute6_attributeType",
+  cs_utl_validation.validate_varchar(attribute6_attributeValue,'SYSDATE',rownum,40,0,'') "attribute6_attributeValue",
+  cs_utl_validation.validate_varchar(attribute6_attributeDataType,'DTM',rownum,20,0,'') "attribute6_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute7_attributeType,'CadastreProcedureNumber',rownum,20,0,'') "attribute7_attributeType",
+  cs_utl_validation.validate_varchar(attribute7_attributeValue,'CMS_WD_PROCEDURE.CADASTRE_PROCEDURE_NUMBER',rownum,255,0,'') "attribute7_attributeValue",
+  cs_utl_validation.validate_varchar(attribute7_attributeDataType,'STR',rownum,20,0,'') "attribute7_attributeDataType",
+  cs_utl_validation.validate_varchar(attribute8_attributeType,'CadasreProcedureId',rownum,20,0,'') "attribute8_attributeType",
+  cs_utl_validation.validate_varchar(attribute8_attributeValue,'CMS_WD_PROCEDURE.CADASTRE_PROCEDURE_INTER_ID',rownum,20,0,'') "attribute8_attributeValue",
+  cs_utl_validation.validate_varchar(attribute8_attributeDataType,'STR',rownum,20,0,'') "attribute8_attributeDataType"
+from (select
+distinct 
+  u.CASE_TYPE caseType,
+  to_char(min(t.CREATE_TIME), 'dd.mm.yyyy hh24:mi:ss') receivedDate,
+  'NotificationId' attribute1_attributeType,
+  min(t.id) attribute1_attributeValue,
+  'INT' attribute1_attributeDataType,
+  'EventId' attribute2_attributeType,
+  t.EVENT_ID attribute2_attributeValue,
+  'STR' attribute2_attributeDataType,
+  'Segment' attribute3_attributeType,
+  nvl(p.client_category, 'RETAIL') attribute3_attributeValue,
+  'STR' attribute3_attributeDataType,
+  'Subject' attribute4_attributeType,
+  t.subject attribute4_attributeValue,
+  'STR' attribute4_attributeDataType,
+  'Description' attribute5_attributeType,
+  t.description attribute5_attributeValue,
+  'STR' attribute5_attributeDataType,
+  'CreateTime' attribute6_attributeType,
+  to_char(sysdate, 'dd.mm.yyyy') attribute6_attributeValue,
+  'DTM' attribute6_attributeDataType,
+  'CadastreProcedureNumber' attribute7_attributeType,
+  nvl(cp.CADASTRE_PROCEDURE_NUMBER, '') attribute7_attributeValue,
+  'STR' attribute7_attributeDataType,
+  'CadastreProcedureID' attribute8_attributeType,
+  nvl(cp.CADASTRE_PROCEDURE_INTER_ID, '') attribute8_attributeValue,
+  'STR' attribute8_attributeDataType
+from 
+  cms_task_notification t
+  join cms_uno_task_notification u on u.id = t.id
+  left join cms_partner p on p.id = t.client_id
+  left join cms_wd_notif_subject ns on ns.id = t.wd_subject_id
+  left join cms_wd_procedure cp on cp.id = ns.CADASTRE_PROCEDURE_ID
+where 1=1
+  and t.BUSINESS_ENTITY_DESCRIPTOR_ID = 'cscollateral/UNOTaskNotification'
+  and u.case_type is not null
+  and t.state = 'CREATED' 
+  and t.processing_flags is not null
+  and t.processing_flags like cms_common.get_processing_flag_tag_like('SENDING') 
+  and t.processing_flags not like cms_common.get_processing_flag_tag_like('SENT')
+group by u.CASE_TYPE, t.EVENT_ID, nvl(p.client_category, 'RETAIL'), t.subject, t.description, to_char(sysdate, 'dd.mm.yyyy'), nvl(cp.CADASTRE_PROCEDURE_NUMBER, ''), cp.CADASTRE_PROCEDURE_INTER_ID  
+order by 
+  1)
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportUnoNotificationsWriter" parent="parentUnoNotificationsExportWriter" scope="step">		
+		<property name="extractName" value="UN" />	
+		<property name="manager" ref="UnoNotificationsExportManager" />
+		<property name="metadataProvider" ref="exportUnoNotificationsReader" />																	
+	</bean>
+	
+	<bean id="exportUnoNotificationsProcessor" parent="UnoNotificationsExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ unoNotificationsProcessed ================ -->	
+	<bean id="unoNotificationsProcessedTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+begin 
+update cms_task_notification t 
+  set t.state = 'Sent', 
+  t.last_time = sysdate, 
+  t.last_user='UnoNotificationsExport', 
+  t.processing_flags = cms_common.append_to_processing_flag(t.processing_flags, 'SENT')
+where 1=1
+  and t.BUSINESS_ENTITY_DESCRIPTOR_ID = 'cscollateral/UNOTaskNotification' 
+  and  t.state = 'CREATED' 
+  and exists (select 1 from cms_uno_task_notification u where u.id = t.id) 
+  and processing_flags is not null
+  and processing_flags like cms_common.get_processing_flag_tag_like('SENDING') 
+  and processing_flags not like cms_common.get_processing_flag_tag_like('SENT');
+end;			
+			</value>
+		</property>
+	</bean>
+	
+<!-- ================ Common ================ -->	
+	<bean id="UnoNotificationsExportManager" parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${unoNotificationsExport.resources}" />
+		<property name="agendaCode" value="CLUN" />
+		<property name="sourceSystem" value="COLMAN" />
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="UnoNotificationsExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>					
+		<property name="encoding" value="UTF-8" />	
+	</bean>
+		
+
+	<bean id="UnoNotificationsExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentUnoNotificationsExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value=";" />
+				<property name="fieldExtractor">
+					<bean
+						class="cz.csas.colmanbatch.addons.util.StripUnsupportedCharactersFieldExtractor" >
+						<!--  replace CR, LF and pipe chars by space -->
+						<property name="charsReplacementSource">
+							<array>
+								<ref bean="lfCharacter" />
+								<ref bean="crCharacter" />								
+								<value>;</value>								
+							</array>
+						</property>
+						<property name="charsReplacementDest"   value="   " />
+						<property name="unmapableCharactersReplacement" value=" " />
+					</bean>
+				</property>
+			</bean>
+		</property>		
+		<property name="encoding" value="UTF-8" />		
+		<property name="headerCallback" ref="UnoNotificationsExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																				
+	</bean>	
+
+	<bean id="UnoNotificationsExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="UnoNotificationsExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="UnoNotificationsExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />			
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />			
+	</bean>	
+	
+</beans>

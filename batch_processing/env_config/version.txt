@@ -1,0 +1,9 @@
+no new tag created
+used branch/tag: prs
+
+batch_processing commit message: Include definition for  IDMX0301 LoanAndCollateral_startProcess
+
+
+Job: COLMAN/prs/env_config
+Build number: 37
+Author: ext96009

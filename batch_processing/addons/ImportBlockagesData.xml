@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer"
+		class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer"
+		lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+				<value>classpath:application.properties</value>
+				<value>classpath:importBlockagesData.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<import resource="classpath:addons-context.xml" />
+
+	<import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="ImportBlockagesData">
+		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="importBlockagesDataCleanupStep" />
+
+			<batch:next on="START:importBlockagesDataCleanupStep" to="importBlockagesDataCleanupStep" />
+			<batch:next on="COMPLETED:importBlockagesDataCleanupStep" to="importBlockagesDataConvertStep" />
+			
+			<batch:next on="START:importBlockagesDataConvertStep" to="importBlockagesDataConvertStep" />
+			<batch:end on="COMPLETED:importBlockagesDataConvertStep" />
+		</batch:decision>
+
+		<batch:step id="importBlockagesDataCleanupStep" next="decision">
+			<batch:tasklet ref="importBlockagesDataCleanupTask" />
+		</batch:step>
+
+		<batch:step id="importBlockagesDataConvertStep"	parent="parentChunkStep" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="importBlockagesDataMultiResourceReader" processor="importBlockagesDataProcessor" writer="importBlockagesDataWriter" skip-policy="importBlockagesDataLimitCheckingSkipPolicy" />
+				<batch:listeners>
+					<batch:listener ref="parentItemReadListener" />
+					<batch:listener ref="parentItemSkipListener" />
+				</batch:listeners>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+	<bean id="importBlockagesDataLimitCheckingSkipPolicy" parent="parentLimitCheckingSkipPolicy" />
+	
+	<!-- CleanupTasks -->
+	<bean id="importBlockagesDataCleanupTask" parent="parentTruncateTableTask">
+		<property name="parameters">
+			<map>
+				<entry key="tableName" value="SPZ_BLOCKAGE_DATA_STAGE" />
+			</map>
+		</property>
+	</bean>
+
+	<!-- Import data -->
+	<bean id="importBlockagesDataMultiResourceReader" parent="parentMultiResourceReader">
+		<property name="pathToResource" value="${importBlockagesData.resources}" />
+		<property name="delegate">
+			<bean parent="parentFlatFileItemReader">
+			    <property name="linesToSkip" value="9" />
+				<property name="lineMapper">
+					<bean parent="parentLineMapper">
+						<property name="lineTokenizer">
+							<bean parent="parentLineTokenizer">
+								<property name="names"	value="CISLO_UCTU_SPZ,BLOKOVANA_CASTKA,POZNAMKA,VARIABILNI_TEXT,PLATNOST_OD,PLATNOST_DO,ID_BLOKACE,KOD_CHYBY,POPIS_CHYBY" />
+							</bean>
+						</property>		
+					</bean>
+				</property>
+			</bean>
+		</property>		
+	</bean>
+	
+
+    <bean id="importBlockagesDataProcessor" parent="parentFieldSetToMapConvertor">
+		<property name="fieldSpecificParsers">
+		      <map key-type="java.lang.String" value-type="java.text.Format">
+        		<entry key="BLOKOVANA_CASTKA">
+        			<ref bean="decimalFormat-dotDecimalSeparator" />
+        		</entry>        			
+        		<entry key="PLATNOST_OD">
+        			<ref bean="dateFormat-emptyStringToNull-dd.MM.yyyy" />
+        		</entry>        			
+        		<entry key="PLATNOST_DO">
+        			<ref bean="dateFormat-emptyStringToNull-dd.MM.yyyy" />
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+
+
+	<bean id="importBlockagesDataWriter" parent="parentMapTableWriter">
+	    <property name="sql">
+	        <value>
+	            <![CDATA[INSERT INTO COLMANDATA.SPZ_BLOCKAGE_DATA_STAGE(CISLO_UCTU_SPZ,BLOKOVANA_CASTKA,POZNAMKA,VARIABILNI_TEXT,PLATNOST_OD,PLATNOST_DO,ID_BLOKACE,KOD_CHYBY,POPIS_CHYBY) VALUES(:CISLO_UCTU_SPZ,:BLOKOVANA_CASTKA,:POZNAMKA,:VARIABILNI_TEXT,:PLATNOST_OD,:PLATNOST_DO,:ID_BLOKACE,:KOD_CHYBY,:POPIS_CHYBY)]]>
+	        </value>
+	    </property>
+	</bean>
+</beans>

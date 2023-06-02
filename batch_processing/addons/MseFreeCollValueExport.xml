@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:mseFreeCollValueExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="MseFreeCollValueExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportmseFreeCollValueTypeStep" />
+						
+			<batch:next on="START:exportmseFreeCollValueTypeStep" to="exportmseFreeCollValueTypeStep" /> 
+			<batch:end on="COMPLETED:exportmseFreeCollValueTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="exportmseFreeCollValueTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportmseFreeCollValueReader" processor="exportmseFreeCollValueProcessor" writer="exportmseFreeCollValueWriter" />
+				<batch:listeners>
+					<batch:listener ref="mseFreeCollValueExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="mseFreeCollValueExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ MseFreeCollValue ================ -->
+	<bean id="exportmseFreeCollValueReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH
+actual_runs AS
+(
+  SELECT /*+ MATERIALIZE FULL(a) */
+    distinct a.allocation_run_id allocation_run_id
+  FROM
+    cms_loan_asset_alloc_res a
+  WHERE
+    a.allocation_run_batch_id IN (
+      SELECT
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)
+      FROM
+        cms_allocation_run_batch
+    )
+),
+mse_clients as
+(
+  select /*+ MATERIALIZE LEADING(o p md l rel relp) FULL(o) USE_HASH(p md l rel relp) */
+    p.cluid cluid,
+    p.id org_id,
+    relp.id pers_id
+  from
+    cms_organization o
+    join cms_partner p on p.id = o.id
+    join cms_partner_role md on md.partner_id = p.id
+    join cms_basic_loan l on l.main_debtor_id = md.id and l.state = 'active' and l.source_system_id = 'SB'
+    left join cms_partner_relationship rel on rel.cluid = p.cluid and rel.party_relationship_type = 'AA'
+    left join cms_partner relp on relp.id = rel.related_partner_id
+  where 1=1
+    and (p.client_category = 'MSE' or (p.client_category = 'RETAIL' and p.BUSINESS_ENTITY_DESCRIPTOR_ID = 'cscollateral/Organization'))
+),
+coll_prov_count as
+(
+  select /*+ MATERIALIZE FULL(inc) LEADING(inc incp inpr mse_clients1 mse_clients2) USE_HASH(incp inpr mse_clients1 mse_clients2)  */
+    /* count all providers connected to particular asset */
+    count(distinct inpr.partner_id) cnt,
+    /* and also count all mse-providers with no sjm_partner_id filled */
+    sum(decode(inpr.sjm_partner_id, null, decode(mse_clients1.cluid, null, 0, 1), 0)) +
+    sum(decode(inpr.sjm_partner_id, null, decode(mse_clients2.cluid, null, 0, 1), 0))  mse_cnt,
+    /* pick one mse-providers with no sjm_partner_id filled */
+    max(
+      nvl(
+        decode(inpr.sjm_partner_id, null, mse_clients1.cluid, null),
+        decode(inpr.sjm_partner_id, null, mse_clients2.cluid, null)
+      )
+    ) mse_cluid,
+    inc.collateral_asset_id collateral_asset_id
+  from
+    cms_collateral inc
+    join cms_collateral_provider incp on incp.collateral_id = inc.id
+    join cms_partner_role inpr on inpr.id = incp.id
+    left join mse_clients mse_clients1 on (mse_clients1.org_id = inpr.partner_id)
+    left join mse_clients mse_clients2 on (mse_clients2.pers_id = inpr.partner_id)
+  where 1=1
+    and inc.state in ('approved', 'activated')
+  group by
+    inc.collateral_asset_id
+),
+fus_one_owner as
+(
+  select /*+ MATERIALIZE */
+    a.id id ,
+    prov_cnt.mse_cluid cluid
+  from
+    cms_collateral_asset a
+    join coll_prov_count prov_cnt on a.id = prov_cnt.collateral_asset_id
+  where 1=1
+    and a.business_entity_descriptor_id = 'cscollateral/FunctionalUnit'
+    /* we only want assets with just one mse provider */
+    and prov_cnt.cnt = 1
+    and prov_cnt.mse_cnt > 0
+),
+results as
+(
+  select /*+ MATERIALIZE */
+    to_number(a.asset_id) asset_id,
+    fu.cluid cluid,
+    min(ares.residual_value_bccy) residual_value_bccy,
+    ares.actual_haircut actual_haircut,
+    st.max_haircut given_haircut,
+    st.COLLATERAL_CODE collateral_code
+  from
+    actual_runs ar
+    join cms_asset_alloc_result ares on ares.allocation_run_id = ar.allocation_run_id
+    join fus_one_owner fu on fu.id = ares.collateral_asset_id
+    join cms_collateral_asset a on a.id = fu.id
+    join cms_coll_subtype_settings st on st.id = a.collateral_type_settings_id
+  where 1=1
+  and st.COLLATERAL_FORM in ('PLE')
+  group by
+  to_number(a.asset_id),
+  fu.cluid,
+  ares.actual_haircut,
+  st.max_haircut,
+  st.COLLATERAL_CODE
+)
+SELECT
+	cs_utl_validation.validate_number(ASSET_ID,'MSE_FREE_COLL_VALUE.ASSET_ID',rownum,18,0,1,'') ASSET_ID,
+	cs_utl_validation.validate_varchar(CLUID,'MSE_FREE_COLL_VALUE.CLUID',rownum,100,1,'') CLUID,
+	cs_utl_validation.validate_number(RESIDUAL_VALUE_BCCY,'MSE_FREE_COLL_VALUE.RESIDUAL_VALUE_BCCY',rownum,18,4,1,'') RESIDUAL_VALUE_BCCY,
+	cs_utl_validation.validate_number(ACTUAL_HAIRCUT,'MSE_FREE_COLL_VALUE.ACTUAL_HAIRCUT',rownum,10,5,1,'') ACTUAL_HAIRCUT,
+	cs_utl_validation.validate_number(GIVEN_HAIRCUT,'MSE_FREE_COLL_VALUE.GIVEN_HAIRCUT',rownum,10,5,1,'') GIVEN_HAIRCUT,
+	cs_utl_validation.validate_varchar(COLLATERAL_CODE,'MSE_FREE_COLL_VALUE.COLLATERAL_CODE',rownum,32,1,'') COLLATERAL_CODE
+FROM
+  results
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportmseFreeCollValueWriter" parent="parentmseFreeCollValueExportWriter" scope="step">		
+		<property name="extractName" value="VL" />	
+		<property name="manager" ref="mseFreeCollValueExportManager" />
+		<property name="metadataProvider" ref="exportmseFreeCollValueReader" />																																																																															
+	</bean>
+	
+	<bean id="exportmseFreeCollValueProcessor" parent="mseFreeCollValueExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="mseFreeCollValueExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${mseFreeCollValueExport.resources}" />
+		<property name="agendaCode" value="CORM" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="mseFreeCollValueExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="mseFreeCollValueExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentmseFreeCollValueExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="mseFreeCollValueExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="mseFreeCollValueExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="mseFreeCollValueExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="mseFreeCollValueExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>

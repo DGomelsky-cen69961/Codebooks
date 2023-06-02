@@ -1,0 +1,246 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:cremFuExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="CremFuExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="cremFuExportTypeStep" />
+						
+			<batch:next on="START:cremFuExportTypeStep" to="cremFuExportTypeStep" /> 
+			<batch:end on="COMPLETED:cremFuExportTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="cremFuExportTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="cremFuExportReader" processor="cremFuExportProcessor" writer="cremFuExportWriter" />
+				<batch:listeners>
+					<batch:listener ref="cremFuExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="cremFuExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ cremFuExport ================ -->
+	<bean id="cremFuExportReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+
+WITH revid AS (
+    SELECT DISTINCT
+         cms_collateral_asset.asset_id,
+        MAX( cms_re_evaluation.evaluation_id) AS rev_id
+    FROM
+         cms_collateral_asset
+        INNER JOIN  cms_coll_subtype_settings ON  cms_coll_subtype_settings.id =  cms_collateral_asset.collateral_type_settings_id
+        INNER JOIN  cms_evaluation ON  cms_collateral_asset.id =  cms_evaluation.collateral_asset_id
+        INNER JOIN  cms_re_evaluation ON  cms_evaluation.id =  cms_re_evaluation.id
+    WHERE
+         cms_re_evaluation.evaluation_id IS NOT NULL
+        AND    cms_collateral_asset.state = 'modeled'
+        AND    cms_coll_subtype_settings.collateral_class = 'RE'
+        AND    cms_evaluation.state = 'Active'
+        and    cms_evaluation.evaluation_type IN('T1','T2','T5')
+    GROUP BY
+         cms_collateral_asset.asset_id
+),akt AS (
+    SELECT
+         cms_collateral_asset.asset_id
+    FROM
+         cms_collateral
+        INNER JOIN  cms_collateral_asset ON  cms_collateral_asset.id =  cms_collateral.collateral_asset_id
+    WHERE
+         cms_collateral.state IN (
+            'preactivated',
+            'activated'
+        )
+) SELECT DISTINCT
+     cms_coll_subtype_settings.collateral_code,
+     cms_collateral_asset.asset_id,
+    revid.rev_id AS rev_id,
+    CASE
+            WHEN akt.asset_id IS NOT NULL THEN 'Y'
+            ELSE 'N'
+        END
+    AS active,
+     cms_collateral_asset.base_value,
+     cms_collateral_asset.currency,
+    CASE
+            WHEN (
+                 cms_basic_loan.source_system_id = 'SYMB'
+                AND  cms_basic_loan.state = 'active'
+            ) THEN 'CORPORATE'
+            WHEN  cms_partner.client_category IS NULL THEN cms_partner1.client_category
+            ELSE  cms_partner.client_category
+        END
+    AS client_category,
+    CASE
+            WHEN  cms_partner.identifier IS NULL THEN cms_partner1.identifier
+            ELSE  cms_partner.identifier
+        END
+    AS ič_rč,
+    CASE
+            WHEN  cms_partner.description IS NULL THEN cms_partner1.description
+            ELSE  cms_partner.description
+        END
+    AS klient_název,
+    CASE
+            WHEN  cms_partner.identifier IS NULL THEN wdp_univ1.cz
+            ELSE  wdp_univ.cz
+        END
+    AS útvar
+  FROM
+     cms_collateral_asset
+    INNER JOIN  cms_coll_subtype_settings ON  cms_coll_subtype_settings.id =  cms_collateral_asset.collateral_type_settings_id
+    INNER JOIN  cms_collateral ON  cms_collateral_asset.id =  cms_collateral.collateral_asset_id
+    LEFT JOIN revid ON revid.asset_id =  cms_collateral_asset.asset_id
+    LEFT JOIN akt ON akt.asset_id =  cms_collateral_asset.asset_id
+    LEFT JOIN  cms_loan_collateral_link ON  cms_collateral.id =  cms_loan_collateral_link.collateral_id
+    LEFT JOIN  cms_basic_loan ON  cms_basic_loan.id =  cms_loan_collateral_link.loan_id
+    LEFT JOIN  cms_partner_loan_role ON  cms_partner_loan_role.id =  cms_basic_loan.main_debtor_id
+    LEFT JOIN  cms_partner_role ON  cms_partner_role.id =  cms_partner_loan_role.id
+    LEFT JOIN  cms_partner ON  cms_partner.id =  cms_partner_role.partner_id
+    LEFT JOIN  cms_modeling_element_relation ON  cms_collateral_asset.id =  cms_modeling_element_relation.asset_id
+    LEFT JOIN  cms_modeling_entity ON  cms_modeling_entity.id =  cms_modeling_element_relation.model_id
+    LEFT JOIN  cms_partner cms_partner1 ON cms_partner1.id =  cms_modeling_entity.partner_id
+    LEFT OUTER JOIN  cms_client_servicing ON  cms_partner.id =  cms_client_servicing.partner_id
+    LEFT OUTER JOIN  wdp_code_element ON  cms_client_servicing.org_unit_id =  wdp_code_element.reference_name
+    LEFT OUTER JOIN  wdp_univ ON  wdp_code_element.display_name_univ =  wdp_univ.id
+    LEFT JOIN  cms_client_servicing cms_client_servicing1 ON cms_partner1.id = cms_client_servicing1.partner_id
+    LEFT JOIN  wdp_code_element wdp_code_element1 ON cms_client_servicing1.org_unit_id = wdp_code_element1.reference_name
+    LEFT JOIN  wdp_univ wdp_univ1 ON wdp_code_element1.display_name_univ = wdp_univ1.id
+  WHERE
+        CASE
+            WHEN  cms_partner.identifier IS NULL THEN wdp_univ1.cz
+            ELSE  wdp_univ.cz
+        END
+    NOT LIKE '%PSČ%'
+        AND
+        CASE
+            WHEN cms_partner1.client_category IS NULL THEN  cms_partner.client_category
+            ELSE cms_partner1.client_category
+        END
+    IS NOT NULL
+        AND    cms_collateral_asset.state = 'modeled'
+        AND    cms_coll_subtype_settings.collateral_category IN (
+        'KOM',
+        'LAN',
+        'OTH'
+    )
+        AND    cms_collateral.state <> 'terminated'
+ORDER BY
+     cms_collateral_asset.asset_id
+
+
+
+
+
+ ]]>
+			</value>
+		</property>
+	</bean>
+
+	<bean id="cremFuExportWriter" parent="parentcremFuExportWriter" scope="step">		
+		<property name="extractName" value="VA" />	
+		<property name="manager" ref="cremFuExportManager" />
+		<property name="metadataProvider" ref="cremFuExportReader" />																																																																															
+	</bean>
+	
+	<bean id="cremFuExportProcessor" parent="cremFuExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="cremFuExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${cremFuExport.resources}" />
+		<property name="agendaCode" value="CLCR" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="cremFuExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="cremFuExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value>
+        			</key>
+					<ref bean="dateFormat-yyyy-MM-dd"/>					
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentcremFuExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="cremFuExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="cremFuExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="cremFuExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="cremFuExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>

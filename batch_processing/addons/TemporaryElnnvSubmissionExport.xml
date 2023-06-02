@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:temporaryElnnvSubmissionExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="TemporaryElnnvSubmissionExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="temporaryElnnvSubmissionExportTypeStep" />
+						
+			<batch:next on="START:temporaryElnnvSubmissionExportTypeStep" to="temporaryElnnvSubmissionExportTypeStep" /> 
+			<batch:end on="COMPLETED:temporaryElnnvSubmissionExportTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="temporaryElnnvSubmissionExportTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="temporaryElnnvSubmissionExportReader" processor="temporaryElnnvSubmissionExportProcessor" writer="temporaryElnnvSubmissionExportWriter" />
+				<batch:listeners>
+					<batch:listener ref="temporaryElnnvSubmissionExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="temporaryElnnvSubmissionExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ temporaryElnnvSubmissionExport ================ -->
+	<bean id="temporaryElnnvSubmissionExportReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select cpr_nnv
+from cms_elnnv_submission 
+where 1=1
+and submission_date > sysdate-92
+and state ='Approved'
+and cfr_nnv is null
+ and elnnv_id  in(
+                select             
+                elnnv_id
+                from cms_elnnv_submission              
+                group by elnnv_id 
+                having  count(cfr_nnv)>0 
+                )                      
+
+			</value>
+		</property>
+	</bean>
+
+	<bean id="temporaryElnnvSubmissionExportWriter" parent="parenttemporaryElnnvSubmissionExportWriter" scope="step">		
+		<property name="extractName" value="DR" />	
+		<property name="manager" ref="temporaryElnnvSubmissionExportManager" />
+		<property name="metadataProvider" ref="temporaryElnnvSubmissionExportReader" />																																																																															
+	</bean>
+	
+	<bean id="temporaryElnnvSubmissionExportProcessor" parent="temporaryElnnvSubmissionExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="temporaryElnnvSubmissionExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${temporaryElnnvSubmissionExport.resources}" />
+		<property name="agendaCode" value="COKN" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="temporaryElnnvSubmissionExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="temporaryElnnvSubmissionExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parenttemporaryElnnvSubmissionExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="temporaryElnnvSubmissionExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="temporaryElnnvSubmissionExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="temporaryElnnvSubmissionExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="temporaryElnnvSubmissionExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>

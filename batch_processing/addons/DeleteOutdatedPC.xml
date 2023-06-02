@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+#  change 
+#        	rownum < TO_NUMBER(NVL('#{jobParameters["maxRows"]}','100000000'))
+#        	rownum < TO_NUMBER(NVL('#{jobParameters["maxRows"]}','30000'))
+#================================================================================
+-->
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+                <value>classpath:deleteOutdatedPC.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    <batch:job id="DeleteOutdatedPC">
+   		<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="deleteOutdatedPCStep" />
+						
+			<batch:next on="START:deleteOutdatedPCStep" to="deleteOutdatedPCStep" />
+			<batch:end on="COMPLETED:deleteOutdatedPCStep" />			
+    	</batch:decision>	
+
+        <batch:step id="deleteOutdatedPCStep" next="decision">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="10">
+                <batch:chunk commit-interval="1" reader="deleteOutdatedPCReader" processor="deleteOutdatedPCProcessor" writer="parentDummyWriter" skip-policy="deleteOutdatedPCLimitCheckingSkipPolicy" retry-policy="deleteOutdatedPCLimitCheckingRetryPolicy" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+	<bean id="deleteOutdatedPCLimitCheckingSkipPolicy" parent="parentLimitCheckingSkipPolicy" >
+		<property name="skipLimit" value="${deleteOutdatedPC.skipLimit}" />
+	</bean>
+
+	<!--
+		As we delete PCs in parallel it can happen that some org.hibernate.StaleObjectStateException or javax.persistence.OptimisticLockException
+		are thrown - we solve this by a simple retry
+	-->
+	<bean id="deleteOutdatedPCLimitCheckingRetryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+		<property name="maxAttempts" value="5" />
+	</bean>
+
+
+
+	<bean id="deleteOutdatedPCReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+		SELECT
+			id
+		FROM
+        (
+				SELECT
+					DISTINCT pc.id
+				FROM
+				cms_property_certificate pc
+					JOIN cms_property_cert_entry pce ON pc.id = pce.property_certificate_id
+					LEFT JOIN cms_re_asset_item reai ON reai.property_certificate_id = pc.id
+				WHERE
+					pc.state = 'outdated'
+				AND pc.OWNERSHIP_CERT_VALIDITY_DATE < TRUNC(SYSDATE) - TO_NUMBER(NVL('#{jobParameters["deleteDelayDays"]}','100'))
+				AND pc.id not in (select reai.PROPERTY_CERTIFICATE_ID from cms_re_asset_item reai where reai.PROPERTY_CERTIFICATE_ID is not null)
+				AND pc.id not in (select pce.property_certificate_id from cms_property_cert_entry pce where pce.THIRD_PARTY_PLEDGE_ID is not null)
+				ORDER BY
+					pc.id
+        )
+        WHERE
+        	rownum < TO_NUMBER(NVL('#{jobParameters["maxRows"]}','30000'))
+]]>
+			</value>
+		</property>
+		<property name="rowMapper">
+			<!--
+				Here we use IdAwareColumnMapRowMapper to get the id of a processed item
+				to cms_batch_item_log.item_content column. We do it to be able
+				to easily identify the corresponding property certificate when the delete operation fails.
+			-->
+			<bean class="cz.csas.colmanbatch.addons.reader.IdAwareColumnMapRowMapper">
+				<property name="idFields" value="id" />
+			</bean>
+		</property>
+
+	</bean>
+	
+	<bean id="deleteOutdatedPCProcessor" class="cz.csas.colmanbatch.addons.propertycertificate.DeleteOutdatedPropertyCertificateProcessor" scope="step">
+	</bean>
+	
+</beans>

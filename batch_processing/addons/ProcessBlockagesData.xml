@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+    <batch:job id="ProcessBlockagesData">
+        <batch:step id="processBlockagesData">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="10">
+                <batch:chunk commit-interval="1" reader="processBlockagesDataReader" processor="processBlockagesDataProcessor" writer="parentDummyWriter" />
+				<batch:listeners>
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>
+			</batch:tasklet>
+        </batch:step>
+    </batch:job>
+
+
+	<bean id="processBlockagesDataReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+  cax.id as cax_id, abx.id as abx_id, sbdsx.id_blokace as id_blokacex
+FROM
+  colmandata.spz_blockage_data_stage sbdsx
+  JOIN colmandata.cms_collateral_asset cax ON sbdsx.variabilni_text=cax.asset_id
+  JOIN colmandata.cms_deposit_asset dpx ON dpx.id=cax.id
+  JOIN colmandata.cms_account_blockage abx ON cax.id=abx.deposit_id
+WHERE 1 = 1
+  AND sbdsx.kod_chyby = 0
+  AND sbdsx.cislo_uctu_spz = LPAD(dpx.bank_account, 10, '0')
+  AND sbdsx.blokovana_castka = abx.claim_value
+  AND abx.state='Active'
+  AND (sbdsx.processing_flags IS NULL OR sbdsx.processing_flags NOT LIKE colmandata.cms_common.get_processing_flag_tag_like('BLOCKAGES_DATA_PROCESSED'))
+ORDER BY
+  cax.id, abx.id, sbdsx.id_blokace
+	</value>
+		</property>
+	</bean>
+
+	<bean id="processBlockagesDataProcessor" class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step">
+		<property name="processorName" value="update_cashDeposits" />
+
+    <!-- !!!
+    The order of parameters (:PARAMX) in the SQL statement is very important, please see the comment below the statement 
+    !!! -->
+		<property name="sql">
+			<value>
+<![CDATA[
+DECLARE
+  v_ab_technical_id NUMBER(19) := :ABX_ID;
+  v_ca_technical_id NUMBER(19) := :CAX_IX;
+  v_ab_blockage_id NUMBER(19) := :ID_BLOKACEX;
+  v_technical_id_of_cahist NUMBER(19) := colmandata.hibernate_sequence.NEXTVAL * 10 + 1;
+BEGIN
+  -- INSERT AB_AUD
+  ---input:v_ab_technical_id
+  colmandata.cms_audit.create_audit(1, 1, v_ab_technical_id, 'CMS_ACCOUNT_BLOCKAGE');
+    --[TEST COLMANDATA]
+
+
+  -- UPDATE AB
+  ---input:v_ab_technical_id;v_ab_blockage_id
+  UPDATE
+    colmandata.cms_account_blockage ab1
+  SET
+    ( last_time, last_user, blockage_id ) =
+    (
+      SELECT
+        SYSDATE, 'MIGSPZ', v_ab_blockage_id
+      FROM
+        spz_blockage_data_stage sbds1
+      JOIN cms_collateral_asset ca0 ON sbds1.variabilni_text=ca0.asset_id
+      WHERE 1=1
+        AND ca0.id = v_ca_technical_id
+    )
+  WHERE
+    ab1.deposit_id = v_ca_technical_id;
+
+  -- UPDATE CA
+  ---input:v_ab_technical_id
+  UPDATE colmandata.cms_collateral_asset ca1
+  SET
+    last_time = SYSDATE,
+    last_user = 'MIGSPZ',
+    bank_code = '0800',
+    asset_name = ca1.asset_name || DECODE(ca1.asset_name, NULL, '', '; ') || 'Záznam aktualizován v rámci migrace dat ze SPŽ do Colmana ' || SYSDATE || '.'
+  WHERE
+    ca1.id = v_ca_technical_id;
+
+  ---input:v_ab_technical_id
+  INSERT INTO
+    colmandata.cms_coll_asset_history(
+    id,                            --not NULL number(19)
+    create_time,                   --not NULL date
+    create_user,                   --         varchar2(255 char)
+    is_deleted,                    --         number(1)
+    last_time,                     --         date
+    last_transition,               --         varchar2(255 char)
+    last_user,                     --         varchar2(255 char)
+    state,                         --         varchar2(255 char)
+    business_entity_descriptor_id, --         varchar2(255 char)
+    dynamic_xml,                   --         varchar2(4000 char)
+    processing_flags,              --         varchar2(200 char)
+    source_entity,                 --         varchar2(255 char)
+    source_role,                   --         varchar2(4000)
+    collateral_asset_id,           --         number(19)
+    target_entity,                 --         varchar2(255 char)
+    target_id,                     --         number(19)
+    transition,                    --         varchar2(255 char)
+    target_description,            --         varchar2(4000)
+    current_revision,              --         number(19)
+    previous_revision              --         number(19)
+  )
+  VALUES
+  (
+    v_technical_id_of_cahist,-- id,                                                  
+    SYSDATE,-- create_time,                  --neni potreba zmenit          "AB"."CREATE_TIME":
+    'MIGSPZ',-- create_user,
+    NULL,-- is_deleted,
+    NULL,-- last_time,
+    NULL,-- last_transition,
+    'MIGSPZ',-- last_user,
+    'CREATED',-- state,
+    'cscollateral/CollateralAssetHistory',-- business_entity_descriptor_id,
+    NULL,-- dynamic_xml,
+    NULL,-- processing_flags,
+    'cscollateral/DepositAsset',-- source_entity,
+    NULL,-- source_role,
+    v_ca_technical_id,-- collateral_asset_id,
+    'cscollateral/AccountBlockage',-- target_entity,
+    v_ab_technical_id,-- target_id,
+    'cscollateral/entityModifiedOperationForHistory',-- transition,
+    null,-- target_description,
+    (SELECT max(rev) FROM cms_account_blockage_aud WHERE ID = v_ab_technical_id),-- current_revision,                                   
+    NULL -- previous_revision                                   
+  );
+
+  -- SET RECORD AS PROCESSED
+  UPDATE
+    colmandata.spz_blockage_data_stage
+  SET
+    processing_flags =  colmandata.cms_common.append_to_processing_flag(processing_flags, 'BLOCKAGES_DATA_PROCESSED')
+  WHERE 1=1
+    AND id_blokace=v_ab_blockage_id;
+END;
+]]>
+  			</value>
+  		</property>
+		<property name="paramsMapping">
+      <!-- !!!
+        The order of parameters here is very important, there is a bug in the Oracle JDBC driver in the PreparedStatement.setObject(name, value) call,
+        where the name is completely ignored and the parameters are bound in the same order as they appear in the SQL statement.
+        
+        As spring by default uses LinkedHashMap for <map> element, so the parameters are enumerated for PreparedStatement binding in the same
+        order as the appear. 
+        
+        So all parameters here must be listed in the same order as they appear in the SQL statement above.
+      !!! -->    
+			<map>
+				<entry key="ABX_ID" value="ABX_ID" />
+				<entry key="CAX_ID" value="CAX_ID" />
+				<entry key="ID_BLOKACEX" value="ID_BLOKACEX" />
+			</map>
+		</property>
+	</bean>
+
+</beans>

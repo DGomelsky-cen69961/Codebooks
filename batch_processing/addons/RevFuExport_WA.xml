@@ -1,0 +1,433 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+# Name         : RevFuExport_WA.xml
+# Version      : 1.2
+# Author       : 
+# Date         : 8.12.2020
+# Description  : selecty (performing a workout) pro zasílání funkčních celků do REV 
+# Notes        : BEREV0001 FunctionalUnit to be Monitored
+#================================================================================
+# aktualizovat souborem:  CREM_WORKOUT.sql
+#
+# Modified     :
+# init   date   mod id                  description
+#
+# SMA  08.12.2020      viz mail Beran Jiří, 7.12.2020, Selekty pro CREM: 
+#                      Nová verze souborů obsahuje zakomentovanou podmínku pro metodu ratingu jinou než SLIPRE.
+# SMA  09.04.2021      viz mail Beran Jiří, 8.04.2021, Selekty pro CREM: 
+#                      Úprava spočívá v novém slopuci (rating), který je na konci každého řádku.
+# SMA  14.06.2021      viz mail Beran Jiří, 14.06.2021, Selekty pro CREM: 
+#                      E condition has been revisited
+# SMA  06.12.2021      viz chat Beran Jiří, 6.12.2021, Selekty pro CREM: 
+#                      update for the House of flats
+# SMA  10.12.2021      viz chat Beran Jiří, 10.12.2021
+#                      update for the block of flats
+# SMA  22.02.2022      viz RI-9760 Beran Jiří, 22.02.2022
+#                      oprava
+# SMA  23.02.2022      viz RI-9773 Beran Jiří, 23.02.2022
+#                      contract date rule has been updated in order not to use sysdate everyday for retail 201s
+# JJA  22.04.2022      viz RI-10407 Beran Jiří, 20.04.2022
+#                      two new columns referent of the loan and workout type
+#================================================================================
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:revFuExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="RevFuExport_WA">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="revFuExportTypeStep" />
+						
+			<batch:next on="START:revFuExportTypeStep" to="revFuExportTypeStep" /> 
+			<batch:end on="COMPLETED:revFuExportTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="revFuExportTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="revFuExportReader" processor="revFuExportProcessor" writer="revFuExportWriter" />
+				<batch:listeners>
+					<batch:listener ref="revFuExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="revFuExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ revFuExport ================ -->
+	<bean id="revFuExportReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+
+WITH cluidsum AS (
+    SELECT DISTINCT
+        colmandata.cms_partner.cluid,
+        SUM(nvl(colmandata.cms_basic_loan.current_limit_bccy, colmandata.cms_basic_loan.current_limit))                 AS sum_current_limit,
+        colmandata.cms_fscs_client_rating.client_rating                                                                 AS rating,
+        colmandata.cms_fscs_client_rating.default_date,
+        colmandata.cms_basic_loan.workout,
+         colmandata.cms_basic_loan.loan_manager
+    FROM
+             colmandata.cms_partner
+        INNER JOIN colmandata.cms_partner_role ON colmandata.cms_partner_role.partner_id = colmandata.cms_partner.id
+        INNER JOIN colmandata.cms_partner_loan_role ON colmandata.cms_partner_loan_role.id = colmandata.cms_partner_role.id
+        INNER JOIN colmandata.cms_basic_loan ON colmandata.cms_partner_loan_role.id = colmandata.cms_basic_loan.main_debtor_id
+        INNER JOIN colmandata.cms_fscs_client_rating ON colmandata.cms_partner.id = colmandata.cms_fscs_client_rating.partner_id
+        INNER JOIN colmandata.cms_client_servicing ON colmandata.cms_partner.id = colmandata.cms_client_servicing.partner_id
+    WHERE
+            colmandata.cms_basic_loan.state = 'active'
+        AND colmandata.cms_basic_loan.mpl_id IS NULL
+        AND ( colmandata.cms_basic_loan.workout = 1
+              OR  colmandata.cms_client_servicing.org_unit_id IN (
+            'HR0_50005059',
+            'HR0_50004610',
+            'HR0_50004611',
+            'HR0_50004612',
+            'HR0_50005060'
+        ) )
+    GROUP BY
+        colmandata.cms_partner.cluid,
+        colmandata.cms_fscs_client_rating.client_rating,
+        colmandata.cms_fscs_client_rating.default_date,
+         colmandata.cms_basic_loan.workout,
+         colmandata.cms_basic_loan.loan_manager
+), maxlimit AS (
+    SELECT DISTINCT
+        colmandata.cms_collateral_asset.asset_id,
+        MAX(cluidsum.sum_current_limit) AS max_current_limit
+    FROM
+             colmandata.cms_partner
+        INNER JOIN colmandata.cms_partner_role ON colmandata.cms_partner_role.partner_id = colmandata.cms_partner.id
+        INNER JOIN colmandata.cms_partner_loan_role ON colmandata.cms_partner_loan_role.id = colmandata.cms_partner_role.id
+        INNER JOIN colmandata.cms_basic_loan ON colmandata.cms_partner_loan_role.id = colmandata.cms_basic_loan.main_debtor_id
+        INNER JOIN colmandata.cms_loan_collateral_link ON colmandata.cms_basic_loan.id = colmandata.cms_loan_collateral_link.loan_id
+        INNER JOIN colmandata.cms_collateral ON colmandata.cms_collateral.id = colmandata.cms_loan_collateral_link.collateral_id
+        INNER JOIN colmandata.cms_collateral_asset ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral.collateral_asset_id
+        INNER JOIN colmandata.cms_coll_subtype_settings ON colmandata.cms_coll_subtype_settings.id = colmandata.cms_collateral_asset.
+        collateral_type_settings_id
+        INNER JOIN colmandata.cms_fscs_client_rating ON colmandata.cms_partner.id = colmandata.cms_fscs_client_rating.partner_id
+        INNER JOIN cluidsum ON cluidsum.cluid = colmandata.cms_partner.cluid
+    WHERE
+            colmandata.cms_basic_loan.state = 'active'
+        AND colmandata.cms_collateral.state = 'activated'
+        AND colmandata.cms_collateral_asset.state = 'modeled'
+        AND colmandata.cms_coll_subtype_settings.collateral_class = 'RE'
+    GROUP BY
+        colmandata.cms_collateral_asset.asset_id
+), pr AS (
+    SELECT DISTINCT
+        colmandata.cms_collateral_asset.asset_id,
+        colmandata.cms_re_asset_item.real_estate_id,
+        MIN(colmandata.cms_collateral_asset.date_of_expected_monitoring)           AS min_date_of_exp_monitoring,
+        MIN(colmandata.cms_collateral_asset.date_of_expected_revaluation)          AS min_date_of_exp_revaluation,
+        MIN(colmandata.cms_collateral_asset.date_of_last_monitoring)               AS min_date_of_last_monitoring,
+        MIN(colmandata.cms_collateral_asset.date_of_last_monitoring + 365)         AS min_date_of_last_monitoring_1,
+        MIN(colmandata.cms_collateral_asset.date_of_last_evaluation)               AS min_date_of_last_revaluation
+    FROM
+             colmandata.cms_re_asset_item
+        INNER JOIN colmandata.cms_collateral_asset_item ON colmandata.cms_collateral_asset_item.id = colmandata.cms_re_asset_item.
+        id
+        INNER JOIN colmandata.cms_collateral_asset ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral_asset_item.asset_id
+        INNER JOIN colmandata.cms_collateral ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral.collateral_asset_id
+        INNER JOIN colmandata.cms_coll_subtype_settings ON colmandata.cms_coll_subtype_settings.id = colmandata.cms_collateral_asset.
+        collateral_type_settings_id
+    WHERE
+            colmandata.cms_collateral_asset.state = 'modeled'
+        AND colmandata.cms_collateral.state = 'activated'
+        AND colmandata.cms_coll_subtype_settings.collateral_class = 'RE'
+    GROUP BY
+        colmandata.cms_collateral_asset.asset_id,
+        colmandata.cms_re_asset_item.real_estate_id
+), revid AS (
+    SELECT DISTINCT
+        colmandata.cms_collateral_asset.asset_id,
+        MAX(colmandata.cms_re_evaluation.evaluation_id) AS rev_id
+    FROM
+             colmandata.cms_collateral_asset
+        INNER JOIN colmandata.cms_coll_subtype_settings ON colmandata.cms_coll_subtype_settings.id = colmandata.cms_collateral_asset.
+        collateral_type_settings_id
+        INNER JOIN colmandata.cms_collateral ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral.collateral_asset_id
+        INNER JOIN colmandata.cms_evaluation ON colmandata.cms_collateral_asset.id = colmandata.cms_evaluation.collateral_asset_id
+        INNER JOIN colmandata.cms_re_evaluation ON colmandata.cms_evaluation.id = colmandata.cms_re_evaluation.id
+    WHERE
+        colmandata.cms_re_evaluation.evaluation_id IS NOT NULL
+        AND colmandata.cms_collateral.state = 'activated'
+        AND colmandata.cms_collateral_asset.state = 'modeled'
+        AND colmandata.cms_coll_subtype_settings.collateral_class = 'RE'
+        AND colmandata.cms_evaluation.state = 'Active'
+    GROUP BY
+        colmandata.cms_collateral_asset.asset_id
+), rating AS (
+    SELECT DISTINCT
+        MAX(cluidsum.cluid) OVER(PARTITION BY colmandata.cms_collateral_asset.asset_id) AS cluid,
+        colmandata.cms_fscs_client_rating.client_rating
+    FROM
+             colmandata.cms_collateral_asset
+        INNER JOIN colmandata.cms_collateral ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral.collateral_asset_id
+        INNER JOIN colmandata.cms_loan_collateral_link ON colmandata.cms_collateral.id = colmandata.cms_loan_collateral_link.collateral_id
+        INNER JOIN colmandata.cms_basic_loan ON colmandata.cms_basic_loan.id = colmandata.cms_loan_collateral_link.loan_id
+        INNER JOIN colmandata.cms_partner_loan_role ON colmandata.cms_partner_loan_role.id = colmandata.cms_basic_loan.main_debtor_id
+        INNER JOIN colmandata.cms_partner_role ON colmandata.cms_partner_role.id = colmandata.cms_partner_loan_role.id
+        INNER JOIN colmandata.cms_partner ON colmandata.cms_partner.id = colmandata.cms_partner_role.partner_id
+        INNER JOIN colmandata.cms_fscs_client_rating ON colmandata.cms_partner.id = colmandata.cms_fscs_client_rating.partner_id
+        INNER JOIN cluidsum ON cluidsum.cluid = colmandata.cms_partner.cluid
+        INNER JOIN maxlimit ON maxlimit.asset_id = colmandata.cms_collateral_asset.asset_id
+                               AND maxlimit.max_current_limit = cluidsum.sum_current_limit
+)
+SELECT DISTINCT
+    rating.cluid,
+    colmandata.cms_collateral_asset.asset_id,
+    colmandata.cms_collateral_asset.base_value_bccy,
+    colmandata.cms_functional_unit.replacement_value_bccy,
+    colmandata.cms_coll_subtype_settings.collateral_code,
+    revid.rev_id                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    AS rev_id,
+    to_char(
+       CASE
+            WHEN(pr.min_date_of_exp_revaluation > pr.min_date_of_exp_monitoring) THEN nvl(pr.min_date_of_exp_monitoring,nvl(pr.min_date_of_last_monitoring_1
+,SYSDATE))
+            ELSE nvl(pr.min_date_of_exp_revaluation,nvl(pr.min_date_of_exp_monitoring,SYSDATE))
+        END,'YYYY-MM-DD') AS contract_date,
+    CASE
+        WHEN (
+            CASE
+                WHEN cluidsum.default_date IS NOT NULL
+                     AND ( pr.min_date_of_exp_revaluation > pr.min_date_of_exp_monitoring ) THEN
+                    nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)
+                ELSE
+                    pr.min_date_of_exp_revaluation
+            END
+        ) <= ( cluidsum.default_date + 365 ) THEN
+            'E'
+        WHEN cluidsum.default_date IS NULL
+             AND pr.min_date_of_exp_revaluation <= sysdate THEN
+            'E'
+        WHEN cluidsum.default_date IS NULL
+             AND pr.min_date_of_exp_revaluation > sysdate
+             AND pr.min_date_of_exp_revaluation < nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1) THEN
+            'E'
+        WHEN cluidsum.default_date IS NULL
+             AND pr.min_date_of_exp_revaluation > sysdate
+             AND abs(pr.min_date_of_exp_revaluation - nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)) <= 30
+             THEN
+            'E'
+        ELSE
+            'M'
+    END                                                                AS contract_type,
+    cluidsum.rating,
+    
+    decode(MAX(DISTINCT cluidsum.workout),0,NULL,MAX(DISTINCT cluidsum.workout))  AS retail,
+    case when MAX(DISTINCT cluidsum.workout) = 1 then  cluidsum.loan_manager ELSE NULL END as LOAN_MANAGER
+FROM
+         colmandata.cms_collateral_asset
+    INNER JOIN colmandata.cms_coll_subtype_settings ON colmandata.cms_coll_subtype_settings.id = colmandata.cms_collateral_asset.
+    collateral_type_settings_id
+    LEFT JOIN colmandata.cms_collateral_asset_item ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral_asset_item.asset_id
+    LEFT JOIN colmandata.cms_re_asset_item ON colmandata.cms_collateral_asset_item.id = colmandata.cms_re_asset_item.id
+    INNER JOIN colmandata.cms_collateral ON colmandata.cms_collateral_asset.id = colmandata.cms_collateral.collateral_asset_id
+    LEFT JOIN colmandata.cms_functional_unit ON colmandata.cms_collateral_asset.id = colmandata.cms_functional_unit.id
+    INNER JOIN colmandata.cms_loan_collateral_link ON colmandata.cms_collateral.id = colmandata.cms_loan_collateral_link.collateral_id
+    INNER JOIN colmandata.cms_basic_loan ON colmandata.cms_basic_loan.id = colmandata.cms_loan_collateral_link.loan_id
+    INNER JOIN colmandata.cms_loan_alloc_result ON colmandata.cms_basic_loan.id = colmandata.cms_loan_alloc_result.loan_id
+    INNER JOIN colmandata.cms_partner_loan_role ON colmandata.cms_partner_loan_role.id = colmandata.cms_basic_loan.main_debtor_id
+    INNER JOIN colmandata.cms_partner_role ON colmandata.cms_partner_role.id = colmandata.cms_partner_loan_role.id
+    INNER JOIN colmandata.cms_partner ON colmandata.cms_partner.id = colmandata.cms_partner_role.partner_id
+    INNER JOIN cluidsum ON cluidsum.cluid = colmandata.cms_partner.cluid
+    INNER JOIN maxlimit ON maxlimit.asset_id = colmandata.cms_collateral_asset.asset_id
+                           AND maxlimit.max_current_limit = cluidsum.sum_current_limit
+    INNER JOIN rating ON cluidsum.cluid = rating.cluid
+    LEFT JOIN pr ON pr.asset_id = colmandata.cms_collateral_asset.asset_id
+    LEFT JOIN revid ON revid.asset_id = colmandata.cms_collateral_asset.asset_id
+WHERE
+        colmandata.cms_collateral.state = 'activated'
+    AND colmandata.cms_basic_loan.state = 'active'
+    AND colmandata.cms_collateral_asset.state = 'modeled'
+    AND (( colmandata.cms_coll_subtype_settings.collateral_category IN (
+        'KOM',
+        'LAN',
+        'OTH'
+    )
+          OR ( colmandata.cms_coll_subtype_settings.collateral_category = 'RES' and colmandata.cms_coll_subtype_settings.collateral_code != '201'
+               AND colmandata.cms_collateral_asset.base_value_bccy > 9500000 )
+          OR ( colmandata.cms_coll_subtype_settings.collateral_code = '201'
+               AND colmandata.cms_collateral_asset.date_of_last_evaluation IS NOT NULL
+               AND (
+        CASE
+            WHEN (
+                CASE
+                    WHEN cluidsum.default_date IS NOT NULL
+                         AND ( pr.min_date_of_exp_revaluation > pr.min_date_of_exp_monitoring ) THEN
+                        nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)
+                    ELSE
+                        pr.min_date_of_exp_revaluation
+                END
+            ) <= ( cluidsum.default_date + 365 ) THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation <= sysdate THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation > sysdate
+                 AND pr.min_date_of_exp_revaluation < nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1) THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation > sysdate
+                 AND abs(pr.min_date_of_exp_revaluation - nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)) <=
+                 30 THEN
+                'E'
+            ELSE
+                'M'
+        END
+    ) != 'M' ) ))
+
+GROUP BY
+    rating.cluid,
+    colmandata.cms_collateral_asset.asset_id,
+    colmandata.cms_collateral_asset.base_value_bccy,
+    colmandata.cms_functional_unit.replacement_value_bccy,
+    colmandata.cms_coll_subtype_settings.collateral_code,
+    revid.rev_id,
+    to_char(
+      CASE
+            WHEN(pr.min_date_of_exp_revaluation > pr.min_date_of_exp_monitoring) THEN nvl(pr.min_date_of_exp_monitoring,nvl(pr.min_date_of_last_monitoring_1
+,SYSDATE))
+            ELSE nvl(pr.min_date_of_exp_revaluation,nvl(pr.min_date_of_exp_monitoring,SYSDATE))
+        END,'YYYY-MM-DD'),
+    CASE
+            WHEN (
+                CASE
+                    WHEN cluidsum.default_date IS NOT NULL
+                         AND ( pr.min_date_of_exp_revaluation > pr.min_date_of_exp_monitoring ) THEN
+                        nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)
+                    ELSE
+                        pr.min_date_of_exp_revaluation
+                END
+            ) <= ( cluidsum.default_date + 365 ) THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation <= sysdate THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation > sysdate
+                 AND pr.min_date_of_exp_revaluation < nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1) THEN
+                'E'
+            WHEN cluidsum.default_date IS NULL
+                 AND pr.min_date_of_exp_revaluation > sysdate
+                 AND abs(pr.min_date_of_exp_revaluation - nvl(pr.min_date_of_exp_monitoring, pr.min_date_of_last_monitoring_1)) <=
+                 30 THEN
+                'E'
+            ELSE
+                'M'
+        END,
+    cluidsum.rating,
+    cluidsum.loan_manager
+    
+ORDER BY
+    colmandata.cms_collateral_asset.asset_id
+ ]]>
+			</value>
+		</property>
+	</bean>
+
+	<bean id="revFuExportWriter" parent="parentrevFuExportWriter" scope="step">		
+		<property name="extractName" value="WA" />	
+		<property name="manager" ref="revFuExportManager" />
+		<property name="metadataProvider" ref="revFuExportReader" />																																																																															
+	</bean>
+	
+	<bean id="revFuExportProcessor" parent="revFuExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="revFuExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${revFuExport.resources}" />
+		<property name="agendaCode" value="CLRE" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="revFuExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="revFuExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy-MM-dd"/>	
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentrevFuExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="revFuExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="revFuExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="revFuExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="revFuExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>
+

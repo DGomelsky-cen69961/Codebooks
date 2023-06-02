@@ -1,0 +1,482 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:CrmExport_cleanup_prod_2.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="CrmExport_cleanup_prod_2">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="step1" />
+						
+			<batch:next on="START:step1" to="step1" /> 
+			<batch:next on="COMPLETED:step1" to="step2" /> 
+			
+			<batch:next on="START:step2" to="step2" /> 
+			<batch:next on="COMPLETED:step2" to="step3" />
+			
+			<batch:next on="START:step3" to="step3" /> 
+			<batch:next on="COMPLETED:step3" to="step4" />
+			
+			<batch:next on="START:step4" to="step4" /> 
+			<batch:next on="COMPLETED:step4" to="step5" />
+			
+			<batch:next on="START:step5" to="step5" /> 
+			<batch:next on="COMPLETED:step5" to="step6" />
+			
+			<batch:next on="START:step6" to="step6" /> 
+			<batch:next on="COMPLETED:step6" to="CrmExport_cleanup_prod_2TypeStep" />
+			
+			<batch:next on="START:CrmExport_cleanup_prod_2TypeStep" to="CrmExport_cleanup_prod_2TypeStep" /> 
+			<batch:next on="COMPLETED:CrmExport_cleanup_prod_2TypeStep" to="step8" />
+			
+			<batch:next on="START:step8" to="step8" /> 
+			<batch:next on="COMPLETED:step8" to="step9" />
+			
+			<batch:next on="START:step9" to="step9" /> 
+			<batch:next on="COMPLETED:step9" to="step10" />
+			
+			<batch:next on="START:step10" to="step10" /> 
+			<batch:next on="COMPLETED:step10" to="step11" />
+			
+			<batch:next on="START:step11" to="step11" /> 
+			<batch:end on="COMPLETED:step11"/>
+			
+
+    	</batch:decision>	
+    	
+		<batch:step id="step1" next="decision">
+			<batch:tasklet ref="step1Task" />
+		</batch:step>
+		
+		<batch:step id="step2" next="decision">
+			<batch:tasklet ref="step2Task" />
+		</batch:step>
+		
+		<batch:step id="step3" next="decision">
+			<batch:tasklet ref="step3Task" />
+		</batch:step>
+		
+		<batch:step id="step4" next="decision">
+			<batch:tasklet ref="step4Task" />
+		</batch:step>
+		
+		<batch:step id="step5" next="decision">
+			<batch:tasklet ref="step5Task" />
+		</batch:step>
+		
+		<batch:step id="step6" next="decision">
+			<batch:tasklet ref="step6Task" />
+		</batch:step>
+		
+		
+		<batch:step id="CrmExport_cleanup_prod_2TypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="CrmExport_cleanup_prod_2Reader" processor="CrmExport_cleanup_prod_2Processor" writer="CrmExport_cleanup_prod_2Writer" />
+				<batch:listeners>
+					<batch:listener ref="CrmExport_cleanup_prod_2CsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="step8" next="decision">
+			<batch:tasklet ref="step8Task" />
+		</batch:step>
+		
+		<batch:step id="step9" next="decision">
+			<batch:tasklet ref="step9Task" />
+		</batch:step>
+		
+		<batch:step id="step10" next="decision">
+			<batch:tasklet ref="step10Task" />
+		</batch:step>
+		
+		<batch:step id="step11" next="decision">
+			<batch:tasklet ref="step11Task" />
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="CrmExport_cleanup_prod_2Manager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+	<bean id="step1Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 1 - generate the DEL for all cases but not for those that were proved manually to be correct... */
+insert into cms_wd_re_execution (
+CADASTRE_PROCEDURE_NUMBER,
+CHANGE_TYPE,
+CLUID,
+REAL_ESTATE_ID
+)
+select
+distinct 
+exec.cadastre_procedure_number || ' oprava chyby' cadastre_procedure_number,
+'DEL' change_type,
+exec.cluid cluid,
+exec.REAL_ESTATE_ID REAL_ESTATE_ID
+from 
+cms_wd_re_execution exec 
+where 1=1
+and exec.change_type = 'INS'
+and cluid not in (
+'8010-01-16-18.29.45.810730',
+'8006-12-21-11.54.32.777267',
+'1997-05-23-20.29.57.775872',
+'2001-11-13-23.03.57.673627',
+'2001-07-09-23.28.01.170867',
+'1998-05-07-02.40.36.567669',
+'2002-02-21-14.59.33.447490',
+'2002-12-24-03.54.23.270427',
+'8011-05-12-09.47.55.049271',
+'2003-12-03-11.48.30.773475',
+'2001-06-14-01.48.28.528808',
+'8005-06-15-14.41.08.808609',
+'1997-08-25-19.26.35.627811',
+'2001-08-16-00.11.59.084839',
+'1998-05-06-22.13.49.014930',
+'2000-05-12-00.53.18.343927',
+'1997-04-09-17.02.27.905238',
+'1997-04-09-17.07.16.160316',
+'1997-04-09-17.07.35.745586',
+'1997-04-10-22.03.24.074683',
+'1997-06-26-20.06.50.645660',
+'1998-05-06-19.21.10.608813',
+'1998-05-07-00.30.30.972846',
+'1998-05-07-02.39.46.962027',
+'2002-01-24-23.22.32.152201',
+'2002-05-02-03.50.56.692183',
+'2002-08-01-23.15.24.511808',
+'8014-08-27-14.11.46.064771',
+'9004-07-03-04.03.02.348669',
+'9010-10-22-09.52.06.504398',
+'9010-10-22-09.53.13.533536',
+'9011-04-22-04.20.48.465806' 
+)
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>		
+	
+	<bean id="step2Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 2 -- reset the current statistics for all cluids */
+update cms_wd_re_execution_stats s SET
+curr_ins = 0,
+curr_del = 0
+WHERE 1=1
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>		
+	
+	<bean id="step3Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 3 - create the statistics for brand new cluids - should not create anything*/
+insert into cms_wd_re_execution_stats (
+cluid,
+last_ins,
+last_del,
+curr_ins,
+curr_del,
+alert_source_id
+)
+select
+x.cluid,
+0,
+0,
+0,
+0,
+hibernate_sequence.nextval
+from (
+  select
+  distinct
+  e.cluid
+  from 
+  cms_wd_re_execution e
+  left join cms_wd_re_execution_stats s on e.cluid = s.cluid
+  where 1=1
+  and s.cluid is null
+) x
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>		
+	
+	<bean id="step4Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 4 - calculate the new statistics  - curr_ins (how many inserts we currently have) */
+MERGE INTO cms_wd_re_execution_stats S
+USING 
+(SELECT CLUID, COUNT(*) POCET FROM cms_wd_re_execution WHERE change_type = 'INS' GROUP BY CLUID) E
+ON (E.CLUID = S.CLUID)
+WHEN MATCHED THEN UPDATE SET S.curr_ins = E.POCET
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step5Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 5 - calculate the new statistics  - curr_del (how many deletes we currently have) */
+MERGE INTO cms_wd_re_execution_stats S
+USING 
+(SELECT CLUID, COUNT(*) POCET FROM cms_wd_re_execution WHERE change_type = 'DEL' GROUP BY CLUID) E
+ON (E.CLUID = S.CLUID)
+WHEN MATCHED THEN UPDATE SET S.curr_del = E.POCET
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step6Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 6 - remove the records which were just created but are instantly deleted... i.e. the execution was created and is resolved immediately... should not delete anything*/
+delete from cms_wd_re_execution_stats where last_ins = 0 and last_del = 0 and curr_ins <= curr_del;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+<!-- ================ CrmExport_cleanup_prod_2 ================ -->
+	<bean id="CrmExport_cleanup_prod_2Reader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+select 
+'N' INS_FLG,
+'N' UPD_FLG,
+'Y' DEL_FLG,
+x.cluid PT_UNIQUE_PARTY_ID,
+x.pt_type PT_TYPE, -- Type of client (F/P)
+'CN0' SOURCE_SYSTEM_ID,
+x.SOURCE_SYSTEM_RECORD_ID SOURCE_ID, -- Unique ID from external system
+'5' CATEGORY, -- SA_ALERT_CATEGORY lookup map, LOV CSAS_ALERT_SPEC
+'157' PN_TYPE, -- SA_ALERT_TYPE  lookup map, LOV CSAS_ALERT_SPEC
+'Na klienta a nemovitost byla vystaveno varování o exekuci, které bylo systémovým zásahem ukončeno. ' || CALMESSAGE PN_NOTE,
+to_char(x.valid_from, 'yyyymmdd') START_DT,
+REPLACE(x.ALERT_COMMENT, '|', '_') PN_COMMENT
+from 
+  (
+  select 
+  cluid, 
+  cadastre_procedure_number,
+  pt_type,
+  SOURCE_SYSTEM_RECORD_ID,
+  valid_from,
+  ALERT_COMMENT,
+  CALMESSAGE
+  from  
+    (
+    select distinct 
+    e.cluid cluid,
+    e.cadastre_procedure_number cadastre_procedure_number,
+    min(case when p.business_entity_descriptor_id = 'cscollateral/Organization' then 'P' else 'F' end) pt_type,
+    min(cal.SOURCE_SYSTEM_RECORD_ID) SOURCE_SYSTEM_RECORD_ID,
+    min(cal.valid_from) valid_from,
+	MIN(CAL.ALERT_COMMENT) ALERT_COMMENT,
+	MIN(CAL.MESSAGE) CALMESSAGE
+    from
+    cms_wd_re_execution_stats s
+    join cms_wd_re_execution e on e.cluid = s.cluid
+    join cms_partner p on p.cluid = s.cluid
+    join cms_client_alert cal on cal.partner_id = p.id and cal.category = '5' and cal.type = '157' AND cal.SOURCE_SYSTEM_ID = 'CN0' and cal.active = 1
+    where 1=1
+    and s.curr_del >= s.curr_ins
+    group by e.cluid, e.cadastre_procedure_number
+    )
+  ) x
+group by x.cluid, x.pt_Type, x.SOURCE_SYSTEM_RECORD_ID, x.valid_from, X.ALERT_COMMENT, x.CALMESSAGE
+]]>
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="step8Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 8 - update WatchdogLastExecutionWarningMessageId  - we do not want to do this!!! */
+update wdp_system_property set
+VALUE = (select max(id) from cms_wd_procedure)
+where id = 'cscollateral/watchdog/WatchdogLastExecutionWarningMessageId' and 1=0
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step9Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 9 - remove the resolved records statistics */
+delete from cms_wd_re_execution_stats s where s.curr_del >= s.curr_ins;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step10Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 10 - remove the resolved records */
+delete from cms_wd_re_execution e where e.cluid not in (select cluid from cms_wd_re_execution_stats);
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+	
+	<bean id="step11Task" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+BEGIN
+/* -- step 11 - update the statistics to reflect current status */
+update cms_wd_re_execution_stats set
+last_ins = curr_ins,
+last_del = curr_del
+where (last_ins != curr_ins or last_del != curr_del)
+;
+END;
+]]>
+			</value>
+		</property>
+	</bean>	
+
+	<bean id="CrmExport_cleanup_prod_2Writer" parent="parentCrmExport_cleanup_prod_2Writer" scope="step">		
+		<property name="extractName" value="PN" />	
+		<property name="manager" ref="CrmExport_cleanup_prod_2Manager" />
+		<property name="metadataProvider" ref="CrmExport_cleanup_prod_2Reader" />																																																																															
+	</bean>
+	
+	<bean id="CrmExport_cleanup_prod_2Processor" parent="CrmExport_cleanup_prod_2ItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="CrmExport_cleanup_prod_2Manager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="true" />
+		<property name="summaryFileWriteColumnsHeader" value="false" />		
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${CrmCollValueExport.resources}" />
+		<property name="agendaCode" value="CNCR" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="summaryFileColumns">
+			<value>EXTRACT_AGENDA_CODE,EXTRACT_NAME,EXTRACT_FILE_NAME,EXTRACT_START_TIME,EXTRACT_END_TIME,EXTRACT_RECORD_COUNT,EXTRACT_SOURCE_SYSTEM,EXTRACT_VERSION,EXTRACT_INCREMENT_FLAG,EXTRACT_DATA_FROM_DATE</value>
+		</property>		
+		<property name="csopsHeaderWriter">
+			<bean parent="CrmExport_cleanup_prod_2CsopsHeaderWriter">		
+				<property name="writeStandardHeader" value="false" />	
+			</bean>
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="CrmExport_cleanup_prod_2ItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentCrmExport_cleanup_prod_2Writer" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="CrmExport_cleanup_prod_2CsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark"><value>END OF FILE</value></property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="CrmExport_cleanup_prod_2CsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="CrmExport_cleanup_prod_2CsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="CrmExport_cleanup_prod_2CsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "true"/>
+		<property name="fieldNamesDelimiter" value="|" />	
+		<property name="writeColumnsHeader" value = "false"/>		
+	</bean>	
+</beans>

@@ -1,0 +1,3186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:collateralsCommonDataExportExt.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="exportThreadPoolTaskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor">
+		<property name="concurrencyLimit" value="20"/>
+	</bean>
+
+
+	<batch:job id="CollateralsCommonDataExportExt">
+    	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+
+			<!-- default start is parallel processing -->		
+			<batch:next on="DEFAULT_START" to="updateExpLoanMappingStep_Parallel" />
+
+			<!-- default start is serial processing -->
+			<!--batch:next on="DEFAULT_START" to="updateExpLoanMappingStep_Serial" /-->
+
+			<!-- parallel processing -->
+			<batch:next on="START:parallelProcessingStart" to="updateExpLoanMappingStep_Parallel" /> 
+
+			<batch:next on="START:updateExpLoanMappingStep_Parallel" to="updateExpLoanMappingStep_Parallel" /> 
+			<batch:next on="COMPLETED:updateExpLoanMappingStep_Parallel" to="parallelProcessingSplit" />			
+
+			<batch:next on="START:parallelProcessingSplit" to="parallelProcessingSplit" /> 
+			
+			<!-- 
+				here we cannot use the decider because it seems that split name is not correctly propagated to stepExecution
+				in the decider so the decider would always choose the last "real" executed step. Because of that the flow
+				is then terminated manually without the decider (see the step definition)
+			-->
+			<!-- batch:end on="COMPLETED:parallelProcessingSplit" /-->			
+
+			<!-- serial processing -->
+			<batch:next on="START:serialProcessingStart" to="updateExpLoanMappingStep_Serial" /> 
+											
+			<batch:next on="START:updateExpLoanMappingStep_Serial" to="updateExpLoanMappingStep_Serial" /> 
+			<batch:next on="COMPLETED:updateExpLoanMappingStep_Serial" to="exportCollateralStep_Serial" />			
+
+			<batch:next on="START:exportCollateralStep_Serial" to="exportCollateralStep_Serial" /> 
+			<batch:next on="COMPLETED:exportCollateralStep_Serial" to="exportLoanStep_Serial" />			
+
+			<batch:next on="START:exportLoanStep_Serial" to="exportLoanStep_Serial" /> 
+			<batch:next on="COMPLETED:exportLoanStep_Serial" to="exportLoanCollateralValuesStep_Serial" />
+						
+			<batch:next on="START:exportLoanCollateralValuesStep_Serial" to="exportLoanCollateralValuesStep_Serial" /> 
+			<batch:next on="COMPLETED:exportLoanCollateralValuesStep_Serial" to="exportLoanAccountingStep_Serial" />
+						
+			<batch:next on="START:exportLoanAccountingStep_Serial" to="exportLoanAccountingStep_Serial" /> 
+			<batch:next on="COMPLETED:exportLoanAccountingStep_Serial" to="exportCollateralAssetStep_Serial" />
+						
+			<batch:next on="START:exportCollateralAssetStep_Serial" to="exportCollateralAssetStep_Serial" /> 
+			<batch:next on="COMPLETED:exportCollateralAssetStep_Serial" to="exportBoeAssetStep_Serial" />
+						
+			<batch:next on="START:exportBoeAssetStep_Serial" to="exportBoeAssetStep_Serial" /> 
+			<batch:next on="COMPLETED:exportBoeAssetStep_Serial" to="exportDepositAssetStep_Serial" />			
+			
+			<batch:next on="START:exportDepositAssetStep_Serial" to="exportDepositAssetStep_Serial" /> 
+			<batch:next on="COMPLETED:exportDepositAssetStep_Serial" to="exportLifeInsuranceAssetStep_Serial" />			
+			
+			<batch:next on="START:exportLifeInsuranceAssetStep_Serial" to="exportLifeInsuranceAssetStep_Serial" />
+			<batch:next on="COMPLETED:exportLifeInsuranceAssetStep_Serial" to="exportFunctionalUnitStep_Serial" />
+						
+			<batch:next on="START:exportFunctionalUnitStep_Serial" to="exportFunctionalUnitStep_Serial" />
+			<batch:next on="COMPLETED:exportFunctionalUnitStep_Serial" to="exportRealEstateAssetItemStep_Serial" />
+						
+			<batch:next on="START:exportRealEstateAssetItemStep_Serial" to="exportRealEstateAssetItemStep_Serial" />
+			<batch:next on="COMPLETED:exportRealEstateAssetItemStep_Serial" to="exportRealEstatePledgerStep_Serial" />			
+
+			<batch:next on="START:exportRealEstatePledgerStep_Serial" to="exportRealEstatePledgerStep_Serial" />
+			<batch:next on="COMPLETED:exportRealEstatePledgerStep_Serial" to="exportSecurityAssetStep_Serial" />
+						
+			<batch:next on="START:exportSecurityAssetStep_Serial" to="exportSecurityAssetStep_Serial" />
+			<batch:next on="COMPLETED:exportSecurityAssetStep_Serial" to="exportSecurityAssetItemStep_Serial" />			
+
+			<batch:next on="START:exportSecurityAssetItemStep_Serial" to="exportSecurityAssetItemStep_Serial" />
+			<batch:next on="COMPLETED:exportSecurityAssetItemStep_Serial" to="exportCollateralAssetInsuranceLinkStep_Serial" />			
+
+			<batch:next on="START:exportCollateralAssetInsuranceLinkStep_Serial" to="exportCollateralAssetInsuranceLinkStep_Serial" />
+			<batch:next on="COMPLETED:exportCollateralAssetInsuranceLinkStep_Serial" to="exportInsuranceStep_Serial" />
+						
+			<batch:next on="START:exportInsuranceStep_Serial" to="exportInsuranceStep_Serial" />
+			<batch:next on="COMPLETED:exportInsuranceStep_Serial" to="exportInsuranceIncomeStep_Serial" />			
+
+			<batch:next on="START:exportInsuranceIncomeStep_Serial" to="exportInsuranceIncomeStep_Serial" />
+			<batch:next on="COMPLETED:exportInsuranceIncomeStep_Serial" to="exportThirdPartyPledgeStep_Serial" />			
+
+			<batch:next on="START:exportThirdPartyPledgeStep_Serial" to="exportThirdPartyPledgeStep_Serial" />
+			<batch:next on="COMPLETED:exportThirdPartyPledgeStep_Serial" to="exportEvaluationStep_Serial" />
+						
+			<batch:next on="START:exportEvaluationStep_Serial" to="exportEvaluationStep_Serial" />
+			<batch:next on="COMPLETED:exportEvaluationStep_Serial" to="exportCollateralProviderStep_Serial" />			
+			
+			<batch:next on="START:exportCollateralProviderStep_Serial" to="exportCollateralProviderStep_Serial" />
+			<batch:next on="COMPLETED:exportCollateralProviderStep_Serial" to="exportCollateralAssetPartnerRoleStep_Serial" />			
+
+			<batch:next on="START:exportCollateralAssetPartnerRoleStep_Serial" to="exportCollateralAssetPartnerRoleStep_Serial" />
+			<batch:next on="COMPLETED:exportCollateralAssetPartnerRoleStep_Serial" to="exportBoeAvalStep_Serial" />			
+
+			<batch:next on="START:exportBoeAvalStep_Serial" to="exportBoeAvalStep_Serial" />
+			<batch:next on="COMPLETED:exportBoeAvalStep_Serial" to="exportWorkoutCostAndRevenueStep_Serial" />			
+
+			<batch:next on="START:exportWorkoutCostAndRevenueStep_Serial" to="exportWorkoutCostAndRevenueStep_Serial" />															
+			<batch:next on="COMPLETED:exportWorkoutCostAndRevenueStep_Serial" to="exportWorkoutCostAndRevenueDCStep_Serial" />			
+			
+			<batch:next on="START:exportWorkoutCostAndRevenueDCStep_Serial" to="exportWorkoutCostAndRevenueDCStep_Serial" />														
+			<batch:next on="COMPLETED:exportWorkoutCostAndRevenueDCStep_Serial" to="exportCollateralStatusStep_Serial" />			
+
+			<batch:next on="START:exportCollateralStatusStep_Serial" to="exportCollateralStatusStep_Serial" />																
+			<batch:next on="COMPLETED:exportCollateralStatusStep_Serial" to="exportCodeTableStep_Serial" />
+
+			<batch:next on="START:exportCodeTableStep_Serial" to="exportCodeTableStep_Serial" />
+			<batch:next on="COMPLETED:exportCodeTableStep_Serial" to="exportCollateralSubtypeSettingsStep_Serial" />			
+
+			<batch:next on="START:exportCollateralSubtypeSettingsStep_Serial" to="exportCollateralSubtypeSettingsStep_Serial" />
+			<batch:next on="COMPLETED:exportCollateralSubtypeSettingsStep_Serial" to="exportPartnerStep_Serial" />			
+			
+			<batch:next on="START:exportPartnerStep_Serial" to="exportPartnerStep_Serial" />
+			<batch:next on="COMPLETED:exportPartnerStep_Serial" to="exportPropertyCertificateStep_Serial" />			
+
+			<batch:next on="START:exportPropertyCertificateStep_Serial" to="exportPropertyCertificateStep_Serial" />
+			<batch:next on="COMPLETED:exportPropertyCertificateStep_Serial" to="exportPortfolioGuaranteeStep_Serial" />
+			
+			<batch:next on="START:exportPortfolioGuaranteeStep_Serial" to="exportPortfolioGuaranteeStep_Serial" />
+			<batch:next on="COMPLETED:exportPortfolioGuaranteeStep_Serial" to="exportCollateralSyndicationPartnerStep_Serial" />
+			
+			<batch:next on="START:exportCollateralSyndicationPartnerStep_Serial" to="exportCollateralSyndicationPartnerStep_Serial" />
+			<batch:next on="COMPLETED:exportCollateralSyndicationPartnerStep_Serial" to="exportDocumentRelationsStep_Serial"  />
+			
+			<batch:next on="START:exportDocumentRelationsStep_Serial" to="exportCollateralSyndicationPartnerStep_Serial" />
+			<batch:end on="COMPLETED:exportDocumentRelationsStep_Serial" />
+			
+    	</batch:decision>	
+
+		<!-- parallel processing -->
+		<batch:step id="updateExpLoanMappingStep_Parallel" parent="updateExpLoanMappingStep" next="decision" />
+
+		<batch:split id="parallelProcessingSplit" task-executor="exportThreadPoolTaskExecutor" >
+			<!-- 
+				here we cannot use the decider because it seems that split name is not correctly propagated to stepExecution
+				in the decider so the decider would always choose the last "real" executed step
+			-->
+		    <batch:end on="*" />
+		    
+	        <batch:flow>
+				<batch:step id="exportCollateralStep_Parallel" parent="exportCollateralStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportLoanStep_Parallel" parent="exportLoanStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportLoanCollateralValuesStep_Parallel" parent="exportLoanCollateralValuesStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportLoanAccountingStep_Parallel" parent="exportLoanAccountingStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralAssetStep_Parallel" parent="exportCollateralAssetStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportBoeAssetStep_Parallel" parent="exportBoeAssetStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportDepositAssetStep_Parallel" parent="exportDepositAssetStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportLifeInsuranceAssetStep_Parallel" parent="exportLifeInsuranceAssetStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportFunctionalUnitStep_Parallel" parent="exportFunctionalUnitStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportRealEstateAssetItemStep_Parallel" parent="exportRealEstateAssetItemStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportRealEstatePledgerStep_Parallel" parent="exportRealEstatePledgerStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportSecurityAssetStep_Parallel" parent="exportSecurityAssetStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportSecurityAssetItemStep_Parallel" parent="exportSecurityAssetItemStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralAssetInsuranceLinkStep_Parallel" parent="exportCollateralAssetInsuranceLinkStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportInsuranceStep_Parallel" parent="exportInsuranceStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportInsuranceIncomeStep_Parallel" parent="exportInsuranceIncomeStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportThirdPartyPledgeStep_Parallel" parent="exportThirdPartyPledgeStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportEvaluationStep_Parallel" parent="exportEvaluationStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralProviderStep_Parallel" parent="exportCollateralProviderStep" />
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralAssetPartnerRoleStep_Parallel" parent="exportCollateralAssetPartnerRoleStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportBoeAvalStep_Parallel" parent="exportBoeAvalStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportPartnerStep_Parallel" parent="exportPartnerStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportWorkoutCostAndRevenueStep_Parallel" parent="exportWorkoutCostAndRevenueStep" /> 
+	        </batch:flow>
+			<batch:flow>	
+				<batch:step id="exportWorkoutCostAndRevenueDCStep_Parallel" parent="exportWorkoutCostAndRevenueDCStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralStatusStep_Parallel" parent="exportCollateralStatusStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCodeTableStep_Parallel" parent="exportCodeTableStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportCollateralSubtypeSettingsStep_Parallel" parent="exportCollateralSubtypeSettingsStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportPropertyCertificateStep_Parallel" parent="exportPropertyCertificateStep" /> 
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="exportPortfolioGuaranteeStep_Parallel" parent="exportPortfolioGuaranteeStep" /> 
+	        </batch:flow>
+			<batch:flow>	
+				<batch:step id="exportCollateralSyndicationPartnerStep_Parallel" parent="exportCollateralSyndicationPartnerStep" /> 
+	        </batch:flow>
+			<batch:flow>	
+				<batch:step id="exportDocumentRelationsStep_Parallel" parent="exportDocumentRelationsStep" /> 
+	        </batch:flow>			
+			
+			
+    	</batch:split>
+    
+		<!-- serial processing -->
+		<batch:step id="updateExpLoanMappingStep_Serial" parent="updateExpLoanMappingStep" next="decision" />		
+		<batch:step id="exportCollateralStep_Serial" parent="exportCollateralStep" next="decision" />		
+		<batch:step id="exportLoanStep_Serial" parent="exportLoanStep" next="decision" />
+		<batch:step id="exportLoanCollateralValuesStep_Serial" parent="exportLoanCollateralValuesStep" next="decision" />
+		<batch:step id="exportLoanAccountingStep_Serial" parent="exportLoanAccountingStep" next="decision" />
+		<batch:step id="exportCollateralAssetStep_Serial" parent="exportCollateralAssetStep" next="decision" />		
+		<batch:step id="exportBoeAssetStep_Serial" parent="exportBoeAssetStep"  next="decision" />
+		<batch:step id="exportDepositAssetStep_Serial" parent="exportDepositAssetStep"  next="decision" />				
+		<batch:step id="exportLifeInsuranceAssetStep_Serial" parent="exportLifeInsuranceAssetStep"  next="decision" />
+		<batch:step id="exportFunctionalUnitStep_Serial" parent="exportFunctionalUnitStep"  next="decision" />
+		<batch:step id="exportRealEstateAssetItemStep_Serial" parent="exportRealEstateAssetItemStep"  next="decision" />
+		<batch:step id="exportRealEstatePledgerStep_Serial" parent="exportRealEstatePledgerStep"  next="decision" />
+		<batch:step id="exportSecurityAssetStep_Serial" parent="exportSecurityAssetStep"  next="decision" />		
+		<batch:step id="exportSecurityAssetItemStep_Serial" parent="exportSecurityAssetItemStep"  next="decision" />						
+		<batch:step id="exportCollateralAssetInsuranceLinkStep_Serial" parent="exportCollateralAssetInsuranceLinkStep"  next="decision" />								
+		<batch:step id="exportInsuranceStep_Serial" parent="exportInsuranceStep"  next="decision" />
+		<batch:step id="exportInsuranceIncomeStep_Serial" parent="exportInsuranceIncomeStep"  next="decision" />						
+		<batch:step id="exportThirdPartyPledgeStep_Serial" parent="exportThirdPartyPledgeStep"  next="decision" />							
+		<batch:step id="exportEvaluationStep_Serial" parent="exportEvaluationStep"  next="decision" />					
+		<batch:step id="exportCollateralProviderStep_Serial" parent="exportCollateralProviderStep" next="decision" />
+		<batch:step id="exportCollateralAssetPartnerRoleStep_Serial" parent="exportCollateralAssetPartnerRoleStep" next="decision" /> 				
+		<batch:step id="exportBoeAvalStep_Serial" parent="exportBoeAvalStep" next="decision" /> 
+		<batch:step id="exportPartnerStep_Serial" parent="exportPartnerStep" next="decision" /> 							
+		<batch:step id="exportWorkoutCostAndRevenueStep_Serial" parent="exportWorkoutCostAndRevenueStep" next="decision" /> 										
+		<batch:step id="exportWorkoutCostAndRevenueDCStep_Serial" parent="exportWorkoutCostAndRevenueDCStep" next="decision" /> 										
+		<batch:step id="exportCollateralStatusStep_Serial" parent="exportCollateralStatusStep" next="decision" /> 
+		<batch:step id="exportCodeTableStep_Serial" parent="exportCodeTableStep" next="decision" /> 
+		<batch:step id="exportCollateralSubtypeSettingsStep_Serial" parent="exportCollateralSubtypeSettingsStep" next="decision" /> 
+		<batch:step id="exportPropertyCertificateStep_Serial" parent="exportPropertyCertificateStep" next="decision" /> 
+		<batch:step id="exportPortfolioGuaranteeStep_Serial" parent="exportPortfolioGuaranteeStep" next="decision" />
+		<batch:step id="exportCollateralSyndicationPartnerStep_Serial" parent="exportCollateralSyndicationPartnerStep" next="decision" />
+		<batch:step id="exportDocumentRelationsStep_Serial" parent="exportDocumentRelationsStep" next="decision" />
+	
+		
+		<batch:listeners>
+			<batch:listener ref="collateralsCommonDataExportManager" />	
+		</batch:listeners>				
+	</batch:job>    
+
+	<batch:step id="updateExpLoanMappingStep">
+		<batch:tasklet ref="updateExpLoanMappingTask" />
+	</batch:step>
+
+	<batch:step id="exportCollateralStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>			
+			<batch:chunk reader="exportCollateralReader" processor="exportCollateralProcessor" writer="exportCollateralWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="exportLoanStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportLoanReader" processor="exportLoanProcessor" writer="exportLoanWriter" />
+			<batch:listeners  merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>	
+			
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportLoanCollateralValuesStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportLoanCollateralValuesReader" processor="exportLoanCollateralValuesProcessor" writer="exportLoanCollateralValuesWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>	
+			
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="exportLoanAccountingStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportLoanAccountingReader" processor="exportLoanAccountingProcessor" writer="exportLoanAccountingWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+			
+	<batch:step id="exportCollateralAssetStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralAssetReader" processor="exportCollateralAssetProcessor" writer="exportCollateralAssetWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="exportBoeAssetStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportBoeAssetReader" processor="exportBoeAssetProcessor" writer="exportBoeAssetWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportDepositAssetStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportDepositAssetReader" processor="exportDepositAssetProcessor" writer="exportDepositAssetWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+			
+	<batch:step id="exportLifeInsuranceAssetStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportLifeInsuranceAssetReader" processor="exportLifeInsuranceAssetProcessor" writer="exportLifeInsuranceAssetWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />		
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportFunctionalUnitStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportFunctionalUnitReader" processor="exportFunctionalUnitProcessor" writer="exportFunctionalUnitWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportRealEstateAssetItemStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportRealEstateAssetItemReader" processor="exportRealEstateAssetItemProcessor" writer="exportRealEstateAssetItemWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportRealEstatePledgerStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportRealEstatePledgerReader" processor="exportRealEstatePledgerProcessor" writer="exportRealEstatePledgerWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>				
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportSecurityAssetStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportSecurityAssetReader" processor="exportSecurityAssetProcessor" writer="exportSecurityAssetWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>	
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="exportSecurityAssetItemStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportSecurityAssetItemReader" processor="exportSecurityAssetItemProcessor" writer="exportSecurityAssetItemWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+					
+	<batch:step id="exportCollateralAssetInsuranceLinkStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralAssetInsuranceLinkReader" processor="exportCollateralAssetInsuranceLinkProcessor" writer="exportCollateralAssetInsuranceLinkWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+							
+	<batch:step id="exportInsuranceStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportInsuranceReader" processor="exportInsuranceProcessor" writer="exportInsuranceWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportInsuranceIncomeStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportInsuranceIncomeReader" processor="exportInsuranceIncomeProcessor" writer="exportInsuranceIncomeWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+					
+	<batch:step id="exportThirdPartyPledgeStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportThirdPartyPledgeReader" processor="exportThirdPartyPledgeProcessor" writer="exportThirdPartyPledgeWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+						
+	<batch:step id="exportEvaluationStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportEvaluationReader" processor="exportEvaluationProcessor" writer="exportEvaluationWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+				
+	<batch:step id="exportCollateralProviderStep" parent="parentConvert" abstract="true" >
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralProviderReader" processor="exportCollateralProviderProcessor" writer="exportCollateralProviderWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportCollateralAssetPartnerRoleStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralAssetPartnerRoleReader" processor="exportCollateralAssetPartnerRoleProcessor" writer="exportCollateralAssetPartnerRoleWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+			
+	<batch:step id="exportBoeAvalStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportBoeAvalReader" processor="exportBoeAvalProcessor" writer="exportBoeAvalWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportPartnerStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportPartnerReader" processor="exportPartnerProcessor" writer="exportPartnerWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+						
+	<batch:step id="exportWorkoutCostAndRevenueStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportWorkoutCostAndRevenueReader" processor="exportWorkoutCostAndRevenueProcessor" writer="exportWorkoutCostAndRevenueWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="exportWorkoutCostAndRevenueDCStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportWorkoutCostAndRevenueDCReader" processor="exportWorkoutCostAndRevenueDCProcessor" writer="exportWorkoutCostAndRevenueDCWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>	
+
+	<batch:step id="exportCollateralStatusStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralStatusReader" processor="exportCollateralStatusProcessor" writer="exportCollateralStatusWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+									
+	<batch:step id="exportCodeTableStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportCodeTableReader" processor="exportCodeTableProcessor" writer="exportCodeTableWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportCollateralSubtypeSettingsStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralSubtypeSettingsReader" processor="exportCollateralSubtypeSettingsProcessor" writer="exportCollateralSubtypeSettingsWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportPropertyCertificateStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportPropertyCertificateReader" processor="exportPropertyCertificateProcessor" writer="exportPropertyCertificateWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:step id="exportPortfolioGuaranteeStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportPortfolioGuaranteeReader" processor="exportPortfolioGuaranteeProcessor" writer="exportPortfolioGuaranteeWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+		
+	<batch:step id="exportCollateralSyndicationPartnerStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportCollateralSyndicationPartnerReader" processor="exportCollateralSyndicationPartnerProcessor" writer="exportCollateralSyndicationPartnerWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>	
+		
+	
+	<batch:step id="exportDocumentRelationsStep" parent="parentConvert" abstract="true" > 
+		<batch:tasklet>
+			<batch:chunk reader="exportDocumentRelationsReader" processor="exportDocumentRelationsProcessor" writer="exportDocumentRelationsWriter" />
+			<batch:listeners merge="true">
+				<batch:listener ref="collateralsCommonDataExportCsopsHeaderFileCallback" />
+			</batch:listeners>					
+		</batch:tasklet>
+	</batch:step>
+			
+		
+<!-- ================ UpdateExpLoanMapping ================ --> 
+	
+	<bean id="updateExpLoanMappingTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql" value="{ call cms_utl_export.update_exp_loan_mapping(:mappingIdStepper) }" />
+		<property name="parameters">
+			<map>
+				<entry key="mappingIdStepper" value="${sequence_stepper}" />
+			</map>
+		</property>		
+	</bean>		
+
+	
+<!-- ================ Collateral ================ -->
+	<bean id="exportCollateralReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH
+alloc_res_for_approved AS
+(
+  SELECT
+    /*+ MATERIALIZE */
+    coll.id for_collateral_id,
+    alloc.*
+  FROM
+    (SELECT * FROM cms_collateral_to_report coll WHERE coll.state = 'approved') coll
+    JOIN cms_coll_alloc_result alloc on alloc.id IN (
+      SELECT
+        MAX(res.id) KEEP (DENSE_RANK first ORDER BY res.create_time desc)
+      FROM
+        cms_coll_alloc_result res
+      where res.collateral_id = coll.id and res.is_pseudo_result = 1
+    )
+),
+alloc_res_for_activated AS
+(
+  SELECT
+    /*+ MATERIALIZE */
+    coll.id for_collateral_id,
+    alloc.*
+  FROM
+    cms_collateral_to_report coll
+    JOIN cms_coll_alloc_result alloc on
+    (alloc.id = coll.actual_result_id and coll.state = 'activated')
+),
+alloc_res AS
+(
+  SELECT
+    /*+ MATERIALIZE */
+    *
+  FROM
+  (
+    SELECT
+      alloc.*
+    FROM
+      alloc_res_for_approved alloc
+    UNION ALL
+    SELECT
+      alloc.*
+    FROM
+      alloc_res_for_activated alloc
+  )
+)
+SELECT
+	cs_utl_validation.validate_number(ID, 'COLLATERAL.ID', rownum, 19, 0, 0, '') ID,
+	cs_utl_validation.validate_number(ACCEPTABLE_VALUE, 'COLLATERAL.ACCEPTABLE_VALUE', rownum, 18, 4, 1, '') ACCEPTABLE_VALUE,
+	cs_utl_validation.validate_varchar(AGREEMENT_NUMBER, 'COLLATERAL.AGREEMENT_NUMBER', rownum, 20, 1, '') AGREEMENT_NUMBER,
+	cs_utl_validation.validate_number(COLLATERAL_ELIGIBILITY, 'COLLATERAL.COLLATERAL_ELIGIBILITY', rownum, 1, 0, 1, 'BOOLEAN') COLLATERAL_ELIGIBILITY,
+	cs_utl_validation.validate_varchar(COLLATERAL_ID, 'COLLATERAL.COLLATERAL_ID', rownum, 11, 0, '') COLLATERAL_ID,
+	cs_utl_validation.validate_varchar(LIMIT_FIXED_AMOUNT_CURRENCY, 'COLLATERAL.LIMIT_FIXED_AMOUNT_CURRENCY', rownum, 3, 1, '') LIMIT_FIXED_AMOUNT_CURRENCY,
+	cs_utl_validation.validate_date(EFFECTIVENESS_DATE, 'COLLATERAL.EFFECTIVENESS_DATE', rownum, 1, 'YYYY.MM.DD') EFFECTIVENESS_DATE,
+	cs_utl_validation.validate_date(FORCED_EFFECTIVENESS_DATE, 'COLLATERAL.FORCED_EFFECTIVENESS_DATE', rownum, 1, 'YYYY.MM.DD') FORCED_EFFECTIVENESS_DATE,
+	cs_utl_validation.validate_date(LIEN_CREATED_INFO_DATE, 'COLLATERAL.LIEN_CREATED_INFO_DATE', rownum, 1, 'YYYY.MM.DD HH24:MI:SS') LIEN_CREATED_INFO_DATE,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT, 'COLLATERAL.LIMIT_FIXED_AMOUNT', rownum, 18, 4, 1, '') LIMIT_FIXED_AMOUNT,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT_BCCY, 'COLLATERAL.LIMIT_FIXED_AMOUNT_BCCY', rownum, 20, 6, 1, '') LIMIT_FIXED_AMOUNT_BCCY,
+	cs_utl_validation.validate_number(NOMINAL_VALUE, 'COLLATERAL.NOMINAL_VALUE', rownum, 18, 4, 1, '') NOMINAL_VALUE,
+	cs_utl_validation.validate_varchar(NOTE, 'COLLATERAL.NOTE', rownum, 1000, 1, '') NOTE,
+	cs_utl_validation.validate_varchar(PLEDGE_REGISTRAR_ENTRY_NO, 'COLLATERAL.PLEDGE_REGISTRAR_ENTRY_NO', rownum, 200, 1, '') PLEDGE_REGISTRAR_ENTRY_NO,
+	cs_utl_validation.validate_number(PLEDGE_REGISTRAR_FLAG, 'COLLATERAL.PLEDGE_REGISTRAR_FLAG', rownum, 1, 0, 1, 'BOOLEAN') PLEDGE_REGISTRAR_FLAG,
+	cs_utl_validation.validate_varchar(PLEDGE_REGISTRAR_NAME, 'COLLATERAL.PLEDGE_REGISTRAR_NAME', rownum, 200, 1, '') PLEDGE_REGISTRAR_NAME,
+	cs_utl_validation.validate_number(RANK, 'COLLATERAL.RANK', rownum, 6, 0, 1, '') RANK,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID, 'COLLATERAL.REF_COLLATERAL_ASSET_ID', rownum, 19, 0, 0, '') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_number(SECURING_OTHER_FUTURE_LOANS, 'COLLATERAL.SECURING_OTHER_FUTURE_LOANS', rownum, 1, 0, 1, 'BOOLEAN') SECURING_OTHER_FUTURE_LOANS,
+	cs_utl_validation.validate_date(SIGNED_DATE, 'COLLATERAL.SIGNED_DATE', rownum, 1, 'YYYY.MM.DD') SIGNED_DATE,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID, 'COLLATERAL.SOURCE_SYSTEM_ID', rownum, 32, 0, '') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_number(SUBJECT_OF_THE_LOAN, 'COLLATERAL.SUBJECT_OF_THE_LOAN', rownum, 1, 0, 1, 'BOOLEAN') SUBJECT_OF_THE_LOAN,
+	cs_utl_validation.validate_number(SYNDICATE_CSPERCENTAGE, 'COLLATERAL.SYNDICATE_CSPERCENTAGE', rownum, 10, 4, 1, '') SYNDICATE_CSPERCENTAGE,
+	cs_utl_validation.validate_number(SYNDICATED_LOAN, 'COLLATERAL.SYNDICATED_LOAN', rownum, 1, 0, 1, 'BOOLEAN') SYNDICATED_LOAN,
+	cs_utl_validation.validate_date(VALID_TO, 'COLLATERAL.VALID_TO', rownum, 1, 'YYYY.MM.DD') VALID_TO,
+	cs_utl_validation.validate_number(ELGB_INDEPEND_ON_REPAY_LOAN, 'COLLATERAL.ELGB_INDEPEND_ON_REPAY_LOAN', rownum, 1, 0, 1, 'BOOLEAN') ELGB_INDEPEND_ON_REPAY_LOAN,
+	cs_utl_validation.validate_number(ELGB_FU_MATER_DEPEND, 'COLLATERAL.ELGB_FU_MATER_DEPEND', rownum, 1, 0, 1, 'BOOLEAN') ELGB_FU_MATER_DEPEND,
+	cs_utl_validation.validate_date(EXT_REGISTRATION_FROM, 'COLLATERAL.EXT_REGISTRATION_FROM', rownum, 1, 'YYYY.MM.DD') EXT_REGISTRATION_FROM,
+	cs_utl_validation.validate_number(NOMINAL_VALUE_BCCY, 'COLLATERAL.NOMINAL_VALUE_BCCY', rownum, 18, 4, 1, '') NOMINAL_VALUE_BCCY,
+	cs_utl_validation.validate_date(SEAL_DATE, 'COLLATERAL.SEAL_DATE', rownum, 1, 'YYYY.MM.DD') SEAL_DATE,
+	cs_utl_validation.validate_number(HZL_ELIGIBLE, 'COLLATERAL.HZL_ELIGIBLE', rownum, 1, 0, 1, 'BOOLEAN') HZL_ELIGIBLE,
+	cs_utl_validation.validate_number(ACCEPTABLE_VALUE_BCCY, 'COLLATERAL.ACCEPTABLE_VALUE_BCCY', rownum, 20, 6, 1, '') ACCEPTABLE_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(COLLATERAL_STATUS, 'COLLATERAL.COLLATERAL_STATUS', rownum, 30, 0, '') COLLATERAL_STATUS,
+	cs_utl_validation.validate_number(CS_LIEN_ORDER, 'COLLATERAL.RANK', rownum, 6, 0, 1, '') CS_LIEN_ORDER,
+	cs_utl_validation.validate_number(INTERNAL_PRIOR_CLAIMS, 'COLLATERAL.INTERNAL_PRIOR_CLAIMS', rownum, 18, 4, 0, '') INTERNAL_PRIOR_CLAIMS,
+	cs_utl_validation.validate_number(INTERNAL_PRIOR_CLAIMS_BCCY, 'COLLATERAL.INTERNAL_PRIOR_CLAIMS_BCCY', rownum, 20, 6, 0, '') INTERNAL_PRIOR_CLAIMS_BCCY,
+	cs_utl_validation.validate_number(EXTERNAL_PRIOR_CLAIMS, 'COLLATERAL.EXTERNAL_PRIOR_CLAIMS', rownum, 18, 4, 0, '') EXTERNAL_PRIOR_CLAIMS,
+	cs_utl_validation.validate_number(EXTERNAL_PRIOR_CLAIMS_BCCY, 'COLLATERAL.EXTERNAL_PRIOR_CLAIMS_BCCY', rownum, 20, 6, 0, '') EXTERNAL_PRIOR_CLAIMS_BCCY,
+	cs_utl_validation.validate_varchar(REPAYMENT_VEHICLE, 'COLLATERAL.REPAYMENT_VEHICLE', rownum, 4, 1, '') REPAYMENT_VEHICLE,
+	cs_utl_validation.validate_number(ELGB_RANK, 'COLLATERAL.ELGB_RANK', rownum, 6, 0, 0, '') ELGB_RANK,
+	cs_utl_validation.validate_number(ELGB_NO_CORRELATION_FLAG, 'COLLATERAL.ELGB_NO_CORRELATION_FLAG', rownum, 1, 0, 0, 'BOOLEAN') ELGB_NO_CORRELATION_FLAG,
+	cs_utl_validation.validate_number(ELGB_ENFORCEABILITY_FLAG, 'COLLATERAL.ELGB_ENFORCEABILITY_FLAG', rownum, 1, 0, 0, 'BOOLEAN') ELGB_ENFORCEABILITY_FLAG,
+	cs_utl_validation.validate_number(ELGB_INSURANCE_FLAG, 'COLLATERAL.ELGB_INSURANCE_FLAG', rownum, 1, 0, 0, 'BOOLEAN') ELGB_INSURANCE_FLAG,
+	cs_utl_validation.validate_number(ELGB_BASEL_VALUATION_FLAG, 'COLLATERAL.ELGB_BASEL_VALUATION_FLAG', rownum, 1, 0, 0, 'BOOLEAN') ELGB_BASEL_VALUATION_FLAG,
+	cs_utl_validation.validate_number(ELGB_OTHER_FLAG, 'COLLATERAL.ELGB_OTHER_FLAG', rownum, 1, 0, 0, 'BOOLEAN') ELGB_OTHER_FLAG,
+	cs_utl_validation.validate_varchar(CONTRACTUAL_COVERAGE, 'COLLATERAL.CONTRACTUAL_COVERAGE', rownum, 1, 0, '') CONTRACTUAL_COVERAGE,
+	cs_utl_validation.validate_number(INIT_ACCEPT_VALUE, 'COLLATERAL.INIT_ACCEPT_VALUE', rownum, 18, 4, 0, '') INIT_ACCEPT_VALUE,
+	cs_utl_validation.validate_varchar(INIT_ACCEPT_VALUE_CUR, 'COLLATERAL.INIT_ACCEPT_VALUE_CUR', rownum, 255, 0, '') INIT_ACCEPT_VALUE_CUR,
+	cs_utl_validation.validate_number(INIT_ACCEPT_VALUE_BCCY, 'COLLATERAL.INIT_ACCEPT_VALUE_BCCY', rownum, 26, 6, 0, '') INIT_ACCEPT_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(GUARANTEE_RISK_TYPE, 'COLLATERAL.GUARANTEE_RISK_TYPE', rownum, 3, 0, '') GUARANTEE_RISK_TYPE,
+	cs_utl_validation.validate_varchar(MIGRATION_SOURCE_SYSTEM, 'COLLATERAL.MIGRATION_SOURCE_SYSTEM', rownum, 10, 0, '') MIGRATION_SOURCE_SYSTEM
+	
+
+FROM (
+  SELECT /*+ USE_HASH(coll alloc) */
+  DISTINCT
+    coll.id,
+    greatest(0,  NVL(alloc.acceptable_value,  0)) acceptable_value,
+    coll.agreement_number,
+    coll.collateral_eligibility,
+    coll.collateral_id,
+    NVL(coll.currency,  'CZK') limit_fixed_amount_currency,
+    coll.effectiveness_date,
+    coll.forced_effectiveness_date,
+    coll.lien_created_info_date,
+    coll.limit_fixed_amount,
+    coll.limit_fixed_amount_bccy,
+    greatest(0,  NVL(alloc.nominal_value,  0)) nominal_value,
+    coll.note,
+    coll.pledge_registrar_entry_no,
+    NVL(coll.ext_registration_done,  0) pledge_registrar_flag,
+    coll.pledge_registrar_name,
+    coll.rank,
+    coll.collateral_asset_id ref_collateral_asset_id,
+    coll.securing_other_future_loans,
+    coll.signed_date,
+    'CLM' source_system_id,
+    coll.subject_of_the_loan,
+    NVL(DECODE(coll.syndicated_loan,  0,  NULL,  coll.syndicate_cspercentage),  1) syndicate_cspercentage,
+    coll.syndicated_loan,
+    coll.valid_to,
+    coll.elgb_independ_on_repay_loan,
+    coll.elgb_fumater_depend elgb_fu_mater_depend,
+    coll.ext_registration_from,
+    greatest(0,  NVL(alloc.nominal_value_bccy,  0)) nominal_value_bccy,
+    coll.seal_date,
+    coll.hzl_eligible,
+    greatest(0,  NVL(alloc.acceptable_value_bccy,  0)) acceptable_value_bccy,
+    case when coll.seal_date is not null then DECODE(COLL.STATE, 'activated',  'ACTIVATED',  'terminated',  'TERMINATED',  'approved',  'SUBMITTED')
+		else DECODE(COLL.STATE, 'activated',  'ACTIVATED',  'terminated',  'TERMINATED',  'approved', 'APPROVED') end collateral_status,
+	coll.rank CS_LIEN_ORDER,
+    greatest(0,  NVL(alloc.INTERNAL_PRIOR_CLAIMS,  0)) INTERNAL_PRIOR_CLAIMS,
+    greatest(0,  NVL(alloc.INTERNAL_PRIOR_CLAIMS_BCCY,  0)) INTERNAL_PRIOR_CLAIMS_BCCY,
+    greatest(0,  NVL(alloc.EXTERNAL_PRIOR_CLAIMS,  0)) EXTERNAL_PRIOR_CLAIMS,
+    greatest(0,  NVL(alloc.EXTERNAL_PRIOR_CLAIMS_BCCY,  0)) EXTERNAL_PRIOR_CLAIMS_BCCY,
+    coll.REPAYMENT_VEHICLE,
+    coll.ELIGIBILITY_RANK ELGB_RANK,
+    coll.MAIN_ELGB_NO_CORRELATION ELGB_NO_CORRELATION_FLAG,
+    coll.MAIN_ELGB_ENFORCEABILITY_FLAG ELGB_ENFORCEABILITY_FLAG,
+    coll.MAIN_ELGB_INSURANCE_FLAG ELGB_INSURANCE_FLAG,
+    coll.MAIN_ELGB_MON_VAL_FLAG ELGB_BASEL_VALUATION_FLAG,
+    coll.MAIN_ELGB_OTHER_FLAG ELGB_OTHER_FLAG,
+    coll.COVERAGE_TYPE CONTRACTUAL_COVERAGE,
+    coll.INITIAL_ACCEPTABLE_VALUE INIT_ACCEPT_VALUE,
+    coll.INITIAL_CURRENCY INIT_ACCEPT_VALUE_CUR,
+    coll.INITIAL_ACCEPTABLE_VALUE_BCCY INIT_ACCEPT_VALUE_BCCY,
+	coll.GUARANTEE_RISK_TYPE,
+	COLL.MIGRATION_SOURCE_SYSTEM
+  FROM
+    cms_collateral_to_report coll
+    LEFT JOIN alloc_res alloc ON alloc.for_collateral_id = coll.id
+  ORDER BY 1
+)
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CL" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />		
+		<property name="metadataProvider" ref="exportCollateralReader" />		
+	</bean>
+	
+	<bean id="exportCollateralProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="LIEN_CREATED_INFO_DATE"><ref bean="dateFormat-yyyy.MM.dd-hh.mm.ss"/></entry>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+				<entry key="COVERAGE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CoverageType" /></bean></entry>
+				<entry key="REPAYMENT_VEHICLE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_RepaymentVehicle" /></bean></entry>
+				<entry key="GUARANTEE_RISK_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_GuaranteeRiskType" /></bean></entry>
+    	  	</map>
+		</property>
+	</bean>
+
+<!-- ================ Loan ================ -->
+	<bean id="exportLoanReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'LOAN.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(LOAN_NUMBER,'LOAN.LOAN_NUMBER',rownum,30,0,'') LOAN_NUMBER,
+	cs_utl_validation.validate_number(RISK_VALUE,'LOAN.RISK_VALUE',rownum,18,4,1,'') RISK_VALUE,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'LOAN.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID
+FROM (
+SELECT
+    DISTINCT
+    cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) id,
+    case when l.source_System_id = 'SYMB' and l.type = 'LT1' and l.business_entity_descriptor_id = 'cscollateral/LetterOfCredit' and l.mpl_id is not null then loc.REFERENCE_NO else l.loan_number end LOAN_NUMBER,
+    l.risk_value,
+    case when l.source_system_id = 'SYMB' and l.type = 'LT1' and l.business_entity_descriptor_id = 'cscollateral/LetterOfCredit' and l.mpl_id is not null then 'SB' else l.source_system_id end  source_system_id
+FROM
+    cms_basic_loan l 
+	  LEFT OUTER JOIN CMS_LETTER_OF_CREDIT loc on l.id = loc.id
+WHERE 
+    (l.state not in ('CREATED') and l.business_entity_descriptor_id != 'cscollateral/LetterOfCredit')
+    or
+    (l.state not in ('CREATED', 'Terminated') and l.business_entity_descriptor_id = 'cscollateral/LetterOfCredit')
+ORDER BY 
+    1
+)
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportLoanWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="LO" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportLoanReader" />	
+	</bean>
+	
+	<bean id="exportLoanProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+	</bean>	
+	
+<!-- ================ LoanCollateralValues ================ -->
+	<bean id="exportLoanCollateralValuesReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH actual_loan_asset_alloc_res AS 
+(
+SELECT /*+ MATERIALIZE */
+    a.ACCEPTABLE_VALUE, a.ACCEPTABLE_VALUE_BCCY, a.ALLOCATED_VALUE, a.ALLOCATED_VALUE_BCCY, a.ALLOCATION_RUN_BATCH_ID, a.ALLOCATION_RUN_ID, a.BUSINESS_ENTITY_DESCRIPTOR_ID, a.CEILLING_TYPE, a.CLEARED_ALLOCATED_VALUE, a.CLEARED_ALLOCATED_VALUE_BCCY, a.CNB_AMOUNT_OF_REDUCTION, a.CNB_AMOUNT_OF_REDUCTION_BCCY, a.CNB_EFFECTIVENESS_DATE, a.CNB_NOMINAL_VALUE, a.CNB_NOMINAL_VALUE_BCCY, a.CNB_RANK, a.CNB_REALIZATION_VALUE, a.CNB_REALIZATION_VALUE_BCCY, a.COLLATERAL_ALLOCATION_ID, a.COLLATERAL_ASSET_ID, a.COLLATERAL_CURRENCY, a.COLLATERAL_ID, a.CREATE_TIME, a.CREATE_USER, a.DYNAMIC_XML, a.FREE_NOMINAL_VALUE, a.FREE_NOMINAL_VALUE_BCCY, a.ID, a.IS_DELETED, a.IS_PSEUDO_RESULT, a.IS_SECURED_FROM_MPL, a.LAST_TIME, a.LAST_TRANSITION, a.LAST_USER, a.LIMIT_PERCENTAGE, a.LOAN_PRODUCT_ID, a.MODELING_ENTITY_ID, a.NOMINAL_VALUE, a.NOMINAL_VALUE_BCCY, a.ORIG_ALLOCATED_VALUE_BCCY, a.POSTING_ALLO_VALUE_CURRENCY, a.POSTING_ALLOCATED_VALUE, a.POSTING_ALLOCATED_VALUE_BCCY, a.PROCESSING_FLAGS, a.RANK, a.STATE, a.SYNDICATE_CSPERCENTAGE, a.TRADING_PARTNER_ID, a.WITHOUT_DIRECT_COLLATERAL
+  FROM
+    cms_loan_asset_alloc_res a
+  WHERE
+    a.allocation_run_batch_id IN (
+      SELECT 
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)  
+      FROM 
+        cms_allocation_run_batch
+    )
+    union 
+select 
+    a.ACCEPTABLE_VALUE, a.ACCEPTABLE_VALUE_BCCY, a.ALLOCATED_VALUE, a.ALLOCATED_VALUE_BCCY, a.ALLOCATION_RUN_BATCH_ID, a.ALLOCATION_RUN_ID, a.BUSINESS_ENTITY_DESCRIPTOR_ID, a.CEILLING_TYPE, a.CLEARED_ALLOCATED_VALUE, a.CLEARED_ALLOCATED_VALUE_BCCY, a.CNB_AMOUNT_OF_REDUCTION, a.CNB_AMOUNT_OF_REDUCTION_BCCY, a.CNB_EFFECTIVENESS_DATE, a.CNB_NOMINAL_VALUE, a.CNB_NOMINAL_VALUE_BCCY, a.CNB_RANK, a.CNB_REALIZATION_VALUE, a.CNB_REALIZATION_VALUE_BCCY, a.COLLATERAL_ALLOCATION_ID, a.COLLATERAL_ASSET_ID, a.COLLATERAL_CURRENCY, a.COLLATERAL_ID, a.CREATE_TIME, a.CREATE_USER, a.DYNAMIC_XML, a.FREE_NOMINAL_VALUE, a.FREE_NOMINAL_VALUE_BCCY, a.ID, a.IS_DELETED, a.IS_PSEUDO_RESULT, a.IS_SECURED_FROM_MPL, a.LAST_TIME, a.LAST_TRANSITION, a.LAST_USER, a.LIMIT_PERCENTAGE, a.LOAN_PRODUCT_ID, a.MODELING_ENTITY_ID, a.NOMINAL_VALUE, a.NOMINAL_VALUE_BCCY, a.ORIG_ALLOCATED_VALUE_BCCY, a.POSTING_ALLO_VALUE_CURRENCY, a.POSTING_ALLOCATED_VALUE, a.POSTING_ALLOCATED_VALUE_BCCY, a.PROCESSING_FLAGS, a.RANK, a.STATE, a.SYNDICATE_CSPERCENTAGE, a.TRADING_PARTNER_ID, a.WITHOUT_DIRECT_COLLATERAL
+from (select a.*, row_number() over (partition by collateral_id order by 1 desc) row_num
+from cms_loan_asset_alloc_res a
+where a.allocation_run_batch_id is null ) a
+where row_num = 1 
+   
+),
+actual_mpl_asset_alloc_res AS
+(
+  	SELECT /*+ MATERIALIZE */
+      l.mpl_id,
+      ar.collateral_id,      
+      MAX(mpl_ar.limit_percentage) /* the MAX here is not actually relevant, there is always max one records joined */ mpl_limit_percentage
+  	FROM
+  	  cms_basic_loan l
+  	  JOIN actual_loan_asset_alloc_res ar ON ar.loan_product_id = l.id
+  	  LEFT JOIN actual_loan_asset_alloc_res mpl_ar /* also add the alloc result of the MPL itself */ 
+  	  	ON mpl_ar.loan_product_id = l.mpl_id AND mpl_ar.collateral_id = ar.collateral_id 
+  	WHERE
+  		l.mpl_id IS NOT NULL
+  	GROUP BY
+  		l.mpl_id,
+  		ar.collateral_id
+)
+SELECT
+    cs_utl_validation.validate_number(ID,'LOAN_COLLATERAL_VALUES.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(ALLOCATED_VALUE,'LOAN_COLLATERAL_VALUES.ALLOCATED_VALUE',rownum,18,4,1,'') ALLOCATED_VALUE,
+	cs_utl_validation.validate_number(FREE_NOMINAL_VALUE,'LOAN_COLLATERAL_VALUES.FREE_NOMINAL_VALUE',rownum,18,4,1,'') FREE_NOMINAL_VALUE,
+	cs_utl_validation.validate_number(LIMIT_PERCENTAGE,'LOAN_COLLATERAL_VALUES.LIMIT_PERCENTAGE',rownum,10,4,1,'') LIMIT_PERCENTAGE,
+	cs_utl_validation.validate_number(POSTING_ALLOCATED_VALUE,'LOAN_COLLATERAL_VALUES.POSTING_ALLOCATED_VALUE',rownum,18,4,1,'') POSTING_ALLOCATED_VALUE,
+	cs_utl_validation.validate_number(POSTING_ALLOCATED_VALUE_BCCY,'LOAN_COLLATERAL_VALUES.POSTING_ALLOCATED_VALUE_BCCY',rownum,20,6,1,'') POSTING_ALLOCATED_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(POSTING_ALLO_VALUE_CURRENCY ,'LOAN_COLLATERAL_VALUES.POSTING_ALLOCATED_VALUE_CURRENCY_ ',rownum,3,1,'') POSTING_ALLO_VALUE_CURRENCY ,
+	cs_utl_validation.validate_number(RANK,'LOAN_COLLATERAL_VALUES.RANK',rownum,6,0,1,'') RANK,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ID,'LOAN_COLLATERAL_VALUES.REF_COLLATERAL_ID',rownum,19,0,0,'') REF_COLLATERAL_ID,
+	cs_utl_validation.validate_number(REF_LOAN_ID,'LOAN_COLLATERAL_VALUES.REF_LOAN_ID',rownum,19,0,0,'') REF_LOAN_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'LOAN_COLLATERAL_VALUES.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_number(SYNDICATE_CSPERCENTAGE,'LOAN_COLLATERAL_VALUES.SYNDICATE_CSPERCENTAGE',rownum,10,4,1,'') SYNDICATE_CSPERCENTAGE,
+	cs_utl_validation.validate_varchar(TRADING_PARTNER_ID,'LOAN_COLLATERAL_VALUES.TRADING_PARTNER_ID',rownum,5,1,'') TRADING_PARTNER_ID,
+	cs_utl_validation.validate_number(CNB_AMOUNT_OF_REDUCTION,'LOAN_COLLATERAL_VALUES.CNB_AMOUNT_OF_REDUCTION',rownum,18,4,0,'') CNB_AMOUNT_OF_REDUCTION,
+	cs_utl_validation.validate_number(CNB_AMOUNT_OF_REDUCTION_BCCY,'LOAN_COLLATERAL_VALUES.CNB_AMOUNT_OF_REDUCTION_BCCY',rownum,20,6,0,'') CNB_AMOUNT_OF_REDUCTION_BCCY,
+	cs_utl_validation.validate_number(CNB_NOMINAL_VALUE,'LOAN_COLLATERAL_VALUES.CNB_NOMINAL_VALUE',rownum,18,4,0,'') CNB_NOMINAL_VALUE,
+	cs_utl_validation.validate_number(CNB_NOMINAL_VALUE_BCCY,'LOAN_COLLATERAL_VALUES.CNB_NOMINAL_VALUE_BCCY',rownum,20,6,0,'') CNB_NOMINAL_VALUE_BCCY,
+	cs_utl_validation.validate_number(CNB_REALIZATION_VALUE,'LOAN_COLLATERAL_VALUES.CNB_REALIZATION_VALUE',rownum,18,4,0,'') CNB_REALIZATION_VALUE,
+	cs_utl_validation.validate_number(CNB_REALIZATION_VALUE_BCCY,'LOAN_COLLATERAL_VALUES.CNB_REALIZATION_VALUE_BCCY',rownum,20,6,0,'') CNB_REALIZATION_VALUE_BCCY,
+	cs_utl_validation.validate_number(CNB_RANK,'LOAN_COLLATERAL_VALUES.CNB_RANK',rownum,18,4,0,'') CNB_RANK,
+	cs_utl_validation.validate_date(CNB_EFFECTIVENESS_DATE,'LOAN_COLLATERAL_VALUES.CNB_EFFECTIVENESS_DATE',rownum,0,'YYYY.MM.DD') CNB_EFFECTIVENESS_DATE,
+	cs_utl_validation.validate_number(ALLOCATED_VALUE_BCCY,'LOAN_COLLATERAL_VALUES.ALLOCATED_VALUE_BCCY',rownum,20,6,1,'') ALLOCATED_VALUE_BCCY,
+	cs_utl_validation.validate_number(ALLOCATED_PERCENTAGE,'LOAN_COLLATERAL_VALUES.ALLOCATED_PERCENTAGE',rownum,10,5,0,'') ALLOCATED_PERCENTAGE
+FROM (
+SELECT
+DISTINCT
+  a.id,
+  greatest(0, a.cleared_allocated_value) allocated_value,
+  greatest(0, NVL(a.free_nominal_value, 0)) free_nominal_value,
+  NVL(a.limit_percentage, mpla.mpl_limit_percentage)   /* there was an error that for loans under MPL, 
+  	 the limit_percentage value is not correctly computed,
+     so we reuse the value from the MPL - TODO remove when this bug is fixed */ limit_percentage,
+  greatest(0, a.posting_allocated_value) posting_allocated_value,
+  greatest(0, a.posting_allocated_value_bccy) posting_allocated_value_bccy,
+  NVL(a.posting_allo_value_currency, 'CZK') posting_allo_value_currency, 
+  a.rank,
+  coll.id ref_collateral_id,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  l.source_system_id,
+  NVL(DECODE(coll.syndicated_loan, 0, NULL, a.syndicate_cspercentage), 1) syndicate_cspercentage,
+  a.trading_partner_id,
+  greatest(0, a.cnb_amount_of_reduction) cnb_amount_of_reduction,
+  greatest(0, a.cnb_amount_of_reduction_bccy) cnb_amount_of_reduction_bccy,
+  greatest(0, a.cnb_nominal_value) cnb_nominal_value,
+  greatest(0, a.cnb_nominal_value_bccy) cnb_nominal_value_bccy,
+  greatest(0, a.cnb_realization_value) cnb_realization_value,
+  greatest(0, a.cnb_realization_value_bccy) cnb_realization_value_bccy,
+  a.cnb_rank,
+  a.cnb_effectiveness_date,
+  greatest(0, a.cleared_allocated_value_bccy) allocated_value_bccy,
+  case when greatest(0, case when ca.ceiling_Type is null then ca.realizable_value else nvl(ar.realizable_value,0) end) = 0 then 0 else
+  round(cleared_allocated_value / greatest(0, case when ca.ceiling_Type is null then ca.realizable_value else nvl(ar.realizable_value,0) end), 2) end allocated_percentage
+FROM
+  actual_loan_asset_alloc_res a 
+  JOIN cms_basic_loan l ON l.id = a.loan_product_id 
+  JOIN cms_collateral_to_report coll ON a.collateral_id = coll.id
+  join cms_collateral_asset ca on ca.id = a.collateral_Asset_id
+  join cms_allocation_run arun on arun.id = a.ALLOCATION_RUN_ID
+  left join CMS_ASSET_ALLOC_RESULT ar on ca.ACTUAL_RESULT_ID = ar.id
+  LEFT JOIN actual_mpl_asset_alloc_res mpla ON coll.id = mpla.collateral_id AND l.mpl_id = mpla.mpl_id and a.limit_percentage is null
+  where 1=1
+AND a.allocation_run_batch_id is not null OR (a.allocation_run_batch_id is null and coll.state = 'approved' and coll.seal_date is null) 
+ORDER BY 
+	1  
+) 
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportLoanCollateralValuesWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="LC" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />		
+		<property name="metadataProvider" ref="exportLoanCollateralValuesReader" />			
+	</bean>
+	
+	<bean id="exportLoanCollateralValuesProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="POSTING_ALLO_VALUE_CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+    	  	</map>
+		</property>	
+	</bean>	
+		
+<!-- ================ LoanAccounting ================ -->
+	<bean id="exportLoanAccountingReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH actual_loan_asset_alloc_res AS 
+(
+  SELECT
+    a.*
+  FROM
+    cms_loan_asset_alloc_res a
+  WHERE
+    a.allocation_run_batch_id IN (
+      SELECT 
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)  
+      FROM 
+        cms_allocation_run_batch
+    )
+)
+SELECT
+	cs_utl_validation.validate_number(ANALYTICAL_ACCOUNT,'LOAN_ACCOUNTING.ANALYTICAL_ACCOUNT',rownum,10,0,1,'') ANALYTICAL_ACCOUNT,
+	cs_utl_validation.validate_number(POSTING_ALLOCATED_VALUE,'LOAN_ACCOUNTING.POSTING_ALLOCATED_VALUE',rownum,18,4,1,'') POSTING_ALLOCATED_VALUE,
+	cs_utl_validation.validate_number(posting_allo_value_bccy,'LOAN_ACCOUNTING.POSTING_ALLOCATED_VALUE_BCCY',rownum,20,6,1,'') posting_allo_value_bccy,
+	cs_utl_validation.validate_varchar(posting_allo_value_currency ,'LOAN_ACCOUNTING.POSTING_ALLOCATED_VALUE_CURRENCY_ ',rownum,3,1,'') posting_allo_value_currency,
+	cs_utl_validation.validate_number(REF_LOAN_ID,'LOAN_ACCOUNTING.REF_LOAN_ID',rownum,19,0,0,'') REF_LOAN_ID,
+	cs_utl_validation.validate_varchar(TRADING_PARTNER_ID,'LOAN_ACCOUNTING.TRADING_PARTNER_ID',rownum,5,1,'') TRADING_PARTNER_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'LOAN_ACCOUNTING.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(ACCOUNTING_COMPANY,'LOAN_ACCOUNTING.ACCOUNTING_COMPANY',rownum,4,1,'') ACCOUNTING_COMPANY,
+	cs_utl_validation.validate_varchar(PROFIT_CENTRE,'LOAN_ACCOUNTING.PROFIT_CENTRE',rownum,8,1,'') PROFIT_CENTRE
+FROM (
+SELECT
+DISTINCT
+  st.analytical_account,
+  SUM(a.posting_allocated_value) posting_allocated_value,
+  SUM(a.posting_allocated_value_bccy) posting_allo_value_bccy,
+  NVL(a.posting_allo_value_currency, 'CZK') posting_allo_value_currency,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  a.trading_partner_id,
+  'CLM' source_system_id,
+  '4000' accounting_company,	/* TODO use system parameters */
+  '40164451' profit_centre		/* TODO use system parameters */
+FROM
+  actual_loan_asset_alloc_res a  
+  JOIN cms_collateral_to_report coll ON a.collateral_id = coll.id
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_coll_subtype_settings st ON asset.collateral_type_settings_id = st.id
+  JOIN cms_basic_loan l on a.loan_product_id = l.id
+WHERE
+	a.posting_allocated_value != 0  
+GROUP BY
+  st.analytical_account, NVL(a.posting_allo_value_currency, 'CZK'), cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id), a.trading_partner_id
+ORDER BY 
+	1, 4, 5, 6 ) 			  
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportLoanAccountingWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="LA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportLoanAccountingReader" />						
+	</bean>
+	
+	<bean id="exportLoanAccountingProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="POSTING_ALLO_VALUE_CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+    	  	</map>
+		</property>	
+	</bean>	
+			
+<!-- ================ CollateralAsset ================ -->
+	<bean id="exportCollateralAssetReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+with actual_coll_asset_alloc_res AS 
+(
+  SELECT 
+    ca.id collateral_asset_id,
+    min(c.effectiveness_date) used_from_date,
+    max(c.effectiveness_date) used_to_date
+  FROM
+    cms_loan_asset_alloc_res a
+    JOIN cms_collateral_asset ca ON ca.id = a.collateral_Asset_id
+    join cms_collateral c on c.collateral_asset_id = ca.id and c.state in ('activated', 'terminated', 'approved')
+  where
+    a.allocation_run_batch_id IN (
+      SELECT 
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)  
+      FROM 
+        cms_allocation_run_batch
+    )
+    group by ca.id
+),
+CURRENT_BUSINESS_DAY AS (
+ SELECT TO_DATE((SELECT SP.VALUE FROM WDP_SYSTEM_PROPERTY SP WHERE SP.id = 'wdp/sysdate/sysdate'), 'DD-MM-YYYY') BUS_DAY
+ FROM DUAL
+)
+SELECT
+	cs_utl_validation.validate_number(ID,'COLLATERAL_ASSET.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(ACTUAL_HAIRCUT,'COLLATERAL_ASSET.ACTUAL_HAIRCUT',rownum,10,5,1,'') ACTUAL_HAIRCUT,
+	cs_utl_validation.validate_varchar(ASSET_ID,'COLLATERAL_ASSET.ASSET_ID',rownum,85,0,'') ASSET_ID,
+	cs_utl_validation.validate_number(BASE_VALUE,'COLLATERAL_ASSET.BASE_VALUE',rownum,18,4,1,'') BASE_VALUE,
+	cs_utl_validation.validate_number(BASE_VALUE_BCCY,'COLLATERAL_ASSET.BASE_VALUE_BCCY',rownum,18,4,1,'') BASE_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(CEILING_TYPE,'COLLATERAL_ASSET.CEILING_TYPE',rownum,32,1,'') CEILING_TYPE,
+	cs_utl_validation.validate_varchar(CODE_FORM_DESCRIPTION,'COLLATERAL_ASSET.CODE_FORM_DESCRIPTION',rownum,200,1,'') CODE_FORM_DESCRIPTION,
+	cs_utl_validation.validate_varchar(COLLATERAL_CATEGORY,'COLLATERAL_ASSET.COLLATERAL_CATEGORY',rownum,32,1,'') COLLATERAL_CATEGORY,
+	cs_utl_validation.validate_varchar(COLLATERAL_CLASS,'COLLATERAL_ASSET.COLLATERAL_CLASS',rownum,32,1,'') COLLATERAL_CLASS,
+	cs_utl_validation.validate_varchar(COLLATERAL_CODE,'COLLATERAL_ASSET.COLLATERAL_CODE',rownum,32,1,'') COLLATERAL_CODE,
+	cs_utl_validation.validate_varchar(COLLATERAL_FORM,'COLLATERAL_ASSET.COLLATERAL_FORM',rownum,32,1,'') COLLATERAL_FORM,
+	cs_utl_validation.validate_varchar(COLLATERAL_SUB_CATEGORY,'COLLATERAL_ASSET.COLLATERAL_SUB_CATEGORY',rownum,32,1,'') COLLATERAL_SUB_CATEGORY,
+	cs_utl_validation.validate_varchar(CURRENCY,'COLLATERAL_ASSET.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DATE_OF_EXPECTED_MONITORING,'COLLATERAL_ASSET.DATE_OF_EXPECTED_MONITORING',rownum,1,'YYYY.MM.DD') DATE_OF_EXPECTED_MONITORING,
+	cs_utl_validation.validate_date(DATE_OF_EXPECTED_REVALUATION,'COLLATERAL_ASSET.DATE_OF_EXPECTED_REVALUATION',rownum,1,'YYYY.MM.DD') DATE_OF_EXPECTED_REVALUATION,
+	cs_utl_validation.validate_date(DATE_OF_LAST_EVALUATION,'COLLATERAL_ASSET.DATE_OF_LAST_EVALUATION',rownum,1,'YYYY.MM.DD') DATE_OF_LAST_EVALUATION,
+	cs_utl_validation.validate_date(DATE_OF_LAST_MONITORING,'COLLATERAL_ASSET.DATE_OF_LAST_MONITORING',rownum,1,'YYYY.MM.DD') DATE_OF_LAST_MONITORING,
+	cs_utl_validation.validate_varchar(DESCRIPTION,'COLLATERAL_ASSET.DESCRIPTION',rownum,1000,1,'') DESCRIPTION,
+	cs_utl_validation.validate_number(FLAG_OVERRIDE_MAX_HAIRCUT,'COLLATERAL_ASSET.FLAG_OVERRIDE_MAX_HAIRCUT',rownum,1,0,1,'BOOLEAN') FLAG_OVERRIDE_MAX_HAIRCUT,
+	cs_utl_validation.validate_date(USED_FROM_DATE,'COLLATERAL_ASSET.FROM_DATE',rownum,1,'YYYY.MM.DD') USED_FROM_DATE,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT,'COLLATERAL_ASSET.LIMIT_FIXED_AMOUNT',rownum,18,4,1,'') LIMIT_FIXED_AMOUNT,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT_BCCY,'COLLATERAL_ASSET.LIMIT_FIXED_AMOUNT_BCCY',rownum,20,6,1,'') LIMIT_FIXED_AMOUNT_BCCY,
+	cs_utl_validation.validate_number(LIMIT_PERCENTAGE,'COLLATERAL_ASSET.LIMIT_PERCENTAGE',rownum,10,4,1,'') LIMIT_PERCENTAGE,
+	cs_utl_validation.validate_varchar(MONITORING_FEQUENCY,'COLLATERAL_ASSET.MONITORING_FEQUENCY',rownum,32,1,'') MONITORING_FEQUENCY,
+	cs_utl_validation.validate_varchar(PHYSICAL_CLASS,'COLLATERAL_ASSET.PHYSICAL_CLASS',rownum,200,1,'') PHYSICAL_CLASS,
+	cs_utl_validation.validate_number(REALIZABLE_VALUE,'COLLATERAL_ASSET.REALIZABLE_VALUE',rownum,18,4,1,'') REALIZABLE_VALUE,
+	cs_utl_validation.validate_number(REALIZABLE_VALUE_BCCY,'COLLATERAL_ASSET.REALIZABLE_VALUE_BCCY',rownum,20,6,1,'') REALIZABLE_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(REVALUATION_FEQUENCY,'COLLATERAL_ASSET.REVALUATION_FEQUENCY',rownum,32,1,'') REVALUATION_FEQUENCY,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'COLLATERAL_ASSET.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_date(TO_DATE,'COLLATERAL_ASSET.TO_DATE',rownum,1,'YYYY.MM.DD') TO_DATE,
+	cs_utl_validation.validate_date(USER_SET_DATE_OF_MONITORING,'COLLATERAL_ASSET.USER_SET_DATE_OF_MONITORING',rownum,1,'YYYY.MM.DD') USER_SET_DATE_OF_MONITORING,
+	cs_utl_validation.validate_date(USER_SETDATE_OF_EXP_REV,'COLLATERAL_ASSET.USER_SETDATE_OF_EXP_REV',rownum,1,'YYYY.MM.DD') USER_SETDATE_OF_EXP_REV,
+	cs_utl_validation.validate_number(VALID_MONITORING,'COLLATERAL_ASSET.VALID_MONITORING',rownum,1,0,1,'BOOLEAN') VALID_MONITORING,
+	cs_utl_validation.validate_number(VALID_VALUATION,'COLLATERAL_ASSET.VALID_VALUATION',rownum,1,0,1,'BOOLEAN') VALID_VALUATION,
+	cs_utl_validation.validate_date(CREATE_DATE,'COLLATERAL_ASSET.CREATE_DATE',rownum,0,'YYYY.MM.DD') CREATE_DATE,
+	cs_utl_validation.validate_number(REF_COLL_SUBTYPE_SETTINGS_ID,'COLLATERAL_ASSET.REF_COLL_SUBTYPE_SETTINGS_ID',rownum,19,0,0,'') REF_COLL_SUBTYPE_SETTINGS_ID,
+	cs_utl_validation.validate_number(GIVEN_HAIRCUT,'COLLATERAL_ASSET.GIVEN_HAIRCUT',rownum,10,5,1,'') GIVEN_HAIRCUT,
+	cs_utl_validation.validate_number(REF_PORTFOLIO_GUARANTEE_ID,'COLLATERAL_ASSET.REF_PORTFOLIO_GUARANTEE_ID',rownum,19,0,1,'') REF_PORTFOLIO_GUARANTEE_ID,
+	cs_utl_validation.validate_varchar(COLLATERAL_REALISED_STATUS,'COLLATERAL_ASSET.COLLATERAL_REALISED_STATUS',rownum,30,1,'') COLLATERAL_REALISED_STATUS,
+	cs_utl_validation.validate_date(COLLATERAL_REALISATION_DATE,'COLLATERAL_ASSET.COLLATERAL_REALISATION_DATE',rownum,1,'YYYY.MM.DD') COLLATERAL_REALISATION_DATE,
+	cs_utl_validation.validate_varchar(INSURANCE_COVERAGE_SCALE,'COLLATERAL_ASSET.INSURANCE COVERAGE_SCALE',rownum,255,0,'') INSURANCE_COVERAGE_SCALE,
+	cs_utl_validation.validate_number(REDUCTION,'COLLATERAL_ASSET.REDUCTION',rownum,18,4,0,'') REDUCTION,
+	cs_utl_validation.validate_number(INIT_BASE_VALUE,'COLLATERAL_ASSET.INIT_BASE_VALUE',rownum,20,6,0,'') INIT_BASE_VALUE,
+	cs_utl_validation.validate_varchar(INIT_BASE_VALUE_CUR,'COLLATERAL_ASSET.INIT_BASE_VALUE_CUR',rownum,3,1,'') INIT_BASE_VALUE_CUR,
+	cs_utl_validation.validate_number(INIT_BASE_VALUE_BCCY,'COLLATERAL_ASSET.INIT_BASE_VALUE_BCCY',rownum,20,6,0,'') INIT_BASE_VALUE_BCCY,
+	cs_utl_validation.validate_date(INIT_VAL_DATE,'COLLATERAL_ASSET.INIT_VAL_DATE',rownum,1,'YYYY.MM.DD') INIT_VAL_DATE,
+	cs_utl_validation.validate_number(INIT_VAL_RATE,'COLLATERAL_ASSET.INIT_VAL_RATE',rownum,10,5,0,'') INIT_VAL_RATE,
+	cs_utl_validation.validate_number(INIT_ALLOCATED,'COLLATERAL_ASSET.INIT_ALLOCATED',rownum,20,6,0,'') INIT_ALLOCATED,
+	cs_utl_validation.validate_varchar(INIT_ALLOCATED_CUR,'COLLATERAL_ASSET.INIT_ALLOCATED_CUR',rownum,3,1,'') INIT_ALLOCATED_CUR,
+	cs_utl_validation.validate_number(INIT_ALLOCATED_BCCY,'COLLATERAL_ASSET.INIT_ALLOCATED_BCCY',rownum,20,6,0,'') INIT_ALLOCATED_BCCY,
+	cs_utl_validation.validate_number(NEXT_ROTATION_FLAG,'COLLATERAL_ASSET.NEXT_ROTATION_FLAG',rownum,1,0,1,'BOOLEAN') NEXT_ROTATION_FLAG,	
+	cs_utl_validation.validate_number(BREACH_ROTATION_FLAG,'COLLATERAL_ASSET.BREACH_ROTATION_FLAG',rownum,1,0,1,'BOOLEAN') BREACH_ROTATION_FLAG
+
+FROM (
+SELECT
+DISTINCT
+   ca.id,
+   case
+    when cs.collateral_class ='GU' then least (ca.actual_haircut + NVL(ca.reduction_percentage,0),cs.max_haircut) else ca.actual_haircut end ACTUAL_HAIRCUT,
+   ca.asset_id,
+   greatest(0,nvl(ca.base_value, nvl(ar.BASE_VALUE,0)))  base_value,
+   greatest(0,nvl(ca.base_value_bccy, nvl(ar.BASE_VALUE_bccy,0))) base_value_bccy,   
+   NVL(ca.ceiling_type, 'FIX') ceiling_type, 
+   cs.code_form_description,
+   cs.collateral_category,
+   cs.collateral_class,
+   cs.collateral_code,
+   cs.collateral_form,
+   cs.collateral_sub_category,
+   NVL(ca.currency, 'CZK') currency,
+   case when ca.MONITORING_FEQUENCY = 'N' then to_date('31.12.9999','dd.mm.yy') else ca.date_of_expected_monitoring end DATE_OF_EXPECTED_MONITORING,
+   case
+	when cs.COLLATERAL_CODE = '101' then SYSDATE + 183
+	when (ca.REVALUATION_FEQUENCY = 'N' AND cs.COLLATERAL_CODE != '101') then to_date('31.12.9999','dd.mm.yy')
+	else ca.date_of_expected_revaluation end DATE_OF_EXPECTED_REVALUATION,
+   case when cs.collateral_code = '101' then CBD.BUS_DAY else ca.date_of_last_evaluation end DATE_OF_LAST_EVALUATION,
+   ca.date_of_last_monitoring,
+   ca.description,
+   ca.flag_override_max_haircut,
+   alloc.used_from_date used_from_date,   
+   ca.limit_fixed_amount,
+   ca.limit_fixed_amount_bccy,
+   ca.limit_percentage,
+   ca.monitoring_fequency,
+   NULL physical_class,
+   greatest(0, case when ca.ceiling_Type is null then ca.realizable_value else nvl(ar.realizable_value,0) end) realizable_value,
+   greatest(0, case when ca.ceiling_Type is null then ca.realizable_value_bccy else nvl(ar.realizable_value_bccy,0) end) realizable_value_bccy,
+   ca.revaluation_fequency,                                                                                       
+   'CLM' source_system_id,
+   null to_date, /* This is actually never send, only nulls are send, as terminated collaterals are not sent to DWH */
+   ca.user_set_date_of_monitoring,
+   ca.user_setdate_of_exp_rev,
+   ca.valid_monitoring,
+   ca.valid_valuation,
+   ca.create_time create_date,
+   /* we need to transform the subtype settings id to a number (because of historical reasons), the id has format: 008-SUS */ 
+   cms_utl_export.get_export_coll_subtype_set_id(ca.collateral_type_settings_id) ref_coll_subtype_settings_id,
+   ca.given_haircut,
+   fa.portfolio_guarantee_id ref_portfolio_guarantee_id,
+   ca.REALIZED_STATUS COLLATERAL_REALISED_STATUS,
+   ca.REALIZED_DATE COLLATERAL_REALISATION_DATE,
+   ca.insurance_coverage_type INSURANCE_COVERAGE_SCALE,
+   ca.reduced_base_value REDUCTION,
+   ca.initial_base_value INIT_BASE_VALUE,
+   ca.initial_base_value_bccy INIT_BASE_VALUE_BCCY,
+   ca.initial_base_value_currency INIT_BASE_VALUE_CUR,
+   nvl(ca.initial_valuation_date, to_date('01.01.1000', 'dd.mm.yy')) INIT_VAL_DATE,
+   ca.initial_valuation_rate INIT_VAL_RATE,
+   greatest(0)INIT_ALLOCATED,
+   greatest('CZK')INIT_ALLOCATED_CUR,
+   greatest(0)INIT_ALLOCATED_BCCY,
+   ca.next_rotation NEXT_ROTATION_FLAG,
+   ca.breach_of_rotation BREACH_ROTATION_FLAG
+   
+FROM
+  cms_collateral_asset ca 
+  JOIN cms_coll_subtype_settings cs ON ca.collateral_type_settings_id = cs.id
+  JOIN CURRENT_BUSINESS_DAY CBD ON 1=1
+  LEFT JOIN cms_collateral_to_report coll ON coll.collateral_asset_id = ca.id
+  left join actual_coll_asset_alloc_res alloc on ca.id = alloc.collateral_asset_id
+  left join CMS_ASSET_ALLOC_RESULT ar on ca.ACTUAL_RESULT_ID = ar.id
+  LEFT JOIN cms_fin_guarantee_asset fa ON ca.id=fa.id
+  WHERE 
+  (coll.ID IS NOT NULL or (
+    coll.ID IS NULL AND CA.REALIZED_STATUS_CHANGE >= CBD.BUS_DAY)
+  )
+ORDER BY 
+	1 )
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralAssetWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralAssetReader" />										
+	</bean>
+	
+	<bean id="exportCollateralAssetProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+<entry key="CEILING_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_LienType" /></bean></entry>
+<entry key="COLLATERAL_CATEGORY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CollateralType" /></bean></entry>
+<entry key="COLLATERAL_CLASS"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CollateralClass" /></bean></entry>
+<entry key="COLLATERAL_CODE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CollateralCode" /></bean></entry>
+<entry key="COLLATERAL_FORM"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CollateralForm" /></bean></entry>
+<entry key="COLLATERAL_SUB_CATEGORY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CollateralSubType" /></bean></entry>
+<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CB_Currency" /></bean></entry>
+<entry key="MONITORING_FEQUENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Periodicity" /></bean></entry>
+<entry key="REVALUATION_FEQUENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Periodicity" /></bean></entry>
+<entry key="RREALIZED_STATUS"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_RealizedStatus" /></bean></entry>
+<entry key="INSURANCE_COVERAGE_SCALE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceCoverageType" /></bean></entry>
+    	  	</map>
+		</property>		
+	</bean>
+
+<!-- ================ BoeAsset ================ -->
+	<bean id="exportBoeAssetReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT 
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'BILL_OF_EXCHANGE_ASSET.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_date(BOE_CREATION_DATE,'BILL_OF_EXCHANGE_ASSET.BOE_CREATION_DATE',rownum,1,'YYYY.MM.DD') BOE_CREATION_DATE,
+	cs_utl_validation.validate_date(BOE_DUE_DATE,'BILL_OF_EXCHANGE_ASSET.BOE_DUE_DATE',rownum,1,'YYYY.MM.DD') BOE_DUE_DATE,
+	cs_utl_validation.validate_varchar(FULFILMENT_TYPE,'BILL_OF_EXCHANGE_ASSET.FULFILMENT_TYPE',rownum,32,1,'') FULFILMENT_TYPE,
+	cs_utl_validation.validate_number(IS_FOREIGN,'BILL_OF_EXCHANGE_ASSET.IS_FOREIGN',rownum,1,0,1,'BOOLEAN') IS_FOREIGN,
+	cs_utl_validation.validate_varchar(ISSUE_PLACE,'BILL_OF_EXCHANGE_ASSET.ISSUE_PLACE',rownum,48,1,'') ISSUE_PLACE,
+	cs_utl_validation.validate_varchar(NOTE,'BILL_OF_EXCHANGE_ASSET.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_number(OBJECTION_RIGHTS,'BILL_OF_EXCHANGE_ASSET.OBJECTION_RIGHTS',rownum,1,0,1,'BOOLEAN') OBJECTION_RIGHTS,
+	cs_utl_validation.validate_varchar(OTHER_PLACE,'BILL_OF_EXCHANGE_ASSET.OTHER_PLACE',rownum,200,1,'') OTHER_PLACE,
+	cs_utl_validation.validate_number(STOREDIN_OTHER_PLACE,'BILL_OF_EXCHANGE_ASSET.STOREDIN_OTHER_PLACE',rownum,1,0,1,'BOOLEAN') STOREDIN_OTHER_PLACE
+FROM (
+SELECT
+DISTINCT
+  boe.id ref_collateral_asset_id,
+  NULL boe_creation_date,
+  boe.boe_due_date,
+  NULL fulfilment_type,
+  boe.is_foreign,
+  boe.issue_place,
+  NULL note,
+  boe.objection_rights,
+  boe.other_place,
+  boe.storedin_other_place
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_boe_asset boe ON boe.id = coll.collateral_asset_id
+ORDER BY 
+	1)  			    
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportBoeAssetWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="BE" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportBoeAssetReader" />														
+	</bean>
+	
+	<bean id="exportBoeAssetProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="FULFILMENT_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_PaymentInstrument" /></bean></entry>			
+    	  	</map>	
+		</property>		
+	</bean>
+			
+
+<!-- ================ DepositAsset ================ -->
+	<bean id="exportDepositAssetReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'DEPOSIT_ASSET.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_varchar(BANK_ACCOUNT,'DEPOSIT_ASSET.BANK_ACCOUNT',rownum,10,1,'') BANK_ACCOUNT,
+	cs_utl_validation.validate_varchar(BANK_CODE,'DEPOSIT_ASSET.BANK_CODE',rownum,4,1,'') BANK_CODE,
+	cs_utl_validation.validate_varchar(BANK_ACCOUNT_PREFIX,'DEPOSIT_ASSET.BANK_ACCOUNT_PREFIX',rownum,6,1,'') BANK_ACCOUNT_PREFIX,
+	cs_utl_validation.validate_varchar(IBAN,'DEPOSIT_ASSET.IBAN',rownum,34,1,'') IBAN
+FROM (
+SELECT
+DISTINCT
+  dep.id ref_collateral_asset_id,
+  dep.bank_account,  
+  decode(asset.bank_code, '0888', '0800', asset.bank_code) bank_code,
+  dep.bank_account_prefix,
+  dep.iban
+FROM 
+  cms_collateral_to_report coll 
+  JOIN  cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN  cms_deposit_asset  dep ON asset.id = dep.id
+ORDER BY 
+	1  )			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDepositAssetWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="DA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportDepositAssetReader" />																		
+	</bean>
+	
+	<bean id="exportDepositAssetProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="BANK_CODE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_BankCode" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>
+
+<!-- ================ LifeInsuranceAsset ================ -->
+	<bean id="exportLifeInsuranceAssetReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'LIFE_INSURANCE_ASSET.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_date(INSURACE_CONTRACT_SIGN_DATE,'LIFE_INSURANCE_ASSET.INSURACE_CONTRACT_SIGNATURE_DATE',rownum,1,'YYYY.MM.DD') INSURACE_CONTRACT_SIGN_DATE,
+	cs_utl_validation.validate_number(INSURANCE_AMOUNT,'LIFE_INSURANCE_ASSET.INSURANCE_AMOUNT',rownum,18,4,1,'') INSURANCE_AMOUNT,
+	cs_utl_validation.validate_varchar(INSURANCE_CONTRACT_NO,'LIFE_INSURANCE_ASSET.INSURANCE_CONTRACT_NO',rownum,20,1,'') INSURANCE_CONTRACT_NO,
+	cs_utl_validation.validate_varchar(INSURANCE_COVERAGE,'LIFE_INSURANCE_ASSET.INSURANCE_COVERAGE',rownum,200,1,'') INSURANCE_COVERAGE,
+	cs_utl_validation.validate_varchar(INSURANCE_TYPE,'LIFE_INSURANCE_ASSET.INSURANCE_TYPE',rownum,32,1,'') INSURANCE_TYPE,
+	cs_utl_validation.validate_varchar(LIFE_INSURANCE_COMPANY,'LIFE_INSURANCE_ASSET.LIFE_INSURANCE_COMPANY',rownum,32,1,'') LIFE_INSURANCE_COMPANY,
+	cs_utl_validation.validate_varchar(PAYMENT_PERIODICITY,'LIFE_INSURANCE_ASSET.PAYMENT_PERIODICITY',rownum,32,1,'') PAYMENT_PERIODICITY,
+	cs_utl_validation.validate_number(REF_INSUR_COMPANY_PARTNER_ID,'LIFE_INSURANCE_ASSET.REF_INSURANCE_COMPANY_PARTNER_ID',rownum,19,0,1,'') REF_INSUR_COMPANY_PARTNER_ID
+FROM (
+SELECT
+DISTINCT
+  lins.id ref_collateral_asset_id,
+  lins.insurace_contract_sign_date,
+  lins.insurance_amount,
+  SUBSTR(lins.insurance_contract_no, 1, 20) insurance_contract_no,  /* the substr is here because in Colman the contract number can be longer then 20 chars and we consider this as a non-critical information */
+  lins.insurance_coverage,
+  NULL insurance_type,
+  comp.life_insurance_company,
+  lins.payment_periodicity,
+  rl.partner_id  ref_insur_company_partner_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_life_ins_asset  lins ON asset.id = lins.id
+  LEFT JOIN cms_life_ins_ins_company comp ON comp.life_insurance_id = lins.id
+  LEFT JOIN cms_partner_role rl ON rl.id = comp.id 
+ORDER BY 
+	1  )			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportLifeInsuranceAssetWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="LI" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportLifeInsuranceAssetReader" />																						
+	</bean>
+	
+	<bean id="exportLifeInsuranceAssetProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="INSURANCE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceType" /></bean></entry>
+				<entry key="LIFE_INSURANCE_COMPANY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceCompany" /></bean></entry>
+				<entry key="PAYMENT_PERIODICITY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Periodicity" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>				
+	
+<!-- ================ FunctionalUnit ================ -->
+	<bean id="exportFunctionalUnitReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'FUNCTIONAL_UNIT.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_varchar(BUILDING_NUMBER,'FUNCTIONAL_UNIT.BUILDING_NUMBER',rownum,4,1,'') BUILDING_NUMBER,
+	cs_utl_validation.validate_varchar(CITY,'FUNCTIONAL_UNIT.CITY',rownum,48,1,'') CITY,
+	cs_utl_validation.validate_varchar(COUNTRY,'FUNCTIONAL_UNIT.COUNTRY',rownum,32,1,'') COUNTRY,
+	cs_utl_validation.validate_number(FUTURE_VALUE,'FUNCTIONAL_UNIT.FUTURE_VALUE',rownum,18,4,1,'') FUTURE_VALUE,
+	cs_utl_validation.validate_number(FUTURE_VALUE_BCCY,'FUNCTIONAL_UNIT.FUTURE_VALUE_BCCY',rownum,20,6,1,'') FUTURE_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(PURPOSE,'FUNCTIONAL_UNIT.PURPOSE',rownum,32,1,'') PURPOSE,
+	cs_utl_validation.validate_varchar(REGION,'FUNCTIONAL_UNIT.REGION',rownum,30,1,'') REGION,
+	cs_utl_validation.validate_varchar(REGISTRY_BUILDING_NUMBER,'FUNCTIONAL_UNIT.REGISTRY_BUILDING_NUMBER',rownum,5,1,'') REGISTRY_BUILDING_NUMBER,
+	cs_utl_validation.validate_number(REPLACEMENT_VALUE,'FUNCTIONAL_UNIT.REPLACEMENT_VALUE',rownum,18,4,1,'') REPLACEMENT_VALUE,
+	cs_utl_validation.validate_number(REPLACEMENT_VALUE_BCCY,'FUNCTIONAL_UNIT.REPLACEMENT_VALUE_BCCY',rownum,20,6,1,'') REPLACEMENT_VALUE_BCCY,
+	cs_utl_validation.validate_varchar(STREET,'FUNCTIONAL_UNIT.STREET',rownum,48,1,'') STREET,
+	cs_utl_validation.validate_varchar(UTILIZATION_FU,'FUNCTIONAL_UNIT.UTILIZATION_FU',rownum,32,1,'') UTILIZATION_FU,
+	cs_utl_validation.validate_varchar(ZIP_CODE,'FUNCTIONAL_UNIT.ZIP_CODE',rownum,15,1,'') ZIP_CODE,
+	cs_utl_validation.validate_number(UNDER_CONSTRUCTION,'FUNCTIONAL_UNIT.UNDER_CONSTRUCTION',rownum,1,0,1,'BOOLEAN') UNDER_CONSTRUCTION,
+	cs_utl_validation.validate_number(RENTAL_INCOME_VALUE_BCCY,'FUNCTIONAL_UNIT.ANNUAL_RENTAL_INCOME_CZK',rownum,20,2,1,'') RENTAL_INCOME_VALUE_BCCY
+FROM (
+SELECT
+DISTINCT
+  fu.id ref_collateral_asset_id,
+  fu.building_number,
+  fu.city,
+  fu.country,
+  fu.future_value,
+  fu.future_value_bccy,
+  fu.purpose,
+  fu.region,
+  fu.registry_building_number,
+  fu.replacement_value,
+  fu.replacement_value_bccy,
+  fu.street,
+  fu.utilization_fu,
+  fu.zip_code,
+  fu.under_construction,
+  NVL(fu.annual_rental_income_czk, 0) RENTAL_INCOME_VALUE_BCCY
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_functional_unit  fu ON asset.id = fu.id
+ORDER BY 
+	1 ) 			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportFunctionalUnitWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="FU" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportFunctionalUnitReader" />																										
+	</bean>
+	
+	<bean id="exportFunctionalUnitProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="COUNTRY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Country" /></bean></entry>
+				<entry key="PURPOSE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_FunctUnitPurpose" /></bean></entry>
+				<entry key="UTILIZATION_FU"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_KindOfMortgageUsage" /></bean></entry>			
+				<entry key="REGION"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CadastreDistrict" /></bean></entry>				
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ RealEstateAssetItem ================ -->
+	<bean id="exportRealEstateAssetItemReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'REAL_ESTATE_ASSET_ITEM.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(BUILDING_CONDITION,'REAL_ESTATE_ASSET_ITEM.BUILDING_CONDITION',rownum,32,1,'') BUILDING_CONDITION,
+	cs_utl_validation.validate_varchar(BUILDING_PURPOSE,'REAL_ESTATE_ASSET_ITEM.BUILDING_PURPOSE',rownum,32,1,'') BUILDING_PURPOSE,
+	cs_utl_validation.validate_number(IS_SEALED,'REAL_ESTATE_ASSET_ITEM.IS_SEALED',rownum,1,0,1,'BOOLEAN') IS_SEALED,
+	cs_utl_validation.validate_varchar(REAL_ESTATE_TYPE,'REAL_ESTATE_ASSET_ITEM.REAL_ESTATE_TYPE',rownum,32,1,'') REAL_ESTATE_TYPE,
+	cs_utl_validation.validate_number(REF_FUNCTIONAL_UNIT_ID,'REAL_ESTATE_ASSET_ITEM.REF_FUNCTIONAL_UNIT_ID',rownum,19,0,0,'') REF_FUNCTIONAL_UNIT_ID,
+	cs_utl_validation.validate_number(REF_PROPERTY_CERTIFICATE_ID,'REAL_ESTATE_ASSET_ITEM.REF_PROPERTY_CERTIFICATE_ID',rownum,19,0,1,'') REF_PROPERTY_CERTIFICATE_ID,
+	cs_utl_validation.validate_varchar(REAL_ESTATE_ID,'REAL_ESTATE_ASSET_ITEM.REAL_ESTATE_ID',rownum,200,1,'') REAL_ESTATE_ID
+FROM (
+SELECT
+DISTINCT
+  reit.id,
+  reit.building_condition,
+  reit.building_purpose,
+  reit.is_sealed,
+  reit.real_estate_type,
+  fu.id ref_functional_unit_id,
+  reit.property_certificate_id ref_property_certificate_id,
+  reit.real_estate_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_functional_unit  fu ON asset.id = fu.id
+  JOIN cms_collateral_asset_item item ON item.asset_id = asset.id
+  JOIN cms_re_asset_item reit ON reit.id = item.id
+ORDER BY 
+	1 ) 		
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportRealEstateAssetItemWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="RE" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportRealEstateAssetItemReader" />																														
+	</bean>
+	
+	<bean id="exportRealEstateAssetItemProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="BUILDING_CONDITION"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_SchoolMark" /></bean></entry>
+				<entry key="BUILDING_PURPOSE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_BuildingPurpose" /></bean></entry>
+				<entry key="REAL_ESTATE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_RealEstateType" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ RealEstatePledger ================ -->
+	<bean id="exportRealEstatePledgerReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'REAL_ESTATE_PLEDGER.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(OWNER_TYPE,'REAL_ESTATE_PLEDGER.OWNER_TYPE',rownum,32,1,'') OWNER_TYPE,
+	cs_utl_validation.validate_varchar(OWNERSHIP_TYPE,'REAL_ESTATE_PLEDGER.OWNERSHIP_TYPE',rownum,32,1,'') OWNERSHIP_TYPE,
+	cs_utl_validation.validate_number(PLEDGE_SHARE_NOMINATOR,'REAL_ESTATE_PLEDGER.PLEDGE_SHARE_NOMINATOR',rownum,10,0,1,'') PLEDGE_SHARE_NOMINATOR,
+	cs_utl_validation.validate_number(PLEDGE_SHARE_DENOMINATOR,'REAL_ESTATE_PLEDGER.PLEDGE_SHARE_DENOMINATOR',rownum,10,0,1,'') PLEDGE_SHARE_DENOMINATOR,
+	cs_utl_validation.validate_number(REF_PARTNER_ID,'REAL_ESTATE_PLEDGER.REF_PARTNER_ID',rownum,19,0,0,'') REF_PARTNER_ID,
+	cs_utl_validation.validate_number(REF_REAL_ESTATE_ID,'REAL_ESTATE_PLEDGER.REF_REAL_ESTATE_ID',rownum,19,0,0,'') REF_REAL_ESTATE_ID,
+	cs_utl_validation.validate_number(REF_SJM_PARTNER_ID,'REAL_ESTATE_PLEDGER.REF_SJM_PARTNER_ID',rownum,19,0,1,'') REF_SJM_PARTNER_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'REAL_ESTATE_PLEDGER.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID
+FROM (
+SELECT
+DISTINCT
+  repl.id,
+  repl.owner_type,
+  repl.ownership_type,
+  cs_utl_conv.fraction_nominator(repl.pledge_share) pledge_share_nominator,
+  cs_utl_conv.fraction_denominator(repl.pledge_share) pledge_share_denominator,
+  rl.partner_id ref_partner_id,
+  reit.id ref_real_estate_id,
+  rl.sjm_partner_id ref_sjm_partner_id,
+  'CLM' source_system_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_functional_unit  fu ON asset.id = fu.id
+  JOIN cms_collateral_asset_item item ON item.asset_id = asset.id
+  JOIN cms_re_asset_item reit ON reit.id = item.id
+  JOIN cms_re_pledger repl ON repl.real_estate_asset_item_id = reit.id
+  JOIN cms_partner_role rl ON repl.id = rl.id
+WHERE
+  rl.partner_id IS NOT NULL	
+ORDER BY                                               
+	1 ) 				
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportRealEstatePledgerWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="RP" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportRealEstatePledgerReader" />																																	
+	</bean>
+	
+	<bean id="exportRealEstatePledgerProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="OWNER_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_OwnerType" /></bean></entry>
+				<entry key="OWNERSHIP_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_DistributedOwnership" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ SecurityAsset ================ -->
+	<bean id="exportSecurityAssetReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT 
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'SECURITY_ASSET.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID
+FROM (
+SELECT
+DISTINCT
+  sa.id ref_collateral_asset_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_security_asset  sa ON asset.id = sa.id
+ORDER BY 
+	1 ) 			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportSecurityAssetWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="SA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportSecurityAssetReader" />																																				
+	</bean>
+	
+	<bean id="exportSecurityAssetProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ SecurityAssetItem ================ -->
+	<bean id="exportSecurityAssetItemReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_date(DATE_OF_ISSUE,'SECURITY_ASSET_ITEM.DATE_OF_ISSUE',rownum,1,'YYYY.MM.DD') DATE_OF_ISSUE,
+	cs_utl_validation.validate_date(HANDOVER_DATE,'SECURITY_ASSET_ITEM.HANDOVER_DATE',rownum,1,'YYYY.MM.DD') HANDOVER_DATE,
+	cs_utl_validation.validate_number(ID,'SECURITY_ASSET_ITEM.ID',rownum,19,0,1,'') ID,
+	cs_utl_validation.validate_number(REF_SECURITY_ASSET_ID,'SECURITY_ASSET_ITEM.REF_SECURITY_ASSET_ID',rownum,19,0,0,'') REF_SECURITY_ASSET_ID,
+	cs_utl_validation.validate_varchar(ISIN,'SECURITY_ASSET_ITEM.ISIN',rownum,12,1,'') ISIN,
+	cs_utl_validation.validate_number(SECURITY_PUBLICLY_TRADED,'SECURITY_ASSET_ITEM.SECURITY_PUBLICLY_TRADED',rownum,1,0,0,'BOOLEAN') SECURITY_PUBLICLY_TRADED,
+	cs_utl_validation.validate_number(ITEM_NUMBER,'SECURITY_ASSET_ITEM.ITEM_NUMBER',rownum,10,0,1,'') ITEM_NUMBER,
+	cs_utl_validation.validate_number(PRICE,'SECURITY_ASSET_ITEM.PRICE',rownum,18,4,1,'') PRICE
+FROM (
+SELECT
+DISTINCT
+  sait.date_of_issue,
+  sait.handover_date,
+  sait.id,
+  sa.id ref_security_asset_id,
+  sait.isin,
+  sait.security_publicly_traded,
+  sait.item_number,
+  sait.price  
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_security_asset  sa ON asset.id = sa.id
+  JOIN cms_collateral_asset_item item ON item.asset_id = asset.id
+  JOIN cms_security_asset_item sait ON sait.id = item.id
+WHERE
+  sait.isin IS NOT NULL	/* send only items with ISIN */
+ORDER BY                                               
+	1  )			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportSecurityAssetItemWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="SI" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportSecurityAssetItemReader" />																																							
+	</bean>
+	
+	<bean id="exportSecurityAssetItemProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ CollateralAssetInsuranceLink ================ -->
+	<bean id="exportCollateralAssetInsuranceLinkReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'COLLATERAL_ASSET_INSURANCE_LINK.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_number(REF_INSURANCE_ID,'COLLATERAL_ASSET_INSURANCE_LINK.REF_INSURANCE_ID',rownum,19,0,0,'') REF_INSURANCE_ID
+FROM (
+SELECT
+DISTINCT
+  insli.assets_id ref_collateral_asset_id,
+  insli.insurances_id ref_insurance_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_ins_asset_link insli ON asset.id = insli.assets_id
+ORDER BY 
+	1 ) 			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralAssetInsuranceLinkWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CI" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportCollateralAssetInsuranceLinkReader" />																																										
+	</bean>
+	
+	<bean id="exportCollateralAssetInsuranceLinkProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ Insurance ================ -->
+	<bean id="exportInsuranceReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'INSURANCE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_date(CONTRACT_SIGNATURE_DATE,'INSURANCE.CONTRACT_SIGNATURE_DATE',rownum,1,'YYYY.MM.DD') CONTRACT_SIGNATURE_DATE,
+	cs_utl_validation.validate_varchar(CURRENCY,'INSURANCE.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DATE_OF_RENEWAL,'INSURANCE.DATE_OF_RENEWAL',rownum,1,'YYYY.MM.DD') DATE_OF_RENEWAL,
+	cs_utl_validation.validate_date(DATE_OF_VALID_FROM,'INSURANCE.DATE_OF_VALID_FROM',rownum,1,'YYYY.MM.DD') DATE_OF_VALID_FROM,
+	cs_utl_validation.validate_date(DATE_OF_VALID_TO,'INSURANCE.DATE_OF_VALID_TO',rownum,1,'YYYY.MM.DD') DATE_OF_VALID_TO,
+	cs_utl_validation.validate_number(INSURANCE_AMOUNT,'INSURANCE.INSURANCE_AMOUNT',rownum,18,4,1,'') INSURANCE_AMOUNT,
+	cs_utl_validation.validate_number(INSURANCE_AMOUNT_BCCY,'INSURANCE.INSURANCE_AMOUNT_BCCY',rownum,20,6,1,'') INSURANCE_AMOUNT_BCCY,
+	cs_utl_validation.validate_varchar(INSURANCE_COMMENT,'INSURANCE.INSURANCE_COMMENT',rownum,1000,1,'') INSURANCE_COMMENT,
+	cs_utl_validation.validate_varchar(INSURANCE_COMPANY,'INSURANCE.INSURANCE_COMPANY',rownum,32,1,'') INSURANCE_COMPANY,
+	cs_utl_validation.validate_varchar(INSURANCE_CONTRACT_NUMBER,'INSURANCE.INSURANCE_CONTRACT_NUMBER',rownum,20,0,'') INSURANCE_CONTRACT_NUMBER,
+	cs_utl_validation.validate_varchar(INSURANCE_CONTRACT_TYPE,'INSURANCE.INSURANCE_CONTRACT_TYPE',rownum,32,1,'') INSURANCE_CONTRACT_TYPE,
+	cs_utl_validation.validate_varchar(INSURANCE_TYPE,'INSURANCE.INSURANCE_TYPE',rownum,32,1,'') INSURANCE_TYPE,
+	cs_utl_validation.validate_date(MONITORING_DATE,'INSURANCE.MONITORING_DATE',rownum,1,'YYYY.MM.DD') MONITORING_DATE,
+	cs_utl_validation.validate_number(MONITORING_NEEDED,'INSURANCE.MONITORING_NEEDED',rownum,1,0,1,'BOOLEAN') MONITORING_NEEDED,
+	cs_utl_validation.validate_varchar(MONITORING_PERIOD,'INSURANCE.MONITORING_PERIOD',rownum,32,1,'') MONITORING_PERIOD,
+	cs_utl_validation.validate_varchar(PLEDGE_AGREEMENT_NUMBER,'INSURANCE.PLEDGE_AGREEMENT_NUMBER',rownum,20,1,'') PLEDGE_AGREEMENT_NUMBER,
+	cs_utl_validation.validate_date(PLEDGED_FROM,'INSURANCE.PLEDGED_FROM',rownum,1,'YYYY.MM.DD') PLEDGED_FROM,
+	cs_utl_validation.validate_date(PLEDGED_TO,'INSURANCE.PLEDGED_TO',rownum,1,'YYYY.MM.DD') PLEDGED_TO,
+	cs_utl_validation.validate_number(RANK,'INSURANCE.RANK',rownum,6,0,1,'') RANK,
+	cs_utl_validation.validate_number(REF_INSUR_COMP_PARTNER_ID,'INSURANCE.REF_INSURANCE_COMPANY_PARTNER_ID',rownum,19,0,1,'') REF_INSUR_COMP_PARTNER_ID,
+	cs_utl_validation.validate_number(REGULAR_PAYMENT,'INSURANCE.REGULAR_PAYMENT',rownum,18,4,1,'') REGULAR_PAYMENT,
+	cs_utl_validation.validate_varchar(REGULAR_PAYMENT_PERIOD,'INSURANCE.REGULAR_PAYMENT_PERIOD',rownum,32,1,'') REGULAR_PAYMENT_PERIOD,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'INSURANCE.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID
+FROM (
+SELECT
+DISTINCT
+  ins.id,
+  ins.contract_signature_date,
+  NVL(ins.currency, 'CZK') currency,
+  null date_of_renewal,
+  ins.date_of_valid_from,
+  ins.date_of_valid_to,
+  ins.insurance_amount,
+  ins.insurance_amount_bccy,
+  ins.insurance_comment,
+  inscomp.insurance_company,
+  SUBSTR(ins.insurance_contract_number, 1, 20) insurance_contract_number,  /* the substr is here because in Colman the contract number can be longer then 20 chars and we consider this as a non-critical information */
+  ins.insurance_contract_type,
+  /* decode just first codebook value: "28564","28568" -> 28564, also can decode "old" format: "cscollateral/CBCOL_InsuranceType/28564",... -> 28564 */
+  trim(
+	  replace(
+	  	replace(
+	  		substr(ins.insurance_type, 1, case when instr(ins.insurance_type, ',') = 0 then 100 else instr(ins.insurance_type, ',') - 1 end),   
+	  		'cscollateral/CBCOL_InsuranceType/', ''), 
+	  	'"', '')
+	 ) insurance_type,
+  im.monitoring_date,
+  case when ins.monitoring_type is null then 0 else 1 end MONITORING_NEEDED,
+  im.monitoring_period,
+   SUBSTR(ins.pledge_agreement_number, 1, 20) pledge_agreement_number,		 /* the substr is here because in Colman the agreement number can be longer then 20 chars and we consider this as a non-critical information */
+  ins.pledged_from,
+  ins.pledged_to,
+  ins.rank,
+  rl.partner_id ref_insur_comp_partner_id,
+  ins.regular_payment,
+  ins.regular_payment_period,
+  'CLM' source_system_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_ins_asset_link insli ON asset.id = insli.assets_id
+  JOIN cms_insurance ins ON insli.insurances_id = ins.id
+  JOIN cms_insurance_company inscomp ON ins.id = inscomp.insurance_id
+  JOIN cms_partner_role rl ON inscomp.id = rl.id
+  JOIN cms_insurance_monitoring im ON ins.actual_insurance_monitoring_id = im.id
+ORDER BY 
+	1 )      			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportInsuranceWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="IN" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportInsuranceReader" />																																														
+	</bean>
+	
+	<bean id="exportInsuranceProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+				<entry key="INSURANCE_COMPANY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceCompany" /></bean></entry>
+				<entry key="INSURANCE_CONTRACT_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceContractType" /></bean></entry>
+				<entry key="INSURANCE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_InsuranceType" /></bean></entry>
+				<entry key="MONITORING_PERIOD"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Periodicity" /></bean></entry>
+				<entry key="REGULAR_PAYMENT_PERIOD"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Periodicity" /></bean></entry>
+    	  	</map>	
+		</property>			
+	</bean>			
+
+<!-- ================ InsuranceIncome ================ -->
+	<bean id="exportInsuranceIncomeReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'INSURANCE_INCOME.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(AMOUNT_PAID_TO_CLIENT_BCCY,'INSURANCE_INCOME.AMOUNT_PAID_TO_CLIENT_BCCY',rownum,20,6,1,'') AMOUNT_PAID_TO_CLIENT_BCCY,
+	cs_utl_validation.validate_number(AMOUNT_RECEIVED_BY_CS,'INSURANCE_INCOME.AMOUNT_RECEIVED_BY_CS',rownum,18,4,1,'') AMOUNT_RECEIVED_BY_CS,
+	cs_utl_validation.validate_number(AMOUNT_RECEIVED_BY_CS_BCCY,'INSURANCE_INCOME.AMOUNT_RECEIVED_BY_CS_BCCY',rownum,20,6,1,'') AMOUNT_RECEIVED_BY_CS_BCCY,
+	cs_utl_validation.validate_varchar(CURRENCY,'INSURANCE_INCOME.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DATE_OF_INSURANCE_EVENT,'INSURANCE_INCOME.DATE_OF_INSURANCE_EVENT',rownum,1,'YYYY.MM.DD') DATE_OF_INSURANCE_EVENT,
+	cs_utl_validation.validate_date(DATE_OF_REALIZATION,'INSURANCE_INCOME.DATE_OF_REALIZATION',rownum,1,'YYYY.MM.DD') DATE_OF_REALIZATION,
+	cs_utl_validation.validate_number(INSU_AMOUNT_PAID_TO_CLIENT,'INSURANCE_INCOME.INSURANCE_AMOUNT_PAID_TO_CLIENT',rownum,18,4,1,'') INSU_AMOUNT_PAID_TO_CLIENT,
+	cs_utl_validation.validate_varchar(NOTE,'INSURANCE_INCOME.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_number(REF_INSURANCE_ID,'INSURANCE_INCOME.REF_INSURANCE_ID',rownum,19,0,0,'') REF_INSURANCE_ID
+FROM (
+SELECT
+DISTINCT
+  inc.id,
+  inc.amount_paid_to_client_bccy,
+  inc.amount_received_by_cs,
+  inc.amount_received_by_cs_bccy,
+  NVL(inc.currency, 'CZK') currency,
+  inc.date_of_insurance_event,
+  inc.date_of_realization,
+  inc.insu_amount_paid_to_client,
+  inc.note,
+  ins.id ref_insurance_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_ins_asset_link insli ON asset.id = insli.assets_id
+  JOIN cms_insurance ins ON insli.insurances_id = ins.id
+  JOIN cms_insurance_income inc ON inc.insurance_id = ins.id
+ORDER BY 
+	1 )   		
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportInsuranceIncomeWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="II" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />	
+		<property name="metadataProvider" ref="exportInsuranceIncomeReader" />																																																	
+	</bean>
+	
+	<bean id="exportInsuranceIncomeProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ ThirdPartyPledge ================ -->
+	<bean id="exportThirdPartyPledgeReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT 
+	cs_utl_validation.validate_number(ID,'THIRD_PARTY_PLEDGE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(CURRENCY,'THIRD_PARTY_PLEDGE.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(EFFECTIVENESS_DATE,'THIRD_PARTY_PLEDGE.EFFECTIVENESS_DATE',rownum,1,'YYYY.MM.DD') EFFECTIVENESS_DATE,
+	cs_utl_validation.validate_date(FORCED_EFFECTIVENESS_DATE,'THIRD_PARTY_PLEDGE.FORCED_EFFECTIVENESS_DATE',rownum,1,'YYYY.MM.DD') FORCED_EFFECTIVENESS_DATE,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT,'THIRD_PARTY_PLEDGE.LIMIT_FIXED_AMOUNT',rownum,18,4,1,'') LIMIT_FIXED_AMOUNT,
+	cs_utl_validation.validate_number(LIMIT_FIXED_AMOUNT_BCCY,'THIRD_PARTY_PLEDGE.LIMIT_FIXED_AMOUNT_BCCY',rownum,20,6,1,'') LIMIT_FIXED_AMOUNT_BCCY,
+	cs_utl_validation.validate_varchar(NOTE,'THIRD_PARTY_PLEDGE.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_number(REDUCED_LIMIT_FIXED_AMOUNT,'THIRD_PARTY_PLEDGE.REDUCED_LIMIT_FIXED_AMOUNT',rownum,18,4,1,'') REDUCED_LIMIT_FIXED_AMOUNT,
+	cs_utl_validation.validate_number(REDUCEDLIMIT_FIXED_AMOUNT_BCCY,'THIRD_PARTY_PLEDGE.REDUCEDLIMIT_FIXED_AMOUNT_BCCY',rownum,20,6,1,'') REDUCEDLIMIT_FIXED_AMOUNT_BCCY,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'THIRD_PARTY_PLEDGE.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_number(REF_PARTNER_ID,'THIRD_PARTY_PLEDGE.REF_PARTNER_ID',rownum,19,0,1,'') REF_PARTNER_ID,
+	cs_utl_validation.validate_number(REF_SJM_PARTNER_ID,'THIRD_PARTY_PLEDGE.REF_SJM_PARTNER_ID',rownum,19,0,1,'') REF_SJM_PARTNER_ID,
+	cs_utl_validation.validate_date(VALID_TO,'THIRD_PARTY_PLEDGE.VALID_TO',rownum,1,'YYYY.MM.DD') VALID_TO,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'THIRD_PARTY_PLEDGE.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID
+FROM (
+SELECT
+DISTINCT
+  pl.id,
+  NVL(pl.currency, 'CZK') currency,
+  pl.effectiveness_date,
+  pl.forced_effectiveness_date,
+  pl.limit_fixed_amount,
+  pl.limit_fixed_amount_bccy,
+  nvl(pl.note, '') || (case when pl.THIRD_PARTY_PLEDGER_ID is null then (case when pl.note is not null then ', ' else '' end) || pl.OTHER_PLEDGER_HOLDER else '' end) note,
+  pl.reduced_limit_fixed_amount,
+  pl.reducedlimit_fixed_amount_bccy,
+  asset.id ref_collateral_asset_id,
+  rl.partner_id ref_partner_id,
+  rl.sjm_partner_id ref_sjm_partner_id,
+  pl.valid_to,
+  'CLM' source_system_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_third_party_pledge pl ON asset.id = pl.collateral_asset_id
+  left JOIN cms_third_party_pledger plr ON pl.third_party_pledger_id = plr.id
+  left JOIN cms_partner_role rl ON plr.id = rl.id
+ORDER BY 
+	1)			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportThirdPartyPledgeWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="TP" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportThirdPartyPledgeReader" />																																																					
+	</bean>
+	
+	<bean id="exportThirdPartyPledgeProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>	
+				
+<!-- ================ Evaluation ================ -->
+	<bean id="exportEvaluationReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'EVALUATION.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(BASE_VALUE,'EVALUATION.BASE_VALUE',rownum,18,4,1,'') BASE_VALUE,
+	cs_utl_validation.validate_date(EVALUATION_FINISHED_DATE,'EVALUATION.EVALUATION_FINISHED_DATE',rownum,1,'YYYY.MM.DD') EVALUATION_FINISHED_DATE,
+	cs_utl_validation.validate_varchar(EVALUATION_NOTE,'EVALUATION.EVALUATION_NOTE',rownum,1000,1,'') EVALUATION_NOTE,
+	cs_utl_validation.validate_varchar(EVALUATION_NUMBER,'EVALUATION.EVALUATION_NUMBER',rownum,30,1,'') EVALUATION_NUMBER,
+	cs_utl_validation.validate_date(EVALUATION_ORDERED_DATE,'EVALUATION.EVALUATION_ORDERED_DATE',rownum,1,'YYYY.MM.DD') EVALUATION_ORDERED_DATE,
+	cs_utl_validation.validate_varchar(EVALUATION_REASON,'EVALUATION.EVALUATION_REASON',rownum,32,1,'') EVALUATION_REASON,
+	cs_utl_validation.validate_varchar(EVALUATION_TYPE,'EVALUATION.EVALUATION_TYPE',rownum,32,1,'') EVALUATION_TYPE,
+	cs_utl_validation.validate_varchar(EXPERT_ID,'EVALUATION.EXPERT_ID',rownum,20,1,'') EXPERT_ID,
+	cs_utl_validation.validate_varchar(EVALUATION_ID,'EVALUATION.EVALUATION_ID',rownum,20,1,'') EVALUATION_ID,
+	cs_utl_validation.validate_number(HAIRCUT_VALUE,'EVALUATION.HAIRCUT_VALUE',rownum,10,5,1,'') HAIRCUT_VALUE,
+	cs_utl_validation.validate_number(IS_ACTIVE,'EVALUATION.IS_ACTIVE',rownum,1,0,1,'BOOLEAN') IS_ACTIVE,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'EVALUATION.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'EVALUATION.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(EVALUATION_CURRENCY,'EVALUATION.EVALUATION_CURRENCY',rownum,3,1,'') EVALUATION_CURRENCY,
+	cs_utl_validation.validate_number(LIQUIDATION_PERIOD,'EVALUATION.LIQUIDATION_PERIOD',rownum,18,4,1,'') LIQUIDATION_PERIOD,
+	cs_utl_validation.validate_varchar(APPRAISAL_METHOD,'EVALUATION.APPRAISAL_METHOD',rownum,20,1,'') APPRAISAL_METHOD,
+	cs_utl_validation.validate_varchar(MONITORING_TYPE,'EVALUATION.MONITORING_TYPE',rownum,32,1,'') MONITORING_TYPE
+FROM
+(			
+SELECT
+DISTINCT
+  ev.id,
+  ev.base_value,
+  ev.evaluation_finished_date,
+  ev.evaluation_note,
+  NVL(reev.evaluation_unique_code, reev.expert_id || '@' || to_char(evaluation_finished_date, 'yyyy.mm.dd')) evaluation_number,
+  ev.evaluation_ordered_date,
+  ev.evaluation_reason,
+  ev.evaluation_type,
+  case when cs.collateral_class = 'GU' THEN null when ev.EVALUATION_TYPE IN ('T5','L2') THEN '-5' when ev.EVALUATION_TYPE IN('T7','T9') THEN '-998' when ev.EVALUATION_TYPE = 'T6' THEN '-999' when ev.EVALUATION_TYPE = 'T8' THEN '-997' else UPPER (NVL(eo.expert_id, NVL(reev.expert_id, NVL(ev.evaluator, '-888')))) end EXPERT_ID,
+  NVL(to_char(reev.evaluation_id),eo.expertise_id) EVALUATION_ID,
+  ev.haircut_value,
+  CASE 
+    WHEN asset.actual_valuation_id = ev.id THEN 1
+    ELSE 0 
+  END is_active,
+  asset.id ref_collateral_asset_id,
+  DECODE(reev.evaluation_id, null, 'CLM', 'REV') source_system_id,
+  ev.EVALUATION_CURRENCY,
+  ev.LIQUIDATION_PERIOD,
+  ev.APPRAISAL_METHOD,
+  DECODE(ev.evaluation_type, 'T7', 'M3', 'T8', 'M2', 'T9', 'M3', 'T12', 'M1') MONITORING_TYPE
+  
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_evaluation ev ON asset.id = ev.collateral_asset_id
+  JOIN cms_coll_subtype_settings cs ON asset.collateral_type_settings_id = cs.id
+  LEFT JOIN cms_expert_opinion eo ON eo.valuation_id = ev.id
+  LEFT JOIN cms_re_evaluation reev ON reev.id = ev.id
+WHERE 1=1
+  AND ev.state = 'Active'  
+ORDER BY                                          
+	1)	
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportEvaluationWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="EV" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportEvaluationReader" />																																																							
+	</bean>
+	
+	<bean id="exportEvaluationProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="EVALUATION_REASON"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_EvaluationReason" /></bean></entry>
+				<entry key="EVALUATION_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_EvaluationType" /></bean></entry>
+				<entry key="APPRAISAL_METHOD"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_AppraisalMethod" /></bean></entry>
+				<entry key="MONITORING_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_MonitoringType" /></bean></entry>
+			</map>	
+		</property>			
+	</bean>		
+	
+<!-- ================ CollateralProvider ================ -->
+	<bean id="exportCollateralProviderReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'COLLATERAL_PROVIDER.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ID,'COLLATERAL_PROVIDER.REF_COLLATERAL_ID',rownum,19,0,0,'') REF_COLLATERAL_ID,
+	cs_utl_validation.validate_number(REF_PARTNER_ID,'COLLATERAL_PROVIDER.REF_PARTNER_ID',rownum,19,0,0,'') REF_PARTNER_ID,
+	cs_utl_validation.validate_number(REF_SJM_PARTNER_ID,'COLLATERAL_PROVIDER.REF_SJM_PARTNER_ID',rownum,19,0,1,'') REF_SJM_PARTNER_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'COLLATERAL_PROVIDER.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID
+FROM (
+SELECT /*+ USE_HASH(pr rl) */
+DISTINCT
+  pr.id,
+  coll.id ref_collateral_id,
+  rl.partner_id ref_partner_id,
+  rl.sjm_partner_id ref_sjm_partner_id,
+  'CLM' source_system_id
+FROM 
+  cms_collateral_to_report coll                                                   
+  JOIN cms_collateral_provider pr ON pr.collateral_id = coll.id
+  JOIN cms_partner_role rl ON rl.id = pr.id 
+WHERE
+	partner_id IS NOT NULL
+ORDER BY 
+	1 ) 			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralProviderWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CP" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralProviderReader" />																																																											
+	</bean>
+	
+	<bean id="exportCollateralProviderProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ CollateralAssetPartnerRole ================ -->
+	<bean id="exportCollateralAssetPartnerRoleReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH collateral_asset_partner_role AS
+(
+  SELECT 
+    DISTINCT id, asset_id 
+  FROM
+    (
+      SELECT id, guarantee_asset_id asset_id FROM cms_guarantee_issuer i
+      UNION ALL
+      SELECT id, financial_guarantee_id asset_id FROM cms_fin_guarantee_issuer i
+      UNION ALL                                                                                    
+      SELECT id, deposit_id asset_id FROM cms_deposit_bank i
+      UNION ALL
+      SELECT id, securities_to_owner_id asset_id FROM cms_security_owner i
+      UNION ALL
+      SELECT id, securities_id asset_id FROM cms_security_custodian i
+      UNION ALL
+      SELECT id, securities_to_emitter_id asset_id FROM cms_security_emitter i     
+      UNION ALL
+      SELECT id, bill_of_exchange_id asset_id FROM cms_boe_debtor i
+      UNION ALL                                                                                              
+      SELECT id, bill_of_exchange_id asset_id FROM cms_boe_endorsement i
+      UNION ALL                                                                                                               
+      SELECT id, bill_of_exchange_id asset_id FROM cms_boe_remmitter i
+      UNION ALL                                                                                                  
+      SELECT id, bill_of_exchange_id asset_id FROM cms_boe_emitter i
+      UNION ALL
+      SELECT id, bill_of_exchange_id asset_id FROM cms_boe_aval i
+      UNION ALL                                                                                             
+      SELECT id, deposit_id asset_id FROM cms_account_owner i                                               
+      UNION ALL
+      SELECT id, functional_unit_id asset_id FROM cms_re_pledger i                                    
+      UNION ALL
+      SELECT id, movable_asset_id asset_id FROM cms_movable_owner i
+      UNION ALL                                                                                              
+      SELECT id, other_asset_id asset_id FROM cms_other_asset_owner i                         
+      UNION ALL                                                                                              
+      SELECT id, receivable_asset_id asset_id FROM cms_receivable_subdebtor i                                            
+      UNION ALL
+      SELECT id, receivable_asset_id asset_id FROM cms_receivable_owner i
+      UNION ALL
+      SELECT id, life_insurance_id asset_id FROM cms_life_ins_collector i
+      UNION ALL
+      SELECT id, life_insurance_id asset_id FROM cms_life_ins_ins_person i
+      UNION ALL                                                                                                 
+      SELECT id, life_insurance_id asset_id FROM cms_life_ins_ins_company i
+      UNION ALL
+      SELECT id, other_asset_item_id asset_id FROM cms_pledged_company_share i
+      UNION ALL
+	  SELECT csp.id id, c.collateral_asset_id asset_id from cms_syndication_partner csp join cms_collateral c on csp.collateral_id=c.id
+      UNION ALL
+      SELECT pr.id id, c.collateral_asset_id asset_id FROM cms_partner_role pr join cms_collateral_provider cp on cp.id = pr.id join cms_collateral c on c.id = cp.collateral_id 
+      left join cms_re_pledger rep on rep.functional_unit_id = c.collateral_asset_id
+      where c.business_entity_descriptor_id = 'cscollateral/CollateralFunctionalUnit' and rep.id is null and c.state = 'activated' and pr.state != 'TERMINATED'
+  )
+)
+SELECT
+	cs_utl_validation.validate_number(ID,'COLLATERAL_ASSET_PARTNER_ROLE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(PARTNER_DESCRIPTION,'COLLATERAL_ASSET_PARTNER_ROLE.PARTNER_DESCRIPTION',rownum,200,1,'') PARTNER_DESCRIPTION,
+	cs_utl_validation.validate_varchar(PARTNER_ROLE_TYPE,'COLLATERAL_ASSET_PARTNER_ROLE.PARTNER_ROLE_TYPE',rownum,32,1,'') PARTNER_ROLE_TYPE,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'COLLATERAL_ASSET_PARTNER_ROLE.REF_COLLATERAL_ASSET_ID',rownum,19,0,0,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_number(REF_PARTNER_ID,'COLLATERAL_ASSET_PARTNER_ROLE.REF_PARTNER_ID',rownum,19,0,0,'') REF_PARTNER_ID,
+	cs_utl_validation.validate_number(REF_SJM_PARTNER_ID,'COLLATERAL_ASSET_PARTNER_ROLE.REF_SJM_PARTNER_ID',rownum,19,0,1,'') REF_SJM_PARTNER_ID,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'COLLATERAL_ASSET_PARTNER_ROLE.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(FORENAME,'COLLATERAL_ASSET_PARTNER_ROLE.FORENAME',rownum,40,1,'') FORENAME,
+	cs_utl_validation.validate_varchar(SURNAME,'COLLATERAL_ASSET_PARTNER_ROLE.SURNAME',rownum,40,1,'') SURNAME,
+	cs_utl_validation.validate_varchar(DEGREE,'COLLATERAL_ASSET_PARTNER_ROLE.DEGREE',rownum,35,1,'') DEGREE,
+	cs_utl_validation.validate_varchar(ADDITIONAL_DEGREE,'COLLATERAL_ASSET_PARTNER_ROLE.ADDITIONAL_DEGREE',rownum,10,1,'') ADDITIONAL_DEGREE
+FROM (
+SELECT
+DISTINCT
+  rl.id,
+  rl.partner_description,
+  case 
+	when rl.partner_role_type = 'SYNDP' and coll.syndication_agent_id IS NOT NULL then 'SYNA'
+    when rl.partner_role_type = 'SYNDP' and coll.syndication_agent_id IS NULL then 'SYNM'
+ 	when rl.partner_role_type = 'COLPR' and coll.business_entity_descriptor_id = 'cscollateral/CollateralFunctionalUnit' then 'RESPL'
+	else rl.partner_role_type end partner_role_type,
+  carl.asset_id ref_collateral_asset_id,
+  rl.partner_id ref_partner_id,
+  rl.sjm_partner_id ref_sjm_partner_id,
+  'CLM' source_system_id,
+  NULL forename,
+  NULL surname,
+  NULL degree,
+  NULL additional_degree
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN collateral_asset_partner_role carl ON asset.id = carl.asset_id
+  JOIN cms_partner_role rl ON carl.id = rl.id
+  LEFT JOIN cms_syndication_partner csp ON rl.id = csp.id
+  
+WHERE
+  rl.partner_id IS NOT NULL
+ORDER BY 
+	1)			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralAssetPartnerRoleWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CR" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralAssetPartnerRoleReader" />																																																															
+	</bean>
+	
+	<bean id="exportCollateralAssetPartnerRoleProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="PARTNER_ROLE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_PartnerRoleType" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>
+	
+<!-- ================ BoeAval ================ -->
+	<bean id="exportBoeAvalReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'BOE_AVAL.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(AVAL_AMOUNT,'BOE_AVAL.AVAL_AMOUNT',rownum,18,4,1,'') AVAL_AMOUNT,
+	cs_utl_validation.validate_varchar(CURRENCY,'BOE_AVAL.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DATE_OF_ENTRY,'BOE_AVAL.DATE_OF_ENTRY',rownum,1,'YYYY.MM.DD') DATE_OF_ENTRY,
+	cs_utl_validation.validate_varchar(NOTE,'BOE_AVAL.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_number(REF_COLL_ASSET_PARTNER_ROLE_ID,'BOE_AVAL.REF_COLLATERAL_ASSET_PARTNER_ROLE_ID',rownum,19,0,0,'') REF_COLL_ASSET_PARTNER_ROLE_ID
+FROM (
+SELECT
+DISTINCT
+  av.id,
+  av.aval_amount,  
+  NVL(av.currency, 'CZK') currency,
+  av.date_of_entry,
+  av.note,
+  av.id ref_coll_asset_partner_role_id
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_boe_aval av ON asset.id = av.bill_of_exchange_id
+ORDER BY 
+	1)		
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportBoeAvalWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="BA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportBoeAvalReader" />																																																																			
+	</bean>
+	
+	<bean id="exportBoeAvalProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ Partner ================ -->
+	<bean id="exportPartnerReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'PARTNER.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(CLUID,'PARTNER.CLUID',rownum,26,0,'') CLUID,
+	cs_utl_validation.validate_varchar(DESCRIPTION,'PARTNER.DESCRIPTION',rownum,200,1,'') DESCRIPTION,
+	cs_utl_validation.validate_varchar(IDENTIFIER,'PARTNER.IDENTIFIER',rownum,20,1,'') IDENTIFIER,
+	cs_utl_validation.validate_varchar(PARTY_TYPE,'PARTNER.PARTY_TYPE',rownum,32,1,'') PARTY_TYPE,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'PARTNER.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(UNIFIED_NAME,'PARTNER.UNIFIED_NAME',rownum,200,1,'') UNIFIED_NAME
+FROM (
+SELECT
+DISTINCT
+  p.id,
+  p.cluid,
+  p.description,
+  p.identifier,
+  p.party_type,
+  'CRM' source_system_id,
+  p.unified_name
+FROM 
+  cms_partner p 
+ORDER BY 
+	1)			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportPartnerWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="PA" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportPartnerReader" />																																																																							
+	</bean>
+	
+	<bean id="exportPartnerProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="PARTY_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_PartyType" /></bean></entry>			
+    	  	</map>	
+		</property>			
+	</bean>		
+
+<!-- ================ WorkoutCostAndRevenue ================ -->
+	<bean id="exportWorkoutCostAndRevenueReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'WORKOUT_COST_AND_REVENUE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_date(ACCOUNTED_DATE,'WORKOUT_COST_AND_REVENUE.ACCOUNTED_DATE',rownum,1,'YYYY.MM.DD') ACCOUNTED_DATE,
+	cs_utl_validation.validate_number(AMOUNT,'WORKOUT_COST_AND_REVENUE.AMOUNT',rownum,18,4,1,'') AMOUNT,
+	cs_utl_validation.validate_varchar(CURRENCY,'WORKOUT_COST_AND_REVENUE.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DECISION_DATE,'WORKOUT_COST_AND_REVENUE.DECISION_DATE',rownum,1,'YYYY.MM.DD') DECISION_DATE,
+	cs_utl_validation.validate_varchar(REVENUE_TYPE,'WORKOUT_COST_AND_REVENUE.REVENUE_TYPE',rownum,32,1,'') REVENUE_TYPE,
+	cs_utl_validation.validate_varchar(NOTE,'WORKOUT_COST_AND_REVENUE.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_date(REALIZATION_DATE,'WORKOUT_COST_AND_REVENUE.REALIZATION_DATE',rownum,1,'YYYY.MM.DD') REALIZATION_DATE,
+	cs_utl_validation.validate_number(RECEIVED_BY_BANK,'WORKOUT_COST_AND_REVENUE.RECEIVED_BY_BANK',rownum,18,4,1,'') RECEIVED_BY_BANK,
+	cs_utl_validation.validate_number(REF_COLLATERAL_ASSET_ID,'WORKOUT_COST_AND_REVENUE.REF_COLLATERAL_ASSET_ID',rownum,19,0,1,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_number(REF_LOAN_ID,'WORKOUT_COST_AND_REVENUE.REF_LOAN_ID',rownum,19,0,1,'') REF_LOAN_ID,
+	cs_utl_validation.validate_number(REF_PARTNER_ID,'WORKOUT_COST_AND_REVENUE.REF_PARTNER_ID',rownum,19,0,0,'') REF_PARTNER_ID,
+	cs_utl_validation.validate_varchar(WORKOUT_TYPE,'WORKOUT_COST_AND_REVENUE.WORKOUT_TYPE',rownum,32,1,'') WORKOUT_TYPE,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'WORKOUT_COST_AND_REVENUE.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(TITLE_OF_REALIZATION,'WORKOUT_COST_AND_REVENUE.TITLE_OF_REALIZATION',rownum,32,1,'') TITLE_OF_REALIZATION
+FROM (
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  rev.amount received_by_bank,
+  rerev.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  rerev.partner_id ref_partner_id,
+  '71' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_realization_revenue rerev ON rerev.id = rev.id 
+  LEFT JOIN cms_basic_loan l ON rerev.loan_id = l.id
+  where rerev.MAIN_LOAN_SPLIT_ID is not null
+  and rev.create_user != 'MIG-SB'
+UNION
+SELECT
+DISTINCT
+  rev.id + 2,
+  rev.accounted_date,
+  (-1) * rev.amount amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  (-1) * rev.amount received_by_bank,
+  rerev.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  rerev.partner_id ref_partner_id,
+  '101' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_realization_revenue rerev ON rerev.id = rev.id 
+  LEFT JOIN cms_basic_loan l ON rerev.loan_id = l.id
+  where rerev.MAIN_LOAN_SPLIT_ID is not null
+  and rev.create_user != 'MIG-SB'
+UNION
+SELECT
+  rev.id,
+  rev.accounted_date,
+  nvl(rerev.SALE_PRICE, rev.amount) amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  nvl(rerev.SALE_PRICE, rev.amount) received_by_bank,
+  rerev.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(
+   min(l.id) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.loan_number) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.source_system_id) KEEP (DENSE_RANK FIRST ORDER BY l.id)
+  ) ref_loan_id,
+  rerev.partner_id ref_partner_id,
+  '81' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_realization_revenue rerev ON rerev.id = rev.id 
+  JOIN cms_realization_revenue childrerev on childrerev.MAIN_LOAN_SPLIT_ID = rerev.id
+  JOIN cms_basic_loan l on l.id = childrerev.loan_id
+where 1=1
+  and rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY 
+  rev.id,
+  rev.accounted_date,
+  nvl(rerev.SALE_PRICE, rev.amount),
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  rerev.asset_id ,
+  rerev.partner_id,
+  rerev.TITLE_OF_REALIZATION
+UNION
+ SELECT
+  rev.id +2,
+  rev.accounted_date,
+  nvl(rev.EXTERNAL_COST, '0') amount, 
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  nvl(rev.EXTERNAL_COST, '0') received_by_bank, 
+  rerev.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(
+   min(l.id) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.loan_number) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.source_system_id) KEEP (DENSE_RANK FIRST ORDER BY l.id)
+  ) ref_loan_id,
+  rerev.partner_id ref_partner_id,
+  '58' workout_type, 
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_realization_revenue rerev ON rerev.id = rev.id 
+  JOIN cms_realization_revenue childrerev on childrerev.MAIN_LOAN_SPLIT_ID = rerev.id
+  JOIN cms_basic_loan l on l.id = childrerev.loan_id
+where 1=1
+  and rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY 
+  rev.id,
+  rev.accounted_date,
+  nvl(rev.EXTERNAL_COST, '0'), 
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  rerev.asset_id ,
+  rerev.partner_id,
+  rerev.TITLE_OF_REALIZATION
+UNION
+SELECT
+  rev.id +4,
+  rev.accounted_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))) amount, 
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))) received_by_bank, 
+  rerev.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(
+   min(l.id) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.loan_number) KEEP (DENSE_RANK FIRST ORDER BY l.id), 
+   min(l.source_system_id) KEEP (DENSE_RANK FIRST ORDER BY l.id)
+  ) ref_loan_id,
+  rerev.partner_id ref_partner_id,
+  '82' workout_type, 
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_realization_revenue rerev ON rerev.id = rev.id 
+  JOIN cms_realization_revenue childrerev on childrerev.MAIN_LOAN_SPLIT_ID = rerev.id
+  JOIN cms_basic_loan l on l.id = childrerev.loan_id
+where 1=1
+  and rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY 
+  rev.id,
+  rev.accounted_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))), 
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  rerev.asset_id ,
+  rerev.partner_id,
+  rerev.TITLE_OF_REALIZATION
+UNION
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  null,
+  rev.note,
+  asrev.realization_date realization_date,
+  rev.received_by_bank,
+  null,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  asrev.PARTNER_ID ref_partner_id,
+  '111' workout_type,
+  'CLM' source_system_id,
+  null TITLE_OF_REALIZATION  
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_assignment_revenue asrev ON  asrev.id = rev.id
+  LEFT JOIN cms_basic_loan l ON asrev.loan_id = l.id
+  where rev.create_user != 'MIG-SB'  
+UNION 
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  null,
+  rev.note,
+  null,
+  rev.received_by_bank,
+  recost.asset_id ref_collateral_asset_id,
+  cms_utl_export.get_export_basic_loan_id(l.id, l.loan_number, l.source_system_id) ref_loan_id,
+  recost.partner_id ref_partner_id,
+  rev.workout_type,
+  'CLM' source_system_id,
+  null TITLE_OF_REALIZATION
+FROM 
+  cms_cost_and_revenue rev 
+  JOIN cms_cost recost ON recost.id = rev.id 
+  LEFT JOIN cms_basic_loan l ON recost.loan_id = l.id 
+  where rev.create_user != 'MIG-SB'
+ORDER BY 
+	1 ) 			 	 			 			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportWorkoutCostAndRevenueWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="WR" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportWorkoutCostAndRevenueReader" />																																																																											
+	</bean>
+	
+	<bean id="exportWorkoutCostAndRevenueProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+				<entry key="REVENUE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_RevenueType" /></bean></entry>
+				<entry key="WOKOUT_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CostRevenueType" /></bean></entry>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+	
+<!-- ================ WorkoutCostAndRevenueDC ================ -->
+	<bean id="exportWorkoutCostAndRevenueDCReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'WORKOUT_COST_AND_REVENUE_DC.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_date(ACCOUNTED_DATE,'WORKOUT_COST_AND_REVENUE_DC.ACCOUNTED_DATE',rownum,1,'YYYY.MM.DD') ACCOUNTED_DATE,
+	cs_utl_validation.validate_number(AMOUNT,'WORKOUT_COST_AND_REVENUE_DC.AMOUNT',rownum,18,4,1,'') AMOUNT,
+	cs_utl_validation.validate_varchar(CURRENCY,'WORKOUT_COST_AND_REVENUE_DC.CURRENCY',rownum,3,1,'') CURRENCY,
+	cs_utl_validation.validate_date(DECISION_DATE,'WORKOUT_COST_AND_REVENUE_DC.DECISION_DATE',rownum,1,'YYYY.MM.DD') DECISION_DATE,
+	cs_utl_validation.validate_varchar(REVENUE_TYPE,'WORKOUT_COST_AND_REVENUE_DC.REVENUE_TYPE',rownum,32,1,'') REVENUE_TYPE,
+	cs_utl_validation.validate_varchar(NOTE,'WORKOUT_COST_AND_REVENUE_DC.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_date(REALIZATION_DATE,'WORKOUT_COST_AND_REVENUE_DC.REALIZATION_DATE',rownum,1,'YYYY.MM.DD') REALIZATION_DATE,
+	cs_utl_validation.validate_number(RECEIVED_BY_BANK,'WORKOUT_COST_AND_REVENUE_DC.RECEIVED_BY_BANK',rownum,18,4,1,'') RECEIVED_BY_BANK,
+	cs_utl_validation.validate_varchar(COLLATERAL_ASSET_IDENTIFIER,'WORKOUT_COST_AND_REVENUE_DC.COLLATERAL_ASSET_IDENTIFIER',rownum,130,1,'') COLLATERAL_ASSET_IDENTIFIER,
+	cs_utl_validation.validate_varchar(LOAN_IDENTIFIER,'WORKOUT_COST_AND_REVENUE_DC.LOAN_IDENTIFIER',rownum,130,1,'') LOAN_IDENTIFIER,
+	cs_utl_validation.validate_varchar(PARTNER_CLUID,'WORKOUT_COST_AND_REVENUE_DC.PARTNER_CLUID',rownum,28,1,'') PARTNER_CLUID,
+	cs_utl_validation.validate_varchar(WORKOUT_TYPE,'WORKOUT_COST_AND_REVENUE_DC.WORKOUT_TYPE',rownum,32,1,'') WOKOUT_TYPE,
+	cs_utl_validation.validate_varchar(SOURCE_SYSTEM_ID,'WORKOUT_COST_AND_REVENUE_DC.SOURCE_SYSTEM_ID',rownum,32,0,'') SOURCE_SYSTEM_ID,
+	cs_utl_validation.validate_varchar(TITLE_OF_REALIZATION,'WORKOUT_COST_AND_REVENUE_DC.TITLE_OF_REALIZATION',rownum,32,1,'') TITLE_OF_REALIZATION
+FROM (
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  rev.amount received_by_bank,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(l.SOURCE_SYSTEM, null, null, l.SOURCE_SYSTEM || '.' || l.ACCOUNT_ID) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '71' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_realization_revenue rerev ON rerev.id = rev.id 
+  join cms_partner p on p.id = rerev.partner_id
+  JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = rerev.ASSET_ID
+  LEFT JOIN cms_dc_loan l ON rerev.loan_id = l.id
+  where rerev.MAIN_LOAN_SPLIT_ID is not null
+  and rev.create_user != 'MIG-SB'
+UNION
+SELECT
+DISTINCT
+  rev.id + 2,
+  rev.accounted_date,
+  (-1) * rev.amount amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  (-1) * rev.amount  received_by_bank,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(l.SOURCE_SYSTEM, null, null, l.SOURCE_SYSTEM || '.' || l.ACCOUNT_ID) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '101' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_realization_revenue rerev ON rerev.id = rev.id 
+  join cms_partner p on p.id = rerev.partner_id
+  JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = rerev.ASSET_ID
+  LEFT JOIN cms_dc_loan l ON rerev.loan_id = l.id
+  where rerev.MAIN_LOAN_SPLIT_ID is not null
+  and rev.create_user != 'MIG-SB'
+UNION
+SELECT
+  rev.id,
+  rev.accounted_date,
+  nvl(rerev.sale_price, rev.amount) amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  nvl(rerev.sale_price, rev.amount) received_by_bank,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(MIN(l.SOURCE_SYSTEM)  KEEP (DENSE_RANK FIRST ORDER BY l.id), null, null, min(l.SOURCE_SYSTEM) KEEP (DENSE_RANK FIRST ORDER BY l.id) || '.' || min(l.ACCOUNT_ID)  KEEP (DENSE_RANK FIRST ORDER BY l.id)) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '81' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_realization_revenue rerev ON rerev.id = rev.id 
+  join cms_partner p on p.id = rerev.partner_id
+  JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = rerev.ASSET_ID
+  JOIN cms_DC_realization_revenue INREREV ON INREREV.MAIN_LOAN_SPLIT_ID = REREV.ID
+  JOIN cms_dc_loan l ON INREREV.loan_id = l.id
+  where 1=1
+  AND rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY
+  rev.id,
+  rev.accounted_date,
+  nvl(rerev.sale_price, rev.amount),
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID),
+  p.cluid,
+  rerev.TITLE_OF_REALIZATION 
+UNION 
+SELECT
+  rev.id +2,
+  rev.accounted_date,
+  nvl(rev.EXTERNAL_COST, '0') amount, 
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  nvl(rev.EXTERNAL_COST, '0') received_by_bank, 
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(MIN(l.SOURCE_SYSTEM)  KEEP (DENSE_RANK FIRST ORDER BY l.id), null, null, min(l.SOURCE_SYSTEM) KEEP (DENSE_RANK FIRST ORDER BY l.id) || '.' || min(l.ACCOUNT_ID)  KEEP (DENSE_RANK FIRST ORDER BY l.id)) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '58' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_realization_revenue rerev ON rerev.id = rev.id 
+  join cms_partner p on p.id = rerev.partner_id
+  JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = rerev.ASSET_ID
+  JOIN cms_DC_realization_revenue INREREV ON INREREV.MAIN_LOAN_SPLIT_ID = REREV.ID
+  JOIN cms_dc_loan l ON INREREV.loan_id = l.id
+  where 1=1
+  AND rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY
+  rev.id,
+  rev.accounted_date,
+  nvl(rev.EXTERNAL_COST, '0'),
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID),
+  p.cluid,
+  rerev.TITLE_OF_REALIZATION 
+UNION 
+SELECT
+  rev.id +4,
+  rev.accounted_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))) amount, 
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date realization_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))) received_by_bank, 
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(MIN(l.SOURCE_SYSTEM)  KEEP (DENSE_RANK FIRST ORDER BY l.id), null, null, min(l.SOURCE_SYSTEM) KEEP (DENSE_RANK FIRST ORDER BY l.id) || '.' || min(l.ACCOUNT_ID)  KEEP (DENSE_RANK FIRST ORDER BY l.id)) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '82' workout_type,
+  'CLM' source_system_id,
+  rerev.TITLE_OF_REALIZATION TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_realization_revenue rerev ON rerev.id = rev.id 
+  join cms_partner p on p.id = rerev.partner_id
+  JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = rerev.ASSET_ID
+  JOIN cms_DC_realization_revenue INREREV ON INREREV.MAIN_LOAN_SPLIT_ID = REREV.ID
+  JOIN cms_dc_loan l ON INREREV.loan_id = l.id
+  where 1=1
+  AND rerev.MAIN_LOAN_SPLIT_ID is null
+  and rev.create_user != 'MIG-SB'
+GROUP BY
+  rev.id,
+  rev.accounted_date,
+  NVL(rev.NET_WORKOUT_INCOME, (nvl(rerev.SALE_PRICE, rev.amount) - nvl(rev.EXTERNAL_COST, '0'))),
+  NVL(rev.currency, 'CZK'),
+  rev.decision_date,
+  rerev.revenue_type,
+  rev.note,
+  rerev.realization_date,
+  rev.amount,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID),
+  p.cluid,
+  rerev.TITLE_OF_REALIZATION 
+UNION 
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  null,
+  rev.note,
+  asrev.realization_date realization_date,
+  rev.received_by_bank,
+  null,
+  decode(l.SOURCE_SYSTEM, null, null, l.SOURCE_SYSTEM || '.' || l.ACCOUNT_ID) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  '111' workout_type,
+  'CLM' source_system_id,
+  null TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_assignment_revenue asrev ON  asrev.id = rev.id
+  join cms_partner p on p.id = asrev.partner_id
+  LEFT JOIN cms_DC_loan l ON asrev.loan_id = l.id
+  where rev.create_user != 'MIG-SB'
+UNION 
+SELECT
+DISTINCT
+  rev.id,
+  rev.accounted_date,
+  rev.amount,
+  NVL(rev.currency, 'CZK') currency,
+  rev.decision_date,
+  null,
+  rev.note,
+  null,
+  rev.received_by_bank,
+  decode(DC_COLLATERAL_ASSET.SOURCE_SYSTEM, null, null, DC_COLLATERAL_ASSET.SOURCE_SYSTEM || '.' || DC_COLLATERAL_ASSET.DC_ASSET_ID) COLLATERAL_ASSET_IDENTIFIER,
+  decode(l.SOURCE_SYSTEM, null, null, l.SOURCE_SYSTEM || '.' || l.ACCOUNT_ID) LOAN_IDENTIFIER,
+  p.cluid PARTNER_CLUID,
+  rev.workout_type,
+  'CLM' source_system_id,
+  null TITLE_OF_REALIZATION
+FROM 
+  cms_DC_cost_and_revenue rev 
+  JOIN cms_DC_cost recost ON recost.id = rev.id 
+  join cms_partner p on p.id = recost.partner_id
+  left JOIN CMS_DC_COLLATERAL_ASSET DC_COLLATERAL_ASSET on DC_COLLATERAL_ASSET.id = recost.ASSET_ID
+  LEFT JOIN cms_DC_loan l ON recost.loan_id = l.id 
+  where rev.create_user != 'MIG-SB'
+ORDER BY 
+	1 )
+        	</value>
+		</property>
+	</bean>
+
+	<bean id="exportWorkoutCostAndRevenueDCWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="WD" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportWorkoutCostAndRevenueDCReader" />																																																																											
+	</bean>
+	
+	<bean id="exportWorkoutCostAndRevenueDCProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CURRENCY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_Currency" /></bean></entry>
+				<entry key="REVENUE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_RevenueType" /></bean></entry>
+				<entry key="WOKOUT_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CostRevenueType" /></bean></entry>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ CollateralStatus ================ -->
+	<bean id="exportCollateralStatusReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_varchar(CODE,'COLLATERAL_STATUS.CODE',rownum,32,0,'') CODE,
+	cs_utl_validation.validate_varchar(DESCRIPTION,'COLLATERAL_STATUS.DESCRIPTION',rownum,250,0,'') DESCRIPTION,
+	cs_utl_validation.validate_number(CLOSE_FLAG,'COLLATERAL_STATUS.CLOSE_FLAG',rownum,1,0,0,'BOOLEAN') CLOSE_FLAG
+FROM (
+SELECT
+	'APPROVED' CODE,
+	'Collateral is modeled and the seal date is not set' DESCRIPTION,
+	0 CLOSE_FLAG
+from dual
+UNION
+SELECT
+	'SUBMITTED' CODE,
+	'Collateral is modeled and the seal date is set' DESCRIPTION,
+	0 CLOSE_FLAG
+from dual
+UNION
+SELECT
+	'ACTIVATED' CODE,
+	'Collateral is active' DESCRIPTION,
+	0 CLOSE_FLAG
+from dual 
+UNION
+SELECT
+	'TERMINATED' CODE,
+	'Collateral is terminated' DESCRIPTION,
+	1 CLOSE_FLAG
+from dual
+ORDER BY 
+  1 )		
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralStatusWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CU" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralStatusReader" />																																																																							
+	</bean>
+	
+	<bean id="exportCollateralStatusProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+		  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ CodeTable ================ -->
+	<bean id="exportCodeTableReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_varchar(CT_CODE,'CODE_TABLE.CT_CODE',rownum,50,1,'') CT_CODE,
+	cs_utl_validation.validate_varchar(CT_ITEM_CODE,'CODE_TABLE.CT_ITEM_CODE',rownum,32,1,'') CT_ITEM_CODE,
+	cs_utl_validation.validate_varchar(CT_ITEM_DESCRIPTION,'CODE_TABLE.CT_ITEM_DESCRIPTION',rownum,200,1,'') CT_ITEM_DESCRIPTION,
+	cs_utl_validation.validate_varchar(CT_ITEM_DISPLAY_NAME,'CODE_TABLE.CT_ITEM_DISPLAY_NAME',rownum,200,1,'') CT_ITEM_DISPLAY_NAME
+FROM (
+SELECT
+ DISTINCT 
+  REPLACE(SUBSTR(e.fk_code_base_id, INSTR(e.fk_code_base_id, '/', 1, 1) + 1),'CBCOL_', 'CB_') ct_code,
+  e.reference_name ct_item_code,
+  e.description ct_item_description,
+  u.cz ct_item_display_name 
+FROM 
+  wdp_code_element e
+  LEFT JOIN wdp_univ u ON e.display_name_univ = u.id  
+WHERE 
+  NOT (UPPER(e.fk_code_base_id) = 'CSCOLLATERAL/CBCOL_BANKCODE' AND e.reference_name = '0888')
+ORDER BY 
+  1, 2 )			
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCodeTableWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CT" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCodeTableReader" />																																																																															
+	</bean>
+	
+	<bean id="exportCodeTableProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ CollateralSubtypeSettings ================ -->
+	<bean id="exportCollateralSubtypeSettingsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH code_table_desc
+AS
+(
+  SELECT
+    SUBSTR(e.fk_code_base_id, INSTR(e.fk_code_base_id, '/', 1, 1) + 1) ct_code,
+    e.reference_name ct_item_code,
+    u.cz ct_item_display_name 
+  FROM 
+    wdp_code_element e
+    LEFT JOIN wdp_univ u ON e.display_name_univ = u.id
+  ORDER BY 
+    1, 2  
+)
+SELECT
+	cs_utl_validation.validate_varchar(COLLATERAL_CLASS,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_CLASS',rownum,32,1,'') COLLATERAL_CLASS,
+	cs_utl_validation.validate_varchar(COLLATERAL_CATEGORY,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_CATEGORY',rownum,32,1,'') COLLATERAL_CATEGORY,
+	cs_utl_validation.validate_varchar(COLLATERAL_SUB_CATEGORY,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_SUB_CATEGORY',rownum,32,1,'') COLLATERAL_SUB_CATEGORY,
+	cs_utl_validation.validate_varchar(COLLATERAL_CODE,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_CODE',rownum,32,0,'') COLLATERAL_CODE,
+	cs_utl_validation.validate_varchar(COLLATERAL_FORM,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_FORM',rownum,32,0,'') COLLATERAL_FORM,
+	cs_utl_validation.validate_varchar(CODE_FORM_DESCRIPTION,'COLLATERAL_SUBTYPE_SETTINGS.CODE_FORM_DESCRIPTION',rownum,200,1,'') CODE_FORM_DESCRIPTION,
+	cs_utl_validation.validate_varchar(LDS_METHOD_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_METHOD_CODE',rownum,200,1,'') LDS_METHOD_CODE,
+	cs_utl_validation.validate_varchar(LDS_TYPE_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_TYPE_CODE',rownum,200,1,'') LDS_TYPE_CODE,
+	cs_utl_validation.validate_varchar(LDS_CALCULATION_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_CALCULATION_CODE',rownum,200,1,'') LDS_CALCULATION_CODE,
+	cs_utl_validation.validate_varchar(LDS_OBJECT_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_OBJECT_CODE',rownum,200,1,'') LDS_OBJECT_CODE,
+	cs_utl_validation.validate_varchar(LDS_CATEGORY_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_CATEGORY_CODE',rownum,200,1,'') LDS_CATEGORY_CODE,
+	cs_utl_validation.validate_varchar(LDS_SUBCATEGORY_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_SUBCATEGORY_CODE',rownum,200,1,'') LDS_SUBCATEGORY_CODE,
+	cs_utl_validation.validate_varchar(LDS_SUBSUBCATEGORY_CODE,'COLLATERAL_SUBTYPE_SETTINGS.LDS_SUBSUBCATEGORY_CODE',rownum,200,1,'') LDS_SUBSUBCATEGORY_CODE,
+	cs_utl_validation.validate_varchar(CCB_TYPE_CODE,'COLLATERAL_SUBTYPE_SETTINGS.CCB_TYPE_CODE',rownum,200,1,'') CCB_TYPE_CODE,
+	cs_utl_validation.validate_varchar(CCB_CATEGORY_CODE,'COLLATERAL_SUBTYPE_SETTINGS.CCB_CATEGORY_CODE',rownum,200,1,'') CCB_CATEGORY_CODE,
+	cs_utl_validation.validate_varchar(BII_RELEVANCE_CODE,'COLLATERAL_SUBTYPE_SETTINGS.BII_RELEVANCE_CODE',rownum,200,1,'') BII_RELEVANCE_CODE,
+	cs_utl_validation.validate_number(SECURED_FLAG,'COLLATERAL_SUBTYPE_SETTINGS.SECURED_FLAG',rownum,1,0,1,'BOOLEAN') SECURED_FLAG,
+	cs_utl_validation.validate_number(COLLECTIONS_FLAG,'COLLATERAL_SUBTYPE_SETTINGS.COLLECTIONS_FLAG',rownum,1,0,1,'BOOLEAN') COLLECTIONS_FLAG,
+	cs_utl_validation.validate_number(ID,'COLLATERAL_SUBTYPE_SETTINGS.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(PRIORITY,'COLLATERAL_SUBTYPE_SETTINGS.PRIORITY',rownum,6,0,1,'') PRIORITY,
+	cs_utl_validation.validate_number(NOT_FIXED_VALUATION,'COLLATERAL_SUBTYPE_SETTINGS.NOT_FIXED_VALUATION',rownum,1,0,1,'BOOLEAN') NOT_FIXED_VALUATION,
+	cs_utl_validation.validate_varchar(COLLATERAL_CLASS_DESC,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_CLASS_DESC',rownum,200,1,'') COLLATERAL_CLASS_DESC,
+	cs_utl_validation.validate_varchar(COLLATERAL_CATEGORY_DESC,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_CATEGORY_DESC',rownum,200,1,'') COLLATERAL_CATEGORY_DESC,
+	cs_utl_validation.validate_varchar(COLLATERAL_SUB_CATEGORY_DESC,'COLLATERAL_SUBTYPE_SETTINGS.COLLATERAL_SUB_CATEGORY_DESC',rownum,200,1,'') COLLATERAL_SUB_CATEGORY_DESC,
+	cs_utl_validation.validate_varchar(RRDM_TYPE_CODE,'COLLATERAL_SUBTYPE_SETTINGS.RRDM_TYPE_CODE',rownum,30,1,'') RRDM_TYPE_CODE,
+	cs_utl_validation.validate_number(UNIFIED_COLLATERAL_CODE,'COLLATERAL_SUBTYPE_SETTINGS.UNIFIED_COLLATERAL_CODE',rownum,3,0,1,'') UNIFIED_COLLATERAL_CODE,
+	cs_utl_validation.validate_varchar(UNIFIED_COLLATERAL_DESC,'COLLATERAL_SUBTYPE_SETTINGS.UNIFIED_COLLATERAL_DESC',rownum,200,1,'') UNIFIED_COLLATERAL_DESC,
+	cs_utl_validation.validate_number(HZL_PERCENTAGE,'COLLATERAL_SUBTYPE_SETTINGS.HZL_PERCENTAGE',rownum,10,10,1,'') HZL_PERCENTAGE,
+	cs_utl_validation.validate_number(MAX_HAIRCUT,'COLLATERAL_SUBTYPE_SETTINGS.MAX_HAIRCUT',rownum,18,2,1,'') MAX_HAIRCUT,
+	cs_utl_validation.validate_number(REFERENCE_RATIO,'COLLATERAL_SUBTYPE_SETTINGS.REFERENCE_RATIO',rownum,18,2,1,'') REFERENCE_RATIO,
+	cs_utl_validation.validate_varchar(RESIDENTIAL_RE,'COLLATERAL_SUBTYPE_SETTINGS.RESIDENTIAL_RE',rownum,30,1,'') RESIDENTIAL_RE,
+	cs_utl_validation.validate_varchar(ANALYTICAL_ACCOUNT,'COLLATERAL_SUBTYPE_SETTINGS.ANALYTICAL_ACCOUNT',rownum,32,1,'') ANALYTICAL_ACCOUNT,
+	cs_utl_validation.validate_number(ELIGIBILITY_APPROACH_IRBA,'COLLATERAL_SUBTYPE_SETTINGS.ELIGIBILITY_APPROACH_IRBA',rownum,1,0,1,'BOOLEAN') ELIGIBILITY_APPROACH_IRBA,
+	cs_utl_validation.validate_number(ELIGIBILITY_APPROACH_IRBF,'COLLATERAL_SUBTYPE_SETTINGS.ELIGIBILITY_APPROACH_IRBF',rownum,1,0,1,'BOOLEAN') ELIGIBILITY_APPROACH_IRBF,
+	cs_utl_validation.validate_number(ELIGIBILITY_APPROACH_STD,'COLLATERAL_SUBTYPE_SETTINGS.ELIGIBILITY_APPROACH_STD',rownum,1,0,1,'BOOLEAN') ELIGIBILITY_APPROACH_STD,
+	cs_utl_validation.validate_number(IS_ACTIVE,'COLLATERAL_SUBTYPE_SETTINGS.IS_ACTIVE',rownum,1,0,1,'BOOLEAN') IS_ACTIVE,
+	cs_utl_validation.validate_number(LGD,'COLLATERAL_SUBTYPE_SETTINGS.LGD',rownum,18,2,1,'') LGD,
+	cs_utl_validation.validate_number(RECOVERY_RATE,'COLLATERAL_SUBTYPE_SETTINGS.RECOVERY_RATE',rownum,18,2,1,'') RECOVERY_RATE
+FROM (
+SELECT
+DISTINCT
+  st.collateral_class,
+  st.collateral_category,
+  st.collateral_sub_category,
+  st.collateral_code,
+  st.collateral_form,
+  st.code_form_description,
+  st.ebvmethod_code lds_method_code,
+  st.ebvtype_code lds_type_code,
+  st.ebvcalculation_code lds_calculation_code,
+  st.ebvobject_code lds_object_code,
+  st.ebvcategory_code lds_category_code,
+  st.ebvsubcategory_code lds_subcategory_code,
+  st.ebvsubsubcategory_code lds_subsubcategory_code,
+  st.ccbtype_code ccb_type_code,
+  st.ccbcategory_code ccb_category_code,
+  st.biirelevance_code bii_relevance_code,
+  st.secured_flag secured_flag,
+  st.collections_flag collections_flag,
+   /* 
+    we need to transform the subtype settings id to a number (because of historical reasons), the id has format: 008-SUS
+    */ 
+  cms_utl_export.get_export_coll_subtype_set_id(st.id) id,
+  st.priority,
+  st.not_fixed_valuation,
+  class_desc.ct_item_display_name collateral_class_desc, 
+  cat_desc.ct_item_display_name collateral_category_desc,
+  subcat_desc.ct_item_display_name collateral_sub_category_desc,    
+  st.rrdm_type_code,
+  st.unified_collateral_code,
+  st.unified_collateral_desc,
+  st.hzl_percentage,
+  st.max_haircut,
+  st.reference_ratio reference_ratio,
+  case when upper(collateral_class) != 'RE' then null else decode(st.residential_re, 1, 'RRE', 'CRE') end residential_re,
+  st.analytical_account analytical_account,
+  st.eligibility_approach_irba eligibility_approach_irba,
+  st.eligibility_approach_irbf eligibility_approach_irbf,
+  st.eligibility_approach_std eligibility_approach_std,
+  st.is_active is_active,
+  st.lgd lgd,
+  st.recovery_rate recovery_rate
+FROM 
+  cms_coll_subtype_settings st
+  LEFT JOIN   code_table_desc class_desc ON  (class_desc.ct_code='CBCOL_CollateralClass' AND  st.collateral_class=class_desc.ct_item_code)
+  LEFT JOIN   code_table_desc cat_desc ON  (cat_desc.ct_code='CBCOL_CollateralType' AND  st.collateral_category=cat_desc.ct_item_code)
+  LEFT JOIN   code_table_desc subcat_desc ON  (subcat_desc.ct_code='CBCOL_CollateralSubType' AND  st.collateral_sub_category=subcat_desc.ct_item_code)
+ORDER BY 
+	1, 2, 3, 4, 5  )              		
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralSubtypeSettingsWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="CS" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralSubtypeSettingsReader" />																																																																																		
+	</bean>
+	
+	<bean id="exportCollateralSubtypeSettingsProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ PropertyCertificate ================ -->
+	<bean id="exportPropertyCertificateReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'PROPERTY_CERTIFICATE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_varchar(CADASTRE_CERTIFICATE_TYPE,'PROPERTY_CERTIFICATE.CADASTRE_CERTIFICATE_TYPE',rownum,32,1,'') CADASTRE_CERTIFICATE_TYPE,
+	cs_utl_validation.validate_varchar(CADASTRE_SITE,'PROPERTY_CERTIFICATE.CADASTRE_SITE',rownum,32,1,'') CADASTRE_SITE,
+	cs_utl_validation.validate_varchar(CADASTRE_TERRITORY,'PROPERTY_CERTIFICATE.CADASTRE_TERRITORY',rownum,32,1,'') CADASTRE_TERRITORY,
+	cs_utl_validation.validate_varchar(CITY,'PROPERTY_CERTIFICATE.CITY',rownum,32,1,'') CITY,
+	cs_utl_validation.validate_varchar(COUNTY,'PROPERTY_CERTIFICATE.COUNTY',rownum,32,1,'') COUNTY,
+	cs_utl_validation.validate_varchar(NOTE,'PROPERTY_CERTIFICATE.NOTE',rownum,1000,1,'') NOTE,
+	cs_utl_validation.validate_date(OWNERSHIP_CERT_ORIGIN_DATE,'PROPERTY_CERTIFICATE.OWNERSHIP_CERT_ORIGIN_DATE',rownum,1,'YYYY.MM.DD') OWNERSHIP_CERT_ORIGIN_DATE,
+	cs_utl_validation.validate_varchar(OWNERSHIP_CERT_ORIGIN_TYPE,'PROPERTY_CERTIFICATE.OWNERSHIP_CERT_ORIGIN_TYPE',rownum,32,1,'') OWNERSHIP_CERT_ORIGIN_TYPE,
+	cs_utl_validation.validate_date(OWNERSHIP_CERT_VALIDITY_DATE,'PROPERTY_CERTIFICATE.OWNERSHIP_CERT_VALIDITY_DATE',rownum,1,'YYYY.MM.DD') OWNERSHIP_CERT_VALIDITY_DATE,
+	cs_utl_validation.validate_number(OWNERSHIP_CERTIFICATE_NUMBER,'PROPERTY_CERTIFICATE.OWNERSHIP_CERTIFICATE_NUMBER',rownum,10,0,1,'') OWNERSHIP_CERTIFICATE_NUMBER
+FROM (
+SELECT
+DISTINCT
+  pc.id,
+  pc.cadastre_certificate_type,
+  pc.cadastre_site,
+  pc.cadastre_territory,
+  pc.city,
+  pc.county,
+  pc.note,
+  pc.ownership_cert_origin_date,
+  pc.ownership_cert_origin_type,
+  pc.ownership_cert_validity_date,
+  pc.ownership_certificate_number
+FROM 
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_functional_unit  fu ON asset.id = fu.id
+  JOIN cms_collateral_asset_item item ON item.asset_id = asset.id
+  JOIN cms_re_asset_item reit ON reit.id = item.id
+  JOIN cms_property_certificate pc ON reit.property_certificate_id = pc.id
+ORDER BY 
+	1 )
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportPropertyCertificateWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="PC" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportPropertyCertificateReader" />																																																																																		
+	</bean>
+	
+	<bean id="exportPropertyCertificateProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="CADASTRE_CERTIFICATE_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CadastreCertificateType" /></bean></entry>
+				<entry key="CADASTRE_SITE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CadastreSite" /></bean></entry>
+				<entry key="CADASTRE_TERRITORY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CadastreTerritory" /></bean></entry>
+				<entry key="CITY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_CadastreCity" /></bean></entry>
+				<entry key="COUNTY"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_County" /></bean></entry>
+				<entry key="OWNERSHIP_CERT_ORIGIN_TYPE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CBCOL_OwnershipCertificateOrigin" /></bean></entry>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ PortfolioGuarantee ================ -->
+	<bean id="exportPortfolioGuaranteeReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_number(ID,'PORTFOLIO_GUARANTEE.ID',rownum,19,0,0,'') ID,
+	cs_utl_validation.validate_number(ACTUAL_CAPACITY,'PORTFOLIO_GUARANTEE.ACTUAL_CAPACITY',rownum,18,4,0,'') ACTUAL_CAPACITY,
+	cs_utl_validation.validate_number(ACTUAL_CAPACITY_PERCENTAGE,'PORTFOLIO_GUARANTEE.ACTUAL_CAPACITY_PERCENTAGE',rownum,10,5,0,'') ACTUAL_CAPACITY_PERCENTAGE,
+	cs_utl_validation.validate_number(BALANCE_SHEET,'PORTFOLIO_GUARANTEE.BALANCE_SHEET',rownum,18,4,0,'') BALANCE_SHEET,
+	cs_utl_validation.validate_number(FREE_CAPACITY,'PORTFOLIO_GUARANTEE.FREE_CAPACITY',rownum,18,4,0,'') FREE_CAPACITY,
+	cs_utl_validation.validate_number(FREE_CAPACITY_PERCENTAGE,'PORTFOLIO_GUARANTEE.FREE_CAPACITY_PERCENTAGE',rownum,10,5,0,'') FREE_CAPACITY_PERCENTAGE,
+	cs_utl_validation.validate_varchar(GUARANTOR_NAME,'PORTFOLIO_GUARANTEE.GUARANTOR_NAME',rownum,200,0,'') GUARANTOR_NAME,
+	cs_utl_validation.validate_number(INITIAL_LIMIT,'PORTFOLIO_GUARANTEE.INITIAL_LIMIT',rownum,18,4,0,'') INITIAL_LIMIT,
+	cs_utl_validation.validate_number(INITIAL_PERCENTAGE,'PORTFOLIO_GUARANTEE.INITIAL_PERCENTAGE',rownum,10,5,0,'') INITIAL_PERCENTAGE,
+	cs_utl_validation.validate_number(MAX_HAIRCUT,'PORTFOLIO_GUARANTEE.MAX_HAIRCUT',rownum,10,5,0,'') MAX_HAIRCUT,
+	cs_utl_validation.validate_varchar(NAME,'PORTFOLIO_GUARANTEE.NAME',rownum,200,0,'') NAME,
+	cs_utl_validation.validate_varchar(SHORT_NAME,'PORTFOLIO_GUARANTEE.SHORT_NAME',rownum,200,0,'') SHORT_NAME,
+	cs_utl_validation.validate_date(VALID_FROM,'PORTFOLIO_GUARANTEE.VALID_FROM',rownum,0,'YYYY.MM.DD') VALID_FROM,
+	cs_utl_validation.validate_date(VALID_TO,'PORTFOLIO_GUARANTEE.VALID_TO',rownum,0,'YYYY.MM.DD') VALID_TO,
+	cs_utl_validation.validate_varchar(GUARANTOR_CLUID,'PORTFOLIO_GUARANTEE.GUARANTOR_CLUID',rownum,26,1,'') GUARANTOR_CLUID
+FROM (
+SELECT
+  DISTINCT
+  pq.id,
+  pq.actual_capacity,
+  pq.actual_capacity_percentage,
+  pq.balance_sheet,
+  pq.free_capacity,
+  pq.free_capacity_percentage,
+  o.name guarantor_name,
+  pq.initial_limit,
+  pq.initial_percentage,
+  pq.max_haircut,
+  pq.name,
+  pq.short_name,
+  pq.valid_from,
+  pq.valid_to,
+  p.cluid guarantor_cluid 
+from
+  cms_collateral_to_report coll 
+  JOIN cms_collateral_asset asset ON coll.collateral_asset_id = asset.id
+  JOIN cms_fin_guarantee_asset fin_asset ON asset.id=fin_asset.id
+  JOIN cms_portfolio_guarantee pq ON fin_asset.portfolio_guarantee_id = pq.id
+  LEFT JOIN cms_portfolio_grnt_issuer isr ON isr.portfolio_guarantee_id = pq.id
+  LEFT JOIN cms_partner_role pr ON isr.id = pr.id
+  LEFT JOIN cms_partner p ON pr.partner_id = p.id
+  LEFT JOIN cms_organization o ON p.id = o.id  
+ORDER BY 
+	1 )
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportPortfolioGuaranteeWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="PG" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportPortfolioGuaranteeReader" />																																																																																		
+	</bean>
+	
+	<bean id="exportPortfolioGuaranteeProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ CollateralSyndicationPartner ================ -->
+	<bean id="exportCollateralSyndicationPartnerReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT 
+  cs_utl_validation.validate_number(ID,'COLLATERAL_SYNDICATION_PARTNER.ID',rownum,19,0,0,'') ID,
+  cs_utl_validation.validate_number(REF_COLLATERAL_ID,'COLLATERAL_SYNDICATION_PARTNER.COLLATERAL_ID',rownum,19,0,1,'') REF_COLLATERAL_ID,
+  cs_utl_validation.validate_number(REF_PARTNER_ID,'COLLATERAL_SYNDICATION_PARTNER.AGENT_COLLATERAL_ID',rownum,19,0,0,'') REF_PARTNER_ID,
+  cs_utl_validation.validate_number(SYNDICATION_AGENT,'COLLATERAL_SYNDICATION_PARTNER.SYNDICATION_AGENT',rownum,1,0,0,'BOOLEAN') SYNDICATION_AGENT,
+  cs_utl_validation.validate_number(SYNDICATION_PERCENTAGE,'COLLATERAL_SYNDICATION_PARTNER.SYNDICATION_PERCENTAGE',rownum,20,4,1,'') SYNDICATION_PERCENTAGE
+FROM
+  ( SELECT DISTINCT csp.id,
+    coll.id ref_collateral_id,
+    pa.partner_id ref_partner_id,
+    case when (csp.syndication_agent = '1' or coll.syndication_agent_id IS NOT NULL) then '1' else '0' end SYNDICATION_AGENT,
+    csp.syndication_percentage
+  FROM cms_syndication_partner csp
+  JOIN cms_partner_role pa on csp.id=pa.id
+  JOIN cms_collateral_to_report coll ON (coll.ID = csp.collateral_id or coll.syndication_agent_id = csp.id)
+  ORDER BY 1
+  )	
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralSyndicationPartnerWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="SY" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportCollateralSyndicationPartnerReader" />																																																											
+	</bean>
+	
+	<bean id="exportCollateralSyndicationPartnerProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+				<entry key="SYNDICATION_PERCENTAGE"><bean parent="parentCbcolCdmConverter"><property name="codeTable" value="CS_Percentage" /></bean></entry>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ DocumentRelations ================ -->
+	<bean id="exportDocumentRelationsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+SELECT
+	cs_utl_validation.validate_varchar(DUID,'DOCUMENT_RELATIONS.DUID',rownum,32,0,'') DUID,
+	cs_utl_validation.validate_varchar(REF_COLLATERAL_ASSET_ID,'DOCUMENT_RELATIONS.REF_COLLATERAL_ASSET_ID',rownum,19,1,'') REF_COLLATERAL_ASSET_ID,
+	cs_utl_validation.validate_varchar(COLLATERAL_ID,'DOCUMENT_RELATIONS.COLLATERAL_ID',rownum,19,1,'') COLLATERAL_ID
+FROM (
+	SELECT
+	DISTINCT
+	NVL (d.duid,d.CS_DOCUMENT_NUMBER) DUID,
+	DECODE(adl.assets_id,null,'XNA',adl.assets_id) REF_COLLATERAL_ASSET_ID,
+    DECODE(c.collateral_id,null,'XNA',c.collateral_id) COLLATERAL_ID
+FROM CMS_DOCUMENT d
+	left join CMS_COLL_DOC_LINK cdl on cdl.documents_id = d.id
+	left join CMS_ASSET_DOC_LINK adl on adl.documents_id = d.id
+	left join CMS_COLLATERAL c on c.id = cdl.collaterals_ID
+	where (d.CS_DOCUMENT_NUMBER like ('CS%') OR d.DUID is not null) and d.state !='draft'
+	ORDER BY 1)
+	
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportDocumentRelationsWriter" parent="parentCollateralsCommonDataExportWriter" scope="step">		
+		<property name="extractName" value="DR" />	
+		<property name="manager" ref="collateralsCommonDataExportManager" />
+		<property name="metadataProvider" ref="exportDocumentRelationsReader" />																																																										
+	</bean>	
+
+	<bean id="exportDocumentRelationsProcessor" parent="collateralsCommonDataExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+			</map>	
+		</property>			
+	</bean>
+		
+	
+<!-- ================ Common ================ -->	
+	<bean id="collateralsCommonDataExportManager" parent="parentExportManager">
+		<property name="createSummaryFile" value="true" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${collateralsCommonDataExportExt.resources}" />
+		<property name="agendaCode" value="DWCN" />
+		<property name="sourceSystem" value="COLMAN" />
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="collateralsCommonDataExportCsopsHeaderWriter" />
+		</property>			
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="collateralsCommonDataExportItemProcessor" parent="parentFormatter" abstract="true">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+	
+	<bean id="parentCollateralsCommonDataExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="headerCallback" ref="collateralsCommonDataExportCsopsHeaderFileCallback" />																																																																																		
+	</bean>	
+
+	<bean id="collateralsCommonDataExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="collateralsCommonDataExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="collateralsCommonDataExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="structureVersion" value="1.30.0" />
+	</bean>	
+		
+</beans>
+

@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+# Name: ExportFunctionUnitStructure.xml
+# Version: 0.2
+# Author: Vaclav Sidlo
+# Date: 8.4.2021
+# Description:
+# Notes: WBS866_Export_of_functional_unit_structure
+#================================================================================
+# Modified     :
+# init   date   mod id                  description
+#      ddmmmyy
+## PKU  26Aug22         Replaced incorrect job name in SQL select = WHERE NAME = 'FU_EXP' replaced with WHERE NAME = 'CREM_EX'
+## PKU  28Aug22			Extended select of FU about condtion dependent on CMS_COLLATERAL_ASSET_ITEM.last_time instead of CMS_COLLATERAL_ASSET.last_time
+## PKU  07Sep22			Modified limit value for "lastChangeInLastXDays" from '30' to '0'
+#================================================================================
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <bean id="propertyPlaceholderConfigurer"
+          class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+        <property name="locations">
+            <list>
+                <value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+                <value>classpath:integration.properties</value>
+                <value>classpath:exportFunctionalUnitStructure.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <import resource="classpath:addons-context.xml"/>
+
+    <import resource="classpath:addons-exports-parents.xml"/>
+
+    <batch:job id="ExportFunctionalUnitStructures">
+        <batch:decision id="decision" decider="parentDecider">
+            <batch:end on="END"/>
+            <batch:fail on="FAILED"/>
+            <batch:next on="DEFAULT_START" to="exportFunctionalUnitTypePrepareDirectory"/>
+
+            <batch:next on="START:exportFunctionalUnitTypePrepareDirectory"
+                        to="exportFunctionalUnitTypePrepareDirectory"/>
+            <batch:next on="COMPLETED:exportFunctionalUnitTypePrepareDirectory"
+                        to="exportFunctionalUnitTypeCallServiceStep"/>
+
+            <batch:next on="START:exportFunctionalUnitTypeCallServiceStep"
+                        to="exportFunctionalUnitTypeCallServiceStep"/>
+            <batch:next on="COMPLETED:exportFunctionalUnitTypeCallServiceStep" to="exportFunctionalUnitTypeArchive"/>
+
+            <batch:next on="START:exportFunctionalUnitTypeArchive" to="exportFunctionalUnitTypeArchive"/>
+            <batch:end on="COMPLETED:exportFunctionalUnitTypeArchive"/>
+
+        </batch:decision>
+
+        <batch:step id="exportFunctionalUnitTypePrepareDirectory" next="decision">
+            <tasklet ref="prepareDirectoryTasklet"/>
+        </batch:step>
+
+        <batch:step id="exportFunctionalUnitTypeCallServiceStep" parent="parentConvert" next="decision">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="5">
+                <batch:chunk commit-interval="1" reader="exportFunctionalUnitStructureReader"
+                             processor="exportFunctionalUnitStructureProcessor"
+                             writer="parentDummyWriter"
+                             retry-policy="exportFunctionalUnitStructureRetryPolicy"
+                             skip-policy="exportFunctionalUnitStructureSkipPolicy"
+                />
+                <batch:listeners>
+                    <batch:listener ref="processItemSkipListener"/>
+                </batch:listeners>
+            </batch:tasklet>
+        </batch:step>
+
+        <batch:step id="exportFunctionalUnitTypeArchive" next="decision">
+            <tasklet ref="archiveDirectoryTasklet"/>
+        </batch:step>
+
+        <batch:listeners>
+            <batch:listener ref="exportFunctionalUnitStructureManager"/>
+        </batch:listeners>
+
+    </batch:job>
+
+    <bean id="prepareDirectoryTasklet"
+          class="cz.csas.colmanbatch.addons.functionalunit.PrepareDirectoryTasklet">
+        <property name="directory"
+                  value="${exportFunctionalUnitStructure.dataTempDirectory}"/>
+    </bean>
+
+    <bean id="archiveDirectoryTasklet"
+          class="cz.csas.colmanbatch.addons.functionalunit.ArchiveDirectoryTasklet">
+        <property name="directoryToZip"
+                  value="${exportFunctionalUnitStructure.dataTempDirectory}"/>
+        <property name="manager" ref="exportFunctionalUnitStructureManager"/>
+    </bean>
+
+    <bean id="exportFunctionalUnitStructureSkipPolicy" parent="parentLimitCheckingSkipPolicy">
+        <property name="skipLimit" value="${exportFunctionalUnitStructure.skipLimit}"/>
+    </bean>
+
+    <!-- There can be exception in webservice request. We are trying to repeat that request -->
+    <bean id="exportFunctionalUnitStructureRetryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+        <property name="maxAttempts" value="5"/>
+    </bean>
+
+    <!-- ================ exportFunctionalUnit ================ -->
+    <bean id="exportFunctionalUnitStructureReader" parent="parentSqlExportReader" scope="step">
+        <property name="sql">
+            <value>
+                <![CDATA[
+
+select distinct(asset_id) from (
+WITH revid AS (
+    SELECT DISTINCT
+         cms_collateral_asset.asset_id,
+        MAX( cms_re_evaluation.evaluation_id) AS rev_id
+    FROM
+         cms_collateral_asset
+        INNER JOIN  cms_coll_subtype_settings ON  cms_coll_subtype_settings.id =  cms_collateral_asset.collateral_type_settings_id
+        INNER JOIN  cms_evaluation ON  cms_collateral_asset.id =  cms_evaluation.collateral_asset_id
+        INNER JOIN  cms_re_evaluation ON  cms_evaluation.id =  cms_re_evaluation.id
+    WHERE
+         cms_re_evaluation.evaluation_id IS NOT NULL
+        AND    cms_collateral_asset.state = 'modeled'
+        AND    cms_coll_subtype_settings.collateral_class = 'RE'
+        AND    cms_evaluation.state = 'Active'
+        and    cms_evaluation.evaluation_type IN('T1','T2','T5')
+    GROUP BY
+         cms_collateral_asset.asset_id
+),akt AS (
+    SELECT
+         cms_collateral_asset.asset_id
+    FROM
+         cms_collateral
+        INNER JOIN  cms_collateral_asset ON  cms_collateral_asset.id =  cms_collateral.collateral_asset_id
+    WHERE
+         cms_collateral.state IN (
+            'preactivated',
+            'activated'
+        )
+) SELECT DISTINCT
+     cms_coll_subtype_settings.collateral_code,
+     cms_collateral_asset.asset_id,
+    revid.rev_id AS rev_id,
+    CASE
+            WHEN akt.asset_id IS NOT NULL THEN 'Y'
+            ELSE 'N'
+        END
+    AS active,
+     cms_collateral_asset.base_value,
+     cms_collateral_asset.currency,
+    CASE
+            WHEN (
+                 cms_basic_loan.source_system_id = 'SYMB'
+                AND  cms_basic_loan.state = 'active'
+            ) THEN 'CORPORATE'
+            WHEN  cms_partner.client_category IS NULL THEN cms_partner1.client_category
+            ELSE  cms_partner.client_category
+        END
+    AS client_category,
+    CASE
+            WHEN  cms_partner.identifier IS NULL THEN cms_partner1.identifier
+            ELSE  cms_partner.identifier
+        END
+    AS ič_rč,
+    CASE
+            WHEN  cms_partner.description IS NULL THEN cms_partner1.description
+            ELSE  cms_partner.description
+        END
+    AS klient_název,
+    CASE
+            WHEN  cms_partner.identifier IS NULL THEN wdp_univ1.cz
+            ELSE  wdp_univ.cz
+        END
+    AS útvar
+  FROM
+     cms_collateral_asset
+    INNER JOIN  cms_coll_subtype_settings ON  cms_coll_subtype_settings.id =  cms_collateral_asset.collateral_type_settings_id
+    INNER JOIN  cms_collateral ON  cms_collateral_asset.id =  cms_collateral.collateral_asset_id
+    LEFT JOIN revid ON revid.asset_id =  cms_collateral_asset.asset_id
+    LEFT JOIN akt ON akt.asset_id =  cms_collateral_asset.asset_id
+    LEFT JOIN  cms_loan_collateral_link ON  cms_collateral.id =  cms_loan_collateral_link.collateral_id
+    LEFT JOIN  cms_basic_loan ON  cms_basic_loan.id =  cms_loan_collateral_link.loan_id
+    LEFT JOIN  cms_partner_loan_role ON  cms_partner_loan_role.id =  cms_basic_loan.main_debtor_id
+    LEFT JOIN  cms_partner_role ON  cms_partner_role.id =  cms_partner_loan_role.id
+    LEFT JOIN  cms_partner ON  cms_partner.id =  cms_partner_role.partner_id
+    LEFT JOIN  cms_modeling_element_relation ON  cms_collateral_asset.id =  cms_modeling_element_relation.asset_id
+    LEFT JOIN  cms_modeling_entity ON  cms_modeling_entity.id =  cms_modeling_element_relation.model_id
+    LEFT JOIN  cms_partner cms_partner1 ON cms_partner1.id =  cms_modeling_entity.partner_id
+    LEFT OUTER JOIN  cms_client_servicing ON  cms_partner.id =  cms_client_servicing.partner_id
+    LEFT OUTER JOIN  wdp_code_element ON  cms_client_servicing.org_unit_id =  wdp_code_element.reference_name
+    LEFT OUTER JOIN  wdp_univ ON  wdp_code_element.display_name_univ =  wdp_univ.id
+    LEFT JOIN  cms_client_servicing cms_client_servicing1 ON cms_partner1.id = cms_client_servicing1.partner_id
+    LEFT JOIN  wdp_code_element wdp_code_element1 ON cms_client_servicing1.org_unit_id = wdp_code_element1.reference_name
+    LEFT JOIN  wdp_univ wdp_univ1 ON wdp_code_element1.display_name_univ = wdp_univ1.id
+    LEFT JOIN CMS_COLLATERAL_ASSET_ITEM ON CMS_COLLATERAL_ASSET_ITEM.asset_id =  cms_collateral_asset.id
+  WHERE
+        CASE
+            WHEN  cms_partner.identifier IS NULL THEN wdp_univ1.cz
+            ELSE  wdp_univ.cz
+        END
+    NOT LIKE '%PSČ%'
+        AND
+        CASE
+            WHEN cms_partner1.client_category IS NULL THEN  cms_partner.client_category
+            ELSE cms_partner1.client_category
+        END
+    IS NOT NULL
+        AND    cms_collateral_asset.state = 'modeled'
+        AND    cms_coll_subtype_settings.collateral_category IN (
+        'KOM',
+        'LAN',
+        'OTH'
+    )
+        AND    cms_collateral.state <> 'terminated'
+       AND CMS_COLLATERAL_ASSET_ITEM.last_time >= (SELECT LEAST ((SELECT NVL (TRUNC (MAX (DATETIME)), TRUNC (SYSDATE))
+         FROM CS_CSBIT_EXTRACTS
+         WHERE NAME = 'CREM_EX'),
+         (SELECT (TRUNC (SYSDATE - TO_NUMBER(NVL('#{jobParameters["lastChangeInLastXDays"]}','0')))) FROM DUAL)) FROM DUAL)
+) WHERE
+        	rownum < TO_NUMBER(NVL('#{jobParameters["maxRows"]}','100000000'))
+
+]]>
+            </value>
+        </property>
+        <property name="rowMapper">
+            <!--
+                Here we use IdAwareColumnMapRowMapper to get the id of a processed item
+                to cms_batch_item_log.item_content column. We do it to be able
+                to easily identify the corresponding functional unit structure when the operation fails.
+            -->
+            <bean class="cz.csas.colmanbatch.addons.reader.IdAwareColumnMapRowMapper">
+                <property name="idFields" value="id"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="exportFunctionalUnitStructureProcessor"
+          class="cz.csas.colmanbatch.addons.functionalunit.ExportFunctionalUnitStructureProcessor" scope="step">
+        <property name="destinationURL" value="${RECollateralEvaluationService.destinationURL}"/>
+        <property name="trnsrc" value="${RECollateralEvaluationService.trnsrc}"/>
+        <property name="trnuser" value="${RECollateralEvaluationService.trnuser}"/>
+        <property name="trnsrcname" value="${RECollateralEvaluationService.trnsrcname}"/>
+        <property name="username" value="${RECollateralEvaluationService.username}"/>
+        <property name="password" value="${RECollateralEvaluationService.password}"/>
+        <property name="directory" value="${exportFunctionalUnitStructure.dataTempDirectory}"/>
+    </bean>
+
+    <!-- ================ Common ================ -->
+    <bean id="exportFunctionalUnitStructureManager" parent="parentExportManager">
+        <property name="createSummaryFile" value="false"/>
+        <property name="exportDirectory" value="${exportFunctionalUnitStructure.resources}"/>
+        <property name="agendaCode" value="CLCR"/>
+        <property name="sourceSystem" value="Colman"/>
+        <property name="sourceSystemCsopsCode" value="${sourceNodeName}"/>
+        <property name="targetSystemCsopsCode" value="${targetNodeName}"/>
+        <property name="lineSeparator">
+            <ref bean="lineSeparatorLf"/>
+        </property>
+        <property name="encoding" value="ISO-8859-2"/>
+    </bean>
+</beans>
+

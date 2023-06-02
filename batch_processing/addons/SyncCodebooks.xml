@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+						<value>classpath:batch.properties</value>
+        		        <value>classpath:application.properties</value>
+						<value>classpath:syncCodebooks.properties</value> 
+			</list>
+		</property>
+	</bean>
+
+
+	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+	<bean id="jobRepository" class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager">
+	</bean>
+
+	<batch:job id="SyncCodebooks">
+		<batch:step id="syncStep-CBCOL_OrganzationUnit" next="syncStep-CBCOL_WorkingPosition">
+			<batch:tasklet ref="syncTask-CBCOL_OrganzationUnit">								
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="syncStep-CBCOL_WorkingPosition" next="syncStep-CBCOL_ContractualExpert">
+			<batch:tasklet ref="syncTask-CBCOL_WorkingPosition" />
+		</batch:step>
+
+		<batch:step id="syncStep-CBCOL_ContractualExpert" next="syncStep-CBCOL_BankCode">
+			<batch:tasklet ref="syncTask-CBCOL_ContractualExpert" />
+		</batch:step>
+
+		<batch:step id="syncStep-CBCOL_BankCode">
+			<batch:tasklet ref="syncTask-CBCOL_BankCode" />
+		</batch:step>
+
+	</batch:job>		
+	
+	
+
+	<bean id="abstractSyncCodebookTask" abstract="true">
+		<property name="inputDir" value="${syncCodebooks.inputDir}" />
+		<property name="outputDir" value="${syncCodebooks.outputDir}" />
+	</bean>
+
+	<bean id="syncTask-CBCOL_OrganzationUnit" class="cz.csas.colmanbatch.csv2xml.CBCOL_OrganzationUnit" parent="abstractSyncCodebookTask" scope="step" >
+	</bean>
+	
+	<bean id="syncTask-CBCOL_WorkingPosition" class="cz.csas.colmanbatch.csv2xml.CBCOL_WorkingPosition" parent="abstractSyncCodebookTask" scope="step" >
+	</bean>
+	
+	<bean id="syncTask-CBCOL_ContractualExpert" class="cz.csas.colmanbatch.csv2xml.CBCOL_ContractualExpert" parent="abstractSyncCodebookTask" scope="step" >
+	</bean>
+
+	<bean id="syncTask-CBCOL_BankCode" class="cz.csas.colmanbatch.csv2xml.CBCOL_BankCode" parent="abstractSyncCodebookTask" scope="step" >
+	</bean>
+
+</beans>

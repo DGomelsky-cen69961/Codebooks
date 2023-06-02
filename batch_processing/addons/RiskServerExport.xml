@@ -1,0 +1,341 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:riskServerExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="RiskServerExport">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="exportCodeTableCollateralTypeStep" />
+						
+			<batch:next on="START:exportCodeTableCollateralTypeStep" to="exportCodeTableCollateralTypeStep" /> 
+			<batch:next on="COMPLETED:exportCodeTableCollateralTypeStep" to="exportCollateralFactsStep" />			
+
+			<batch:next on="START:exportCollateralFactsStep" to="exportCollateralFactsStep" /> 
+			<batch:next on="COMPLETED:exportCollateralFactsStep" to="exportCollateralAccountFactsStep" />
+						
+			<batch:next on="START:exportCollateralAccountFactsStep" to="exportCollateralAccountFactsStep" /> 
+			<batch:end on="COMPLETED:exportCollateralAccountFactsStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="exportCodeTableCollateralTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportCodeTableCollateralTypeReader" processor="exportCodeTableCollateralTypeProcessor" writer="exportCodeTableCollateralTypeWriter" />
+				<batch:listeners>
+					<batch:listener ref="riskServerExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="exportCollateralFactsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportCollateralFactsReader" processor="exportCollateralFactsProcessor" writer="exportCollateralFactsWriter" />
+				<batch:listeners>
+					<batch:listener ref="riskServerExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="exportCollateralAccountFactsStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="exportCollateralAccountFactsReader" processor="exportCollateralAccountFactsProcessor" writer="exportCollateralAccountFactsWriter" />
+				<batch:listeners>
+					<batch:listener ref="riskServerExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="riskServerExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ CodeTableCollateralType ================ -->
+	<bean id="exportCodeTableCollateralTypeReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+select 
+  ss.collateral_class,
+  ss.collateral_code,
+  ss.collateral_form,
+  ss.eligibility_approach_std,
+  ss.eligibility_approach_irbf, 
+  ss.eligibility_approach_irba eligibility_approach_irba, 
+  (
+    select 
+      aa.ct_item_display_name 
+    from 
+    (
+      select distinct 
+        substr(e.fk_code_base_id, instr(e.fk_code_base_id, '/', 1, 1) + 1) ct_code, 
+        e.reference_name ct_item_code, 
+        /* e.description ct_item_description, */ 
+        u.cz ct_item_display_name 
+      from
+        wdp_code_element e 
+        left join wdp_univ u on e.display_name_univ = u.id
+      order by 1, 2 
+    ) aa 
+    where 
+      aa.ct_code='CBCOL_CollateralClass'
+    and ss.collateral_class=aa.ct_item_code 
+  ) collateral_class_desc,
+  (
+    select 
+      aa.ct_item_display_name 
+    from 
+    ( 
+      select distinct
+        substr(e.fk_code_base_id, instr(e.fk_code_base_id, '/', 1, 1) + 1)
+        ct_code, e.reference_name ct_item_code, 
+        /* e.description ct_item_description, */ 
+        u.cz ct_item_display_name 
+      from
+        wdp_code_element e 
+        left join wdp_univ u on e.display_name_univ = u.id
+      order by 1, 2 
+    ) aa 
+    where 
+      aa.ct_code='CBCOL_CollateralType' 
+    and ss.collateral_category=aa.ct_item_code 
+  ) collateral_category_desc,
+  (
+    select 
+      aa.ct_item_display_name 
+    from 
+    ( 
+      select distinct
+        substr(e.fk_code_base_id, instr(e.fk_code_base_id, '/', 1, 1) + 1) ct_code, 
+         e.reference_name ct_item_code, 
+         /*e.description ct_item_description, */
+          u.cz ct_item_display_name 
+      from
+        wdp_code_element e 
+        left join wdp_univ u on e.display_name_univ = u.id
+      order by 1, 2 
+    )aa 
+    where 
+      aa.ct_code='CBCOL_CollateralSubType' 
+      and ss.COLLATERAL_SUB_CATEGORY=aa.ct_item_code 
+   ) collateral_sub_category_desc,
+  /* we need to transform the subtype settings id to a number (because of historical reasons), the id has format: 008-SUS */ 
+  1||substr(ss.id, 1, 3) || to_char(ascii(substr(ss.id, 5, 1)), 'FM000') ||  to_char(ascii(substr(ss.id, 6, 1)), 'FM000') ||to_char( ascii(substr(ss.id, 7, 1)), 'FM000') COLL_SUBTYPE_SETTINGS_ID,
+  to_char(sysdate, 'dd.mm.yyyy') extract_date
+from
+  cms_coll_subtype_settings ss 
+order by 
+  1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCodeTableCollateralTypeWriter" parent="parentRiskServerExportWriter" scope="step">		
+		<property name="extractName" value="CT" />	
+		<property name="manager" ref="riskServerExportManager" />
+		<property name="metadataProvider" ref="exportCodeTableCollateralTypeReader" />																																																																															
+	</bean>
+	
+	<bean id="exportCodeTableCollateralTypeProcessor" parent="riskServerExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+<!-- ================ CollateralFacts ================ -->
+	<bean id="exportCollateralFactsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+WITH actual_loan_asset_alloc_res AS
+(
+  SELECT /*+ MATERIALIZE */
+    a.*
+  FROM
+    cms_loan_asset_alloc_res a
+  WHERE
+    a.allocation_run_batch_id IN (
+      SELECT
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)
+      FROM
+        cms_allocation_run_batch
+    )
+)
+select distinct
+  /* we need to transform the subtype settings id to a number (because of historical reasons), the id has format: 008-SUS */ 
+  1||substr(a.collateral_type_settings_id, 1, 3) || to_char(ascii(substr(a.collateral_type_settings_id, 5, 1)), 'FM000') ||  to_char(ascii(substr(a.collateral_type_settings_id, 6, 1)), 'FM000') ||to_char( ascii(substr(a.collateral_type_settings_id, 7, 1)), 'FM000') coltp_source_id,
+  a.id ckey, 
+  a.asset_id asset_id,  
+  round(nvl(nvl(a.base_value_bccy, ares.base_value_bccy),0),2) base_value_czk,
+  --round(nvl(nvl(a.base_value_bccy, max(alloc.nominal_value_bccy)),0),2) base_value_czk,
+  round(nvl(nvl(a.base_value_bccy, ares.base_value_bccy),0),2) nominal_value,
+  --round(nvl(nvl(a.base_value_bccy, max(alloc.nominal_value_bccy)),0),2) nominal_value,
+  a.currency currency_code,
+  a.actual_haircut realization_factor, 
+  round(nvl(nvl(a.base_value_bccy, ares.base_value_bccy),0) * a.actual_haircut ,2) real_value_czk,
+  a.migration_source_id original_symbols_id,
+  a.migration_source_system original_source_system,
+  to_char(sysdate, 'dd.mm.yyyy') extract_date
+from
+  cms_collateral_asset a 
+  join actual_loan_asset_alloc_res alloc ON alloc.collateral_asset_id = a.id
+  join CMS_ASSET_ALLOC_RESULT ares on ares.id = a.actual_result_id
+where 
+  exists 
+  (
+    select 
+      1 
+    from 
+      cms_collateral c
+    where c.collateral_asset_id=a.id and c.state='activated'
+  ) 
+group by
+  a.collateral_type_settings_id, a.id, a.asset_id, a.currency, a.actual_haircut, a.migration_source_id, a.migration_source_system, a.base_value_bccy, ares.base_value_bccy   
+order by 
+	1
+			</value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralFactsWriter" parent="parentRiskServerExportWriter" scope="step">		
+		<property name="extractName" value="CF" />	
+		<property name="manager" ref="riskServerExportManager" />
+		<property name="metadataProvider" ref="exportCollateralFactsReader" />																																																																															
+	</bean>
+	
+	<bean id="exportCollateralFactsProcessor" parent="riskServerExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+<!-- ================ CollateralAccountFacts ================ -->
+	<bean id="exportCollateralAccountFactsReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value><![CDATA[
+WITH actual_loan_asset_alloc_res AS
+(
+  SELECT /*+ MATERIALIZE */
+    a.*
+  FROM
+    cms_loan_asset_alloc_res a
+  WHERE
+    a.allocation_run_batch_id IN (
+      SELECT
+        MAX(id) KEEP (DENSE_RANK first ORDER BY create_time desc)
+      FROM
+        cms_allocation_run_batch
+    )
+)
+select
+        a.id CKEY,
+        bl.loan_number ACC_SOURCE_ID,
+        ca.id COLT_SOURCE_ID,
+        ca.asset_id asset_id,
+		/* we need to transform the subtype settings id to a number (because of historical reasons), the id has format: 008-SUS */ 
+  		1||substr(ca.collateral_type_settings_id, 1, 3) || to_char(ascii(substr(ca.collateral_type_settings_id, 5, 1)), 'FM000') ||  to_char(ascii(substr(ca.collateral_type_settings_id, 6, 1)), 'FM000') ||to_char( ascii(substr(ca.collateral_type_settings_id, 7, 1)), 'FM000') COLTTP_SOURCE_ID,
+        decode(ca.actual_haircut,null, 0, 0, 0, round(a.cleared_allocated_value_bccy/ca.actual_haircut,2)) NOMINAL_VALUE,
+        round(a.POSTING_ALLOCATED_VALUE_bccy,2) POSTING_ALLOCATED_VALUE,
+        round(a.cleared_ALLOCATED_VALUE_bccy,2) REAL_VALUE,
+        round(case when (a.CNB_NOMINAL_VALUE_BCCY - a.CNB_AMOUNT_OF_REDUCTION_BCCY) < 0 then 0 else (a.CNB_NOMINAL_VALUE_BCCY - a.CNB_AMOUNT_OF_REDUCTION_BCCY) end, 2) CNB_NOMINAL_VALUE,
+        round(case when (a.CNB_NOMINAL_VALUE_BCCY - a.CNB_AMOUNT_OF_REDUCTION_BCCY) < 0 then 0 else (a.CNB_NOMINAL_VALUE_BCCY - a.CNB_AMOUNT_OF_REDUCTION_BCCY) * ca.actual_haircut end, 2) CNB_REALIZABLE_VALUE,
+        to_char(sysdate, 'dd.mm.yyyy') extract_date
+    from  cms_collateral c
+          JOIN cms_collateral_asset ca ON c.collateral_asset_id=ca.id
+          JOIN actual_loan_asset_alloc_res a ON c.id = a.collateral_id
+          JOIN cms_basic_loan bl ON bl.id = a.loan_product_id
+    where c.state='activated'
+        order by 1
+			]]></value>
+		</property>
+	</bean>
+
+	<bean id="exportCollateralAccountFactsWriter" parent="parentRiskServerExportWriter" scope="step">		
+		<property name="extractName" value="AF" />	
+		<property name="manager" ref="riskServerExportManager" />
+		<property name="metadataProvider" ref="exportCollateralAccountFactsReader" />
+																																																																																	
+	</bean>
+	
+	<bean id="exportCollateralAccountFactsProcessor" parent="riskServerExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+
+
+	
+<!-- ================ Common ================ -->	
+	<bean id="riskServerExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="true" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${riskServerExport.resources}" />
+		<property name="agendaCode" value="CLRS" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="riskServerExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>					
+		<property name="encoding" value="windows-1250" />	
+	</bean>
+		
+
+	<bean id="riskServerExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value></key>
+        			<ref bean="dateFormat-yyyy.MM.dd"/>
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentRiskServerExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+		<property name="encoding" value="windows-1250" />		
+		<property name="headerCallback" ref="riskServerExportCsopsHeaderFileCallback" />																																																																																		
+	</bean>	
+
+	<bean id="riskServerExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="riskServerExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="riskServerExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorCrLf" />
+		</property>	
+	</bean>	
+</beans>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<batch:job id="MergeSnapshotToWorkSchema">
+    	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="disableConstraintsStep" />
+												
+			<batch:next on="START:disableConstraintsStep" to="disableConstraintsStep" /> 
+			<batch:next on="COMPLETED:disableConstraintsStep" to="copyTablesStep1" />			
+
+			<batch:next on="START:copyTablesStep1" to="copyTablesStep1" /> 
+			<batch:next on="COMPLETED:copyTablesStep1" to="copyTablesStep2" />			
+
+			<batch:next on="START:copyTablesStep2" to="copyTablesStep2" /> 
+			<batch:next on="COMPLETED:copyTablesStep2" to="copyTablesStep3" />			
+
+			<batch:next on="START:copyTablesStep3" to="copyTablesStep3" /> 
+			<batch:next on="COMPLETED:copyTablesStep3" to="copyTablesStep4" />			
+
+			<batch:next on="START:copyTablesStep4" to="copyTablesStep4" /> 
+			<batch:next on="COMPLETED:copyTablesStep4" to="copyTablesStep5" />			
+
+			<batch:next on="START:copyTablesStep5" to="copyTablesStep5" /> 
+			<batch:next on="COMPLETED:copyTablesStep5" to="copyTablesStep6" />			
+
+			<batch:next on="START:copyTablesStep6" to="copyTablesStep6" /> 
+			<batch:next on="COMPLETED:copyTablesStep6" to="copyPrevDayResultsStep" />			
+
+			<batch:next on="START:copyPrevDayResultsStep" to="copyPrevDayResultsStep" /> 
+			<batch:next on="COMPLETED:copyPrevDayResultsStep" to="enableConstraintsStep" />			
+
+			<batch:next on="START:enableConstraintsStep" to="enableConstraintsStep" /> 
+			<batch:next on="COMPLETED:enableConstraintsStep" to="restoreStatisticsStep" />			
+
+			<batch:next on="START:restoreStatisticsStep" to="restoreStatisticsStep" /> 
+			<batch:end on="COMPLETED:restoreStatisticsStep" />			
+
+    	</batch:decision>	
+
+		<batch:step id="disableConstraintsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="disableConstraintsTask" />
+		</batch:step>
+
+        <batch:step id="copyTablesStep1" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="35">
+                <batch:chunk commit-interval="1" reader="copyTablesReader1" processor="copyTablesProcessor1" writer="parentDummyWriter" />
+				<batch:listeners  merge="true"> 
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+
+        <batch:step id="copyTablesStep2" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="35">
+                <batch:chunk commit-interval="1" reader="copyTablesReader2" processor="copyTablesProcessor2" writer="parentDummyWriter" />
+				<batch:listeners  merge="true">
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+        
+        <batch:step id="copyTablesStep3" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="35">
+                <batch:chunk commit-interval="1" reader="copyTablesReader3" processor="copyTablesProcessor3" writer="parentDummyWriter" />
+				<batch:listeners  merge="true">
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+                
+        <batch:step id="copyTablesStep4" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="35">
+                <batch:chunk commit-interval="1" reader="copyTablesReader4" processor="copyTablesProcessor4" writer="parentDummyWriter" />
+				<batch:listeners  merge="true">
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+
+        <batch:step id="copyTablesStep5" next="decision" parent="parentStep">
+            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="35">
+                <batch:chunk commit-interval="1" reader="copyTablesReader5" processor="copyTablesProcessor5" writer="parentDummyWriter" />
+				<batch:listeners  merge="true">
+					<batch:listener ref="processItemSkipListener" />
+				</batch:listeners>	
+			</batch:tasklet>
+        </batch:step>
+
+		<batch:split id="copyTablesStep6" task-executor="parentThreadPoolTaskExecutor">
+			<!-- 
+				here we cannot use the decider because it seems that split name is not correctly propagated to stepExecution
+				in the decider so the decider would always choose the last "real" executed step
+			-->		
+			<batch:next on="*" to="enableConstraintsStep" /> 
+	        <batch:flow>
+		        <batch:step id="copyTablesStep6-1" parent="parentStep">
+		            <batch:tasklet task-executor="parentThreadPoolTaskExecutor" throttle-limit="28">
+		                <batch:chunk commit-interval="1" reader="copyTablesReader6" processor="copyTablesProcessor6" writer="parentDummyWriter" />
+						<batch:listeners  merge="true">
+							<batch:listener ref="processItemSkipListener" />
+						</batch:listeners>	
+					</batch:tasklet>
+		        </batch:step>
+	        </batch:flow>
+	        <batch:flow>	
+				<batch:step id="updateBasicLoanMergeExcludeColumnsStep" parent="parentStep">
+					<batch:tasklet ref="updateBasicLoanMergeExcludeColumnsTask" />
+				</batch:step>
+	        </batch:flow>
+	    </batch:split>
+
+
+        
+		<batch:step id="enableConstraintsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="enableConstraintsTask" />
+		</batch:step>
+		
+		<batch:step id="copyPrevDayResultsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="copyPrevDayResultsTask" />
+		</batch:step>
+		
+		<batch:step id="restoreStatisticsStep" next="decision" parent="parentStep">
+			<batch:tasklet ref="restoreStatisticsTask" />
+		</batch:step>
+    </batch:job>		
+			
+	<bean id="disableConstraintsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.disable_all_contraints() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+
+	<bean id="updateBasicLoanMergeExcludeColumnsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.update_basic_ln_merge_exl_cols('${batch.snapshotSchema}', to_date('#{jobParameters["date"]}', 'yymmdd')) }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+
+	<bean id="parentCopyTablesProcessor" class="cz.csas.colmanbatch.addons.processor.MapParamsStoredProcItemProcessor" scope="step" abstract="true">
+		<property name="processorName" value="copy_tables_processor" />
+
+		<property name="sql">
+			<value>			
+				{ call ${batch.workSchema}.cms_work.merge_work_table_data('${batch.snapshotSchema}', :objectName, to_date('#{jobParameters["date"]}', 'yymmdd')) }
+  			</value>
+  		</property>
+		<property name="paramsMapping">
+			<map>
+				<entry key="objectName" value="object_name" />
+			</map>
+		</property>		  		
+	</bean>	
+			
+	<bean id="copyTablesReader1" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_in_clusters_pr('${batch.snapshotSchema}',  'CMS_PARTNER_ROLE_C', null, null, null, null, null, null, null, null, null))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor1" parent="parentCopyTablesProcessor" scope="step" />
+
+	<bean id="copyTablesReader2" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_in_clusters_pr('${batch.snapshotSchema}',  'CMS_COLLATERAL_ASSET_ITEM_C', null, null, null, null, null, null, null, null, null))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor2" parent="parentCopyTablesProcessor" scope="step" />
+
+
+	<bean id="copyTablesReader3" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_in_clusters_pr('${batch.snapshotSchema}',  'CMS_COLLATERAL_C', 'CMS_COLLATERAL_ASSET_C', null, null, null, null, null, null, null, null))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor3" parent="parentCopyTablesProcessor" scope="step" />
+	
+	<bean id="copyTablesReader4" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_in_clusters_pr('${batch.snapshotSchema}',  'CMS_PARTNER_C', 'CMS_CONTACT_C', 'CMS_BASIC_LOAN_C', 'CMS_TASK_NOTIFICATION_C', 'CMS_REAL_ESTATE_C', 'CMS_DOCUMENT_C', 'CMS_CRE_SHARE_OWNER_C', null, null, null))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor4" parent="parentCopyTablesProcessor" scope="step" />
+
+	<bean id="copyTablesReader5" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<!-- this step is currently not used -->
+			<value>select 'TABLE' object_type, 'DUMMY' object_name from dual where rownum &lt; 1</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor5" parent="parentCopyTablesProcessor" scope="step" />
+
+
+
+	<bean id="copyTablesReader6" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>select object_type, object_name from table(${batch.workSchema}.cms_work.get_work_tables_pr('${batch.snapshotSchema}',  
+				'CMS_PARTNER_ROLE_C', 'CMS_COLLATERAL_ASSET_ITEM_C', 'CMS_COLLATERAL_C', 'CMS_COLLATERAL_ASSET_C', 'CMS_PARTNER_C', 
+				'CMS_CONTACT_C', 'CMS_BASIC_LOAN_C', 'CMS_TASK_NOTIFICATION_C', 'CMS_REAL_ESTATE_C', 'CMS_DOCUMENT_C', 
+				'CMS_CRE_SHARE_OWNER_C', null, null, null, null,
+				null, null, null, null, null))</value>
+		</property>
+	</bean>
+	
+	<bean id="copyTablesProcessor6" parent="parentCopyTablesProcessor" scope="step" />
+
+
+	<bean id="copyPrevDayResultsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.copy_prev_day_results(to_date(:snapshotDate,'YYMMDD')) }</value>
+		</property>
+		<property name="parameters">
+			<map>
+					<entry key="snapshotDate" value="#{jobParameters['date']}" />			
+			</map>
+		</property>		
+	</bean>	
+	
+	<bean id="enableConstraintsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cms_work.enable_all_contraints() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+		
+	<bean id="restoreStatisticsTask" class="cz.csas.colmanbatch.task.StoredProcedureTask" scope="step">
+		<property name="sql">
+			<value>{ call ${batch.workSchema}.cs_utl_ddl.restore_schema_stats() }</value>
+		</property>
+		<property name="parameters">
+			<map>
+			</map>
+		</property>		
+	</bean>	
+
+	
+</beans>

@@ -1,0 +1,766 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+#================================================================================
+# Name         : RevFuExport_AM.xml
+# Version      : 1.2
+# Author       : 
+# Date         : 8.12.2020
+# Description  : select pro zasílání funkčních celků do REV - Asset to be Monitored
+# Notes        : BEREV0001 FunctionalUnit to be Monitored
+#================================================================================
+# aktualizovat souborem:  CREM_PERFORMING.sql
+#
+# Modified     :
+# init   date   mod id                  description
+#
+# SMA  08.12.2020      viz mail Beran Jiří, 7.12.2020, Selekty pro CREM: 
+#                      Nová verze souborů obsahuje zakomentovanou podmínku pro metodu ratingu jinou než SLIPRE.
+# SMA  12.01.2021      viz mail Beran Jiří, 11.01.2021, Update SQL pro export dat 
+#                      přidána podmínka: and ala_e.state = 'Active'
+# SMA  09.04.2021      viz mail Beran Jiří, 8.04.2021, Selekty pro CREM: 
+#                      Úprava spočívá v novém slopuci (rating), který je na konci každého řádku.
+# SMA  28.05.2021      viz mail Beran Jiří, 28.05.2021, Nová verze Crem selektu: 
+#                      change monitoring date calculation.
+# SMA  14.06.2021      viz mail Beran Jiří, 14.06.2021, Selekty pro CREM: 
+#                      E condition has been revisited
+# SMA  16.07.2021      viz chat Beran Jiří, 16.07.2021
+#                      segment limitation has been removed
+# SMA  06.12.2021      viz chat Beran Jiří, 6.12.2021
+#                      update for the House of flats
+# SMA  10.12.2021      viz chat Beran Jiří, 10.12.2021 
+#                      update for the block of flats
+#================================================================================
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="cz.csas.colmanbatch.springutil.WebDpCompatPropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+                <value>classpath:application.properties</value>
+				<value>classpath:revFuExport.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <import resource="classpath:addons-context.xml" />
+
+    <import resource="classpath:addons-exports-parents.xml" />
+
+
+	<batch:job id="RevFuExport_AM">
+  	<batch:decision id="decision" decider="parentDecider">
+			<batch:end on="END" />
+			<batch:fail on="FAILED" />
+			<batch:next on="DEFAULT_START" to="revFuExportTypeStep" />
+						
+			<batch:next on="START:revFuExportTypeStep" to="revFuExportTypeStep" /> 
+			<batch:end on="COMPLETED:revFuExportTypeStep"/>
+    	</batch:decision>	
+    	
+		<batch:step id="revFuExportTypeStep" parent="parentConvert" next="decision">
+			<batch:tasklet>
+				<batch:chunk reader="revFuExportReader" processor="revFuExportProcessor" writer="revFuExportWriter" />
+				<batch:listeners>
+					<batch:listener ref="revFuExportCsopsHeaderFileCallback" />		
+				</batch:listeners>					
+			</batch:tasklet>
+		</batch:step>
+		
+	<batch:listeners>
+		<batch:listener ref="revFuExportManager" />	
+	</batch:listeners>	
+			
+	</batch:job>    
+
+
+<!-- ================ revFuExport ================ -->
+	<bean id="revFuExportReader" parent="parentSqlExportReader" scope="step">
+		<property name="sql">
+			<value>
+<![CDATA[
+with exchange_rate as (
+    select /*+materialize*/
+        max(xr.value) keep (
+            dense_rank
+                first
+            order by
+                xr.validity_start desc
+        ) eur_rate
+    from
+        rate_rate xr
+    where
+        not xr.value is null
+        and xr.validity_start is not null
+        and xr.currency = 'EUR'
+),
+cluid_current_limits as (
+    select distinct /*+materialize*/
+        ccl2.p_id,
+        ccl2.cluid,
+        sum(ccl2.current_limit) over (
+            partition by
+                ccl2.cluid
+        ) sum_current_limit
+    from (
+        select distinct
+            ccl_p.id p_id,
+            ccl_p.cluid,
+            coalesce(
+                    ccl_bl.current_limit_bccy,
+                    ccl_bl.current_limit,
+                    0
+            ) current_limit
+        from
+            cms_partner ccl_p
+            left join cms_partner_role ccl_pr
+                on ccl_pr.partner_id = ccl_p.id
+            left join cms_partner_loan_role ccl_plr
+                on ccl_plr.id = ccl_pr.id
+            left join cms_basic_loan ccl_bl
+                on ccl_bl.main_debtor_id = ccl_plr.id
+            INNER JOIN cms_client_servicing ON ccl_pr.partner_id = cms_client_servicing.partner_id
+
+        where
+            /*ccl_p.client_category = 'CORPORATE'
+            and */ccl_bl.mpl_id is null
+            and ccl_bl.state = 'active'
+            and (ccl_bl.workout != 1 or ccl_bl.workout is null)
+            AND  cms_client_servicing.org_unit_id NOT IN ('HR0_50005059','HR0_50004610','HR0_50004611','HR0_50004612','HR0_50005060')) ccl2
+),
+cluid_max_limits as (
+    select distinct /*+materialize*/
+        --Client Level
+        cml2.p_id,
+        cml2.cluid,
+        cml2.client_rating,
+        cml2.rating_method,
+        cml2.sum_current_limit,
+        cml2.max_current_limit,
+        --Asset Level
+        cml2.ca_id,
+        cml2.asset_id,
+        cml2.REPLACEMENT_VALUE_BCCY,
+        cml2.collateral_category,
+        cml2.collateral_class,
+        cml2.collateral_code,
+        cml2.collateral_form,
+        cml2.base_value_bccy,
+        --Loan Level
+        cml2.bl_id,
+        cml2.loan_number,
+        cml2.risk_value_bccy,
+        cml2.maturity_date,
+        cml2.is_revolving,
+        cml2.is_kontokorent
+      
+    from (
+        select distinct /*+use_hash(ccl cml_p)*/
+            --Client Level
+            cml_p.id p_id,
+            ccl.cluid,
+            cml_fcr.client_rating,
+            cml_fcr.rating_method,
+            ccl.sum_current_limit,
+            --Asset Level
+            cml_ca.id ca_id,
+            cml_ca.asset_id,
+            cml_fu.REPLACEMENT_VALUE_BCCY,
+            cml_css.collateral_category,
+            cml_css.collateral_class,
+            cml_css.collateral_code,
+            cml_css.collateral_form,
+            nvl(cml_ca.base_value_bccy, 0) base_value_bccy,
+            max(ccl.sum_current_limit) over (
+                partition by
+                    cml_ca.asset_id
+            ) max_current_limit,
+            --Loan Level
+            cml_bl.id bl_id,
+            cml_bl.loan_number,
+            nvl(cml_bl.risk_value_bccy, 0) risk_value_bccy,
+            cml_bl.maturity_date,
+            --Flags
+            decode(cml_css.collateral_category,
+                'KOM', 1,
+                'LAN', 1,
+                'OTH', 1,
+                'RES', 1,
+                0
+            ) is_coll_category_filter,
+            decode(
+                decode(cml_bl.state,
+                    'active', 1,
+                    0
+                ) +
+                decode(cml_ca.state,
+                    'modeled', 1,
+                    0
+                ) +
+                decode(cml_c.state,
+                    'activated', 1,
+                    0
+                ),
+                3, 1,
+                0
+            ) is_state_filter,
+            decode(
+                decode(cml_css.collateral_code,
+                    --'218', 1,
+                    '219', 1,
+                    0
+                ) +
+                decode(cml_fu.under_construction,
+                    1, 1,
+                    0
+                ),
+                2, 1,
+                1, 1,
+                0
+            ) is_attic_or_under_cnstr,
+           /* decode(cml_p.client_category,
+                'CORPORATE', 1,
+                0
+            ) is_corporate,*/
+            decode(
+                decode(cml_l.revolving,
+                    1, 1,
+                    0
+                )
+                + decode(
+                    decode(substr(cml_bl.type, 1, 1),
+                        '4', 1,
+                        0
+                    )
+                    + decode(substr(cml_bl.type, 3, 1),
+                        '6', 1,
+                        0
+                    ),
+                    2, 1,
+                    0
+                ),
+                2, 1,
+                1, 1,
+                0
+            ) is_revolving,
+            decode(cml_bl.logical_product_code,
+                '1000001-1', 1,
+                '1000001-2', 1,
+                '1000001-999.SB', 1,
+                0
+            ) is_kontokorent
+        from
+            cluid_current_limits ccl
+            left join cms_partner cml_p
+                on cml_p.id = ccl.p_id
+                    and cml_p.cluid = ccl.cluid
+            left join cms_fscs_client_rating cml_fcr
+                on cml_fcr.partner_id = cml_p.id
+            left join cms_partner_role cml_pr
+                on cml_pr.partner_id = cml_p.id
+            left join cms_partner_loan_role cml_plr
+                on cml_plr.id = cml_pr.id
+            left join cms_basic_loan cml_bl
+                on cml_bl.main_debtor_id = cml_plr.id
+            left join cms_loan cml_l
+                on cml_bl.id = cml_l.id
+            left join cms_loan_collateral_link cml_lcl
+                on cml_lcl.loan_id = cml_bl.id
+            left join cms_collateral cml_c
+                on cml_c.id = cml_lcl.collateral_id
+            left join cms_collateral_asset cml_ca
+                on cml_ca.id = cml_c.collateral_asset_id
+            left join cms_coll_subtype_settings cml_css
+                on cml_css.id = cml_ca.collateral_type_settings_id
+            left join cms_functional_unit cml_fu
+                on cml_ca.id = cml_fu.id
+                
+            LEFT JOIN cms_client_servicing ON cml_p.id = cms_client_servicing.partner_id
+
+        where
+            cml_ca.state = 'modeled'
+            and cml_c.state = 'activated'
+            and cml_bl.state = 'active'
+            and (cml_bl.workout != 1 or cml_bl.workout is null)
+            AND  cms_client_servicing.org_unit_id NOT IN (
+        'HR0_50005059',
+        'HR0_50004610',
+        'HR0_50004611',
+        'HR0_50004612',
+        'HR0_50005060')
+            and cml_ca.date_of_last_evaluation is not null
+            and cml_css.collateral_class = 'RE'
+            --TESTING ONLY
+            --and cml_ca.asset_id = '11648960078'
+            /*and cml_ca.asset_id in (
+                '11657309016',
+                '11657600158'
+            )*/
+            --TESTING ONLY
+        ) cml2 --Cluid Max Limits
+    where
+        cml2.is_coll_category_filter = 1 
+        and cml2.is_state_filter = 1
+        and cml2.is_attic_or_under_cnstr = 0
+        --and cml2.is_corporate = 1
+),
+asset_level_flags as (
+    select distinct /*+materialize*/
+        alf2.asset_id,
+        decode(
+            nvl(sum(alf2.is_r_rating), 0),
+            0, 0,
+            1
+        ) is_r_rating,
+        decode(
+            nvl(sum(alf2.is_slipre), 0),
+            0, 0,
+            1
+        ) is_project_financing
+    from (
+            select
+                alf.asset_id,
+                alf.client_rating,
+                alf.rating_method,
+                decode(substr(alf.client_rating, 1, 1),
+                    'R', 1,
+                    0
+                ) is_r_rating,
+                decode(alf.rating_method,
+                    'SLIPRE', 1,
+                    0
+                ) is_slipre
+            from (
+                select distinct
+                    cml.asset_id,
+                    cml.client_rating,
+                    cml.rating_method
+                from
+                    cluid_max_limits cml
+                ) alf
+        ) alf2
+    group by
+        alf2.asset_id
+),
+asset_level_aggregations as (
+    select distinct /*+materialize*/
+        ala_ca.asset_id,
+        min(ala_ca.date_of_expected_monitoring) min_date_of_exp_monitoring,
+        min(ala_ca.date_of_expected_revaluation) min_date_of_exp_revaluation,
+        min(ala_ca.date_of_last_monitoring + 365) min_date_of_last_monitoring_1,
+        min(ala_ca.date_of_last_evaluation + 1095) min_date_of_last_revaluation_3,
+        nvl(max(ala_re.evaluation_id), '') max_evaluation_id
+    from
+        colmandata.cms_collateral_asset ala_ca
+        left join cms_collateral_asset_item ala_cai
+            on ala_cai.asset_id = ala_ca.id
+        left join cms_re_asset_item ala_rai
+            on ala_rai.id = ala_cai.id
+        left join cms_evaluation ala_e
+            on ala_ca.id = ala_e.collateral_asset_id
+        left join cms_re_evaluation ala_re
+            on ala_e.id = ala_re.id
+    where
+        ala_ca.asset_id in (
+            select distinct
+                cml.asset_id
+            from
+                cluid_max_limits cml
+        )
+        and ala_e.state = 'Active'
+    group by
+        ala_ca.asset_id
+),
+risk_values_bccy as (
+    select /*+materialize*/
+        rvb.asset_id,
+        nvl(sum(rvb.risk_value_bccy), 0) sum_risk_value_bccy_czk
+    from (
+            select distinct
+                cml.asset_id,
+                cml.bl_id,
+                cml.risk_value_bccy
+            from
+                cluid_max_limits cml
+        ) rvb --Risk Values
+    group by
+        rvb.asset_id
+),
+max_maturity_dates as (
+    select /*+materialize*/
+        mmd.asset_id,
+        max(mmd.maturity_date) over (
+            partition by
+                mmd.asset_id
+        ) max_maturity_date
+    from (
+            select distinct
+                cml.asset_id,
+                cml.bl_id,
+                cml.maturity_date
+            from
+                cluid_max_limits cml
+        ) mmd --Risk Values
+),
+loan_level_flags as (
+    select distinct /*+materialize*/
+        llf.asset_id,
+        decode(
+            nvl(sum(llf.is_photovoltaics), 0),
+            0, 0,
+            1
+        ) is_photovoltaics
+    from (
+        select distinct
+            pv_ca.asset_id,
+            pv_lcl.loan_id bl_id,
+            decode(
+                pv_css.collateral_code,
+                '211', decode(
+                            pv_la.collateral_code,
+                            '408', 1,
+                            '409', 1,
+                            0
+                        ),
+                0
+            ) is_photovoltaics
+        from
+            cms_collateral_asset pv_ca
+            left join cms_coll_subtype_settings pv_css
+                on pv_css.id = pv_ca.collateral_type_settings_id
+            left join cms_collateral pv_c
+                on pv_ca.id = pv_c.collateral_asset_id
+            left join cms_loan_collateral_link pv_lcl
+                on pv_c.id = pv_lcl.collateral_id
+            left join cms_basic_loan pv_bl
+                on pv_bl.id = pv_lcl.loan_id
+            left join (
+                select
+                    pv2_lcl.loan_id,
+                    pv2_ca.asset_id,
+                    pv2_css.collateral_code
+                from
+                    cms_loan_collateral_link pv2_lcl
+                    left join cms_collateral pv2_c
+                        on pv2_c.id = pv2_lcl.collateral_id
+                    left join cms_collateral_asset pv2_ca
+                        on pv2_ca.id = pv2_c.collateral_asset_id
+                    left join cms_coll_subtype_settings pv2_css
+                        on pv2_css.id = pv2_ca.collateral_type_settings_id
+                where
+                    pv2_ca.state = 'modeled'
+                    and pv2_c.state = 'activated'
+            
+                    and pv2_lcl.loan_id in (
+                        select distinct
+                            cml.bl_id
+                        from
+                            cluid_max_limits cml
+                    )
+            ) pv_la -- Linked Assets
+            on pv_la.loan_id = pv_bl.id
+        where
+            pv_ca.state = 'modeled'
+            and pv_c.state = 'activated'
+            and pv_bl.state = 'active'
+            and (pv_bl.workout != 1 or pv_bl.workout IS NULL)
+            and pv_bl.id in (
+                select distinct
+                    cml.bl_id
+                from
+                    cluid_max_limits cml
+            )
+        ) llf
+    group by
+        llf.asset_id
+),
+final_dataset as (
+    select distinct
+        /*+use_hash(cml ala rv mmd alf llf)*/
+        /*+materialize*/
+        --Client Level
+        cml.p_id,
+        cml.cluid,
+        cml.client_rating,
+        --Asset Level
+        cml.ca_id,
+        cml.asset_id,
+        cml.collateral_category,
+        cml.collateral_class,
+        cml.collateral_code,
+        cml.collateral_form,
+        cml.base_value_bccy,
+        cml.REPLACEMENT_VALUE_BCCY,
+        cml.sum_current_limit,
+        cml.max_current_limit,
+        ala.min_date_of_exp_monitoring,
+        ala.min_date_of_exp_revaluation,
+        ala.min_date_of_last_monitoring_1,
+        ala.min_date_of_last_revaluation_3,
+        ala.max_evaluation_id,
+        --Loan Level
+        cml.bl_id,
+        cml.loan_number,
+        nvl(round(rv.sum_risk_value_bccy_czk, 0), 0) sum_risk_value_bccy_czk,
+        mmd.max_maturity_date,
+        --Calculated Fields
+        case
+            when
+                cml.collateral_category = 'RES'
+            then
+                ala.min_date_of_last_revaluation_3
+            when    cml.collateral_category <> 'RES'
+                     and    ala.min_date_of_exp_revaluation > ala.min_date_of_exp_monitoring
+            then NVL(ala.min_date_of_exp_monitoring,ala.min_date_of_last_monitoring_1)
+            else     ala.min_date_of_exp_revaluation
+            end
+        as contract_date,
+        case
+            when
+                cml.collateral_category = 'RES'
+            then
+                'E'
+            else
+                case
+                    when
+                        to_char(ala.min_date_of_exp_revaluation, 'YYYYMMDD') <= to_char(sysdate, 'YYYYMMDD')
+                    then
+                        'E'
+                    when ala.min_date_of_exp_revaluation > sysdate and ala.min_date_of_exp_revaluation<=nvl(ala.min_date_of_exp_monitoring,ala.min_date_of_last_monitoring_1)
+                    then 'E'
+                    when
+                        to_char(ala.min_date_of_exp_revaluation, 'YYYYMMDD') > to_char(sysdate, 'YYYYMMDD')
+                        and abs(ala.min_date_of_exp_revaluation
+                            - nvl(ala.min_date_of_exp_monitoring,ala.min_date_of_last_monitoring_1)) <= 30
+                    then
+                        'E'
+                    when
+                        to_char(ala.min_date_of_exp_revaluation, 'YYYYMMDD') > to_char(sysdate, 'YYYYMMDD')
+                        and abs(ala.min_date_of_exp_revaluation
+                            - nvl(ala.min_date_of_exp_monitoring,ala.min_date_of_last_monitoring_1)) > 30
+                        and cml.base_value_bccy / xr.eur_rate <= 6000000
+                    then
+                        'A'
+                    when
+                        to_char(ala.min_date_of_exp_revaluation, 'YYYYMMDD') > to_char(sysdate, 'YYYYMMDD')
+                        and abs(ala.min_date_of_exp_revaluation
+                            - nvl(ala.min_date_of_exp_monitoring,ala.min_date_of_last_monitoring_1)) > 30
+                        and cml.base_value_bccy / xr.eur_rate > 6000000
+                    then
+                        'M'
+                    else
+                        'X'
+                end
+        end contract_type,
+        --Flags
+        cml.is_revolving,
+        cml.is_kontokorent,
+        decode(
+            decode(
+                cml.collateral_category,
+                'RES', 1,
+                0
+            ) +
+            decode(
+                sign(3000000 - nvl(rv.sum_risk_value_bccy_czk / xr.eur_rate, 0)),
+                1, 0,
+                0, 0,
+                -1, 1
+            )
+            ,
+            2, 1,
+            0
+        ) is_res_est_over_3mil_eur,
+        decode (cml.collateral_code,'201',decode (ala.min_date_of_exp_revaluation, NULL,0,1),0) is_BD,
+    
+        decode(
+            sign(1000000 - nvl(rv.sum_risk_value_bccy_czk, 0)),
+            1, 0,
+            0, 0,
+            -1, 1
+        ) is_risk_value_over_1mil,
+        decode(
+            sign(sysdate + 182 - mmd.max_maturity_date),
+            1, 0,
+            0, 0,
+            -1, 1
+        ) is_maturity_date_over_1y,
+        alf.is_project_financing,
+        alf.is_r_rating,
+        llf.is_photovoltaics
+    from
+        cluid_max_limits cml
+        left join asset_level_aggregations ala
+            on ala.asset_id = cml.asset_id
+        left join risk_values_bccy rv
+            on rv.asset_id = cml.asset_id
+        left join max_maturity_dates mmd
+            on mmd.asset_id = cml.asset_id
+        left join asset_level_flags alf
+            on alf.asset_id = cml.asset_id
+        left join loan_level_flags llf
+            on llf.asset_id = cml.asset_id
+        left join exchange_rate xr
+            on 1 = 1
+    where
+        cml.sum_current_limit = cml.max_current_limit
+        /*TESTING ONLY*/
+        --and to_char(ala.min_date_of_exp_revaluation, 'YYYYMMDD') = to_char(sysdate, 'YYYYMMDD')
+        --and ala.min_date_of_exp_monitoring is null
+        /*TESTING ONLY*/
+)
+select distinct
+    fds2.CLUID,
+    fds2.ASSET_ID,
+    fds2.base_value_bccy,
+    fds2.REPLACEMENT_VALUE_BCCY,
+    fds2.COLLATERAL_CODE,
+    fds2.REV_ID,
+    to_char(fds2.CONTRACT_DATE,'YYYY-MM-DD') as CONTRACT_DATE,
+    fds2.CONTRACT_TYPE,
+    fds2.client_rating
+    
+    
+from (
+    select distinct
+        fds.cluid CLUID,
+        max(fds.CLUID) over (
+            partition by
+               fds.ASSET_ID
+        ) SELECTED_CLUID,
+        fds.client_rating,
+        fds.asset_id ASSET_ID,
+        fds.base_value_bccy,
+        fds.REPLACEMENT_VALUE_BCCY,
+        fds.collateral_code,
+        fds.contract_type CONTRACT_TYPE,
+        fds.contract_date CONTRACT_DATE,
+        fds.max_evaluation_id REV_ID
+    from
+        final_dataset fds
+    where
+        (
+            /*fds.is_project_financing = 0
+            and fds.is_r_rating = 0
+            and*/ fds.is_photovoltaics = 0
+        )
+        and decode(
+            fds.collateral_category,
+            'RES', decode(
+                        fds.is_res_est_over_3mil_eur + is_BD,
+                        1, 1,
+                        2,1,
+                        0
+                    ),
+            decode(
+                fds.is_risk_value_over_1mil,
+                0, 0,
+                decode(
+                    fds.is_revolving + fds.is_kontokorent,
+                    1, 1,
+                    2, 1,
+                    decode(
+                        fds.is_maturity_date_over_1y,
+                        1, 1,
+                        0
+                    )
+                )
+            )
+        ) = 1
+    ) fds2
+where
+    fds2.CLUID = fds2.SELECTED_CLUID
+
+    --and fds2.ASSET_ID = '11656333090'
+    --and fds2.collateral_code = '201'
+
+order by
+    fds2.ASSET_ID 
+
+ ]]>
+			</value>
+		</property>
+	</bean>
+
+	<bean id="revFuExportWriter" parent="parentrevFuExportWriter" scope="step">		
+		<property name="extractName" value="AM" />	
+		<property name="manager" ref="revFuExportManager" />
+		<property name="metadataProvider" ref="revFuExportReader" />																																																																															
+	</bean>
+	
+	<bean id="revFuExportProcessor" parent="revFuExportItemProcessor" scope="step">
+		<property name="fieldSpecificMapping">
+			<map>
+    	  	</map>	
+		</property>			
+	</bean>	
+	
+	
+<!-- ================ Common ================ -->	
+	<bean id="revFuExportManager"  parent="parentExportManager">
+		<property name="createSummaryFile" value="false" />
+		<property name="summaryFileCode" value="AA" />
+		<property name="exportDirectory" value="${revFuExport.resources}" />
+		<property name="agendaCode" value="CLRE" />
+		<property name="sourceSystem" value="Colman" />		
+		<property name="sourceSystemCsopsCode" value="${sourceNodeName}" />
+		<property name="targetSystemCsopsCode" value="${targetNodeName}" />
+		<property name="csopsHeaderWriter">
+			<ref bean="revFuExportCsopsHeaderWriter" />
+		</property>
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>					
+		<property name="encoding" value="ISO-8859-2" />	
+	</bean>
+		
+
+	<bean id="revFuExportItemProcessor" parent="parentFormatter">
+		<property name="itemExtractor" ref="linkedHashMapExtrator" />
+		<property name="defaultMappings">
+		      <map key-type="java.lang.Class" value-type="java.text.Format">
+        		<entry>
+        			<key><value type="java.lang.Class">java.util.Date</value>
+        			</key>
+					<ref bean="dateFormat-yyyy-MM-dd"/>					
+        		</entry>        			
+      		</map>
+		</property>
+	</bean>
+
+	<bean id="parentrevFuExportWriter" parent="parentCSOPSExportWriter" abstract="true">		
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="encoding" value="ISO-8859-2" />		
+		<property name="headerCallback" ref="revFuExportCsopsHeaderFileCallback" />
+		<property name="footerCallback">
+			<bean class="cz.csas.colmanbatch.addons.csops.CSOPSFooterFileCallback" >
+				<property name="endOfFileMark">
+					<null/>
+				</property>
+			</bean>
+		</property>																																																																																		
+		
+	</bean>	
+
+	<bean id="revFuExportCsopsHeaderFileCallback" parent="parentCsopsHeaderFileCallback">
+		<property name="csopsHeaderWriter">
+			<ref bean="revFuExportCsopsHeaderWriter" />
+		</property>
+	</bean>	
+
+	<bean id="revFuExportCsopsHeaderWriter" parent="csopsHeaderWriter">
+		<property name="lineSeparator">
+			<ref bean="lineSeparatorLf" />
+		</property>	
+		<property name="writeStandardHeader" value = "false"/>
+		<property name="fieldNamesDelimiter" value=";" />				
+	</bean>	
+</beans>
