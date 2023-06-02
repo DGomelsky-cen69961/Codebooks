@@ -41,7 +41,7 @@ public class CBCOL_BankCode extends Csv2Xml {
 
     public void loadFile2Array(String inputDir) {
         try {
-            new FileReader(inputDir + "CB_OrganizationUnit.csv");
+            new FileReader(inputDir + "CB_BankCode.csv");
             BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(inputDir + "CB_BankCode.csv"), "ISO-8859-2"));
             in.readLine();
 
@@ -167,13 +167,13 @@ public class CBCOL_BankCode extends Csv2Xml {
                 rootElement3.appendChild(doc2.createCDATASection("cscollateral/CBCOL_BankCode-" + idSeznam2));
                 searchMode = doc2.createElement("hu");
                 universalLanguage2.appendChild(searchMode);
-                searchMode.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                searchMode.appendChild(doc2.createCDATASection(idSeznam2 + " " + bankNameSeznam2));
                 state3 = doc2.createElement("en");
                 universalLanguage2.appendChild(state3);
-                state3.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                state3.appendChild(doc2.createCDATASection(idSeznam2 + " " + bankNameSeznam2));
                 iD3 = doc2.createElement("cz");
                 universalLanguage2.appendChild(iD3);
-                iD3.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                iD3.appendChild(doc2.createCDATASection(idSeznam2 + " " + bankNameSeznam2));
                 referenceName3 = doc2.createElement("module");
                 universalLanguage2.appendChild(referenceName3);
                 displayNameUniv3 = doc2.createElement("state");

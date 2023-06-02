@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
 @Component
 public class CBCOL_BankCode extends Csv2Xml {
     private String id_pom;
-    private String bankName_pom;
+    private String value_pom;
     private int entryOrder_pom;
     private String cluid_pom;
     ArrayList<CBCOL_BankCode_List> seznam = new ArrayList();
@@ -41,7 +41,7 @@ public class CBCOL_BankCode extends Csv2Xml {
 
     public void loadFile2Array(String inputDir) {
         try {
-            new FileReader(inputDir + "CB_OrganizationUnit.csv");
+            new FileReader(inputDir + "CB_BankCode.csv");
             BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(inputDir + "CB_BankCode.csv"), "ISO-8859-2"));
             in.readLine();
 
@@ -54,13 +54,13 @@ public class CBCOL_BankCode extends Csv2Xml {
                 this.id_pom = radka.substring(index_1 + 1, index_2);
                 fromIndex = index_2 + 1;
                 int index_3 = radka.indexOf("\";\"", fromIndex);
-                this.bankName_pom = radka.substring(index_2 + 3, index_3);
+                this.value_pom = radka.substring(index_2 + 3, index_3);
                 fromIndex = index_3 + 1;
                 int index_4 = radka.indexOf("\";\"", fromIndex);
                 this.entryOrder_pom = Integer.parseInt(radka.substring(index_3 + 3, index_4));
                 int index_5 = radka.lastIndexOf("\"");
                 this.cluid_pom = radka.substring(index_4 + 3, index_5);
-                this.seznam.add(new CBCOL_BankCode_List(this.id_pom, this.bankName_pom, this.entryOrder_pom, this.cluid_pom));
+                this.seznam.add(new CBCOL_BankCode_List(this.id_pom, this.value_pom, this.entryOrder_pom, this.cluid_pom));
             }
         } catch (Exception var10) {
             if (var10 instanceof RuntimeException) {
@@ -91,7 +91,7 @@ public class CBCOL_BankCode extends Csv2Xml {
                 CBCOL_BankCode_List org1 = (CBCOL_BankCode_List)var6.next();
                 String idSeznam1 = org1.getId();
                 int getEntryOrderSeznam1 = org1.getEntryOrder();
-                String bankNameSeznam1 = org1.getBankName();
+                String valueSeznam1 = org1.getvalue();
                 String cluidSeznam1 = org1.getCluid();
                 Element codeTableMap1 = doc1.createElement("cz.csas.colman.model.codetablemap.CodeTableMap");
                 rootElement1.appendChild(codeTableMap1);
@@ -122,9 +122,9 @@ public class CBCOL_BankCode extends Csv2Xml {
                 state2 = doc1.createElement("system");
                 codeTableMap1.appendChild(state2);
                 state2.appendChild(doc1.createCDATASection("CDM"));
-                cluid = doc1.createElement("CLUID");
+                /* cluid = doc1.createElement("CLUID");
                 codeTableMap1.appendChild(cluid);
-                cluid.appendChild(doc1.createCDATASection("cscollateral/CBCOL_BankCode/" + cluidSeznam1 + "/mapping/CDM/" + cluidSeznam1));
+                cluid.appendChild(doc1.createCDATASection("cscollateral/CBCOL_BankCode/" + cluidSeznam1 + "/mapping/CDM/" + cluidSeznam1)); */
             }
 
             TransformerFactory transformerFactory1 = TransformerFactory.newInstance();
@@ -155,7 +155,7 @@ public class CBCOL_BankCode extends Csv2Xml {
                 CBCOL_BankCode_List org2 = (CBCOL_BankCode_List)var59.next();
                 String idSeznam2 = org2.getId();
                 int getEntryOrderSeznam2 = org2.getEntryOrder();
-                String bankNameSeznam2 = org2.getBankName();
+                String valueSeznam2 = org2.getvalue();
                 String cluidSeznam2 = org2.getCluid();
                 universalLanguage2 = doc2.createElement("hu.appello.webdp.model.UniversalLanguage");
                 rootElement2.appendChild(universalLanguage2);
@@ -167,13 +167,13 @@ public class CBCOL_BankCode extends Csv2Xml {
                 rootElement3.appendChild(doc2.createCDATASection("cscollateral/CBCOL_BankCode-" + idSeznam2));
                 searchMode = doc2.createElement("hu");
                 universalLanguage2.appendChild(searchMode);
-                searchMode.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                searchMode.appendChild(doc2.createCDATASection(valueSeznam2));
                 state3 = doc2.createElement("en");
                 universalLanguage2.appendChild(state3);
-                state3.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                state3.appendChild(doc2.createCDATASection(valueSeznam2));
                 iD3 = doc2.createElement("cz");
                 universalLanguage2.appendChild(iD3);
-                iD3.appendChild(doc2.createCDATASection(bankNameSeznam2));
+                iD3.appendChild(doc2.createCDATASection(valueSeznam2));
                 referenceName3 = doc2.createElement("module");
                 universalLanguage2.appendChild(referenceName3);
                 displayNameUniv3 = doc2.createElement("state");
@@ -243,20 +243,19 @@ public class CBCOL_BankCode extends Csv2Xml {
                 CBCOL_BankCode_List org3 = (CBCOL_BankCode_List)var34.next();
                 Element codeElement3 = doc3.createElement("hu.appello.webdp.model.CodeElement");
                 codeElements3.appendChild(codeElement3);
-                String id32 = org3.getId();
+                String idSeznam3 = org3.getId();
                 int getEntryOrder32 = org3.getEntryOrder();
-                String value32 = org3.getBankName();
+                String value32 = org3.getvalue();
                 String cluidSeznam3 = org3.getCluid();
                 Element element3 = doc3.createElement("state");
                 codeElement3.appendChild(element3);
                 element3.appendChild(doc3.createCDATASection("CREATED"));
                 Element id3 = doc3.createElement("id");
                 codeElement3.appendChild(id3);
-                String pom = org3.getId();
-                id3.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode/" + pom));
+                id3.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode/" + idSeznam3));
                 Element referenceName32 = doc3.createElement("referenceName");
                 codeElement3.appendChild(referenceName32);
-                referenceName32.appendChild(doc3.createCDATASection(pom));
+                referenceName32.appendChild(doc3.createCDATASection(idSeznam3));
                 Element sortOrder3 = doc3.createElement("sortOrder");
                 codeElement3.appendChild(sortOrder3);
                 sortOrder3.appendChild(doc3.createCDATASection(String.valueOf(org3.getEntryOrder())));
@@ -265,7 +264,7 @@ public class CBCOL_BankCode extends Csv2Xml {
                 active3.appendChild(doc3.createTextNode("true"));
                 Element displayNameUniv32 = doc3.createElement("displayNameUniv");
                 codeElement3.appendChild(displayNameUniv32);
-                displayNameUniv32.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode-" + pom));
+                displayNameUniv32.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode-" + idSeznam3));
                 Element usable3 = doc3.createElement("usable");
                 codeElement3.appendChild(usable3);
                 usable3.appendChild(doc3.createTextNode("true"));
@@ -276,10 +275,10 @@ public class CBCOL_BankCode extends Csv2Xml {
                 codeElement3.appendChild(codeBase3);
                 Element description3 = doc3.createElement("description");
                 codeElement3.appendChild(description3);
-                description3.appendChild(doc3.createCDATASection(" "));
-                Element displayCluid = doc3.createElement("displayCluid");
+                description3.appendChild(doc3.createCDATASection(cluidSeznam3));
+              /*  Element displayCluid = doc3.createElement("displayCluid");
                 codeElement3.appendChild(displayCluid);
-                displayCluid.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode-" + cluidSeznam3));
+                displayCluid.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode-" + cluidSeznam3)); */
             }
 
             TransformerFactory transformerFactory3 = TransformerFactory.newInstance();

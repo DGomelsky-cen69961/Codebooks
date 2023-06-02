@@ -2,19 +2,19 @@ package cz.csas.colmanbatch.csv2xml;
 
 public class CBCOL_BankCode_List implements Comparable<CBCOL_BankCode_List> {
     private final String id;
-    private final String bankName;
+    private final String value;
     private final int entryOrder;
     private final String cluid;
 
     CBCOL_BankCode_List(String var1, String var2, int var3, String var4) {
         this.id = var1;
-        this.bankName = var2;
+        this.value = var2;
         this.entryOrder = var3;
         this.cluid = var4;
     }
 
-    String getBankName() {
-        return this.bankName;
+    String getvalue() {
+        return this.value;
     }
 
     String getId() {
@@ -37,6 +37,6 @@ public class CBCOL_BankCode_List implements Comparable<CBCOL_BankCode_List> {
     }
 
     public String toString() {
-        return " " + this.id + " " + this.entryOrder + " " + this.bankName;
+        return " " + this.id + " " + this.entryOrder + " " + this.value;
     }
 }
