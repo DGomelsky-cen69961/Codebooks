@@ -6,11 +6,11 @@ public class CBCOL_BankCode_List implements Comparable<CBCOL_BankCode_List> {
     private final int entryOrder;
     private final String cluid;
 
-    CBCOL_BankCode_List(String var1, String var2, int var3, String var4) {
+    CBCOL_BankCode_List(String var1, String var2, String var3, int var4) {
         this.id = var1;
         this.value = var2;
-        this.entryOrder = var3;
-        this.cluid = var4;
+        this.cluid = var3;
+        this.entryOrder = var4;
     }
 
     String getvalue() {

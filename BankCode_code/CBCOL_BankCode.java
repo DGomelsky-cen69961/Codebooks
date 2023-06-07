@@ -23,8 +23,8 @@ import org.w3c.dom.Element;
 public class CBCOL_BankCode extends Csv2Xml {
     private String id_pom;
     private String value_pom;
-    private int entryOrder_pom;
     private String cluid_pom;
+    private int entryOrder_pom;    
     ArrayList<CBCOL_BankCode_List> seznam = new ArrayList();
     private final String inputFile = "CB_BankCode.csv";
     private final String outputFile1 = "CodeTableMapping_CBCOL_BankCode_CDM.xml";
@@ -57,10 +57,10 @@ public class CBCOL_BankCode extends Csv2Xml {
                 this.value_pom = radka.substring(index_2 + 3, index_3);
                 fromIndex = index_3 + 1;
                 int index_4 = radka.indexOf("\";\"", fromIndex);
-                this.entryOrder_pom = Integer.parseInt(radka.substring(index_3 + 3, index_4));
+                this.cluid_pom = radka.substring(index_3 + 3, index_4);
                 int index_5 = radka.lastIndexOf("\"");
-                this.cluid_pom = radka.substring(index_4 + 3, index_5);
-                this.seznam.add(new CBCOL_BankCode_List(this.id_pom, this.value_pom, this.entryOrder_pom, this.cluid_pom));
+                this.entryOrder_pom = Integer.parseInt(radka.substring(index_4 + 3, index_5));
+                this.seznam.add(new CBCOL_BankCode_List(this.id_pom, this.value_pom, this.cluid_pom, this.entryOrder_pom));
             }
         } catch (Exception var10) {
             if (var10 instanceof RuntimeException) {
@@ -122,9 +122,6 @@ public class CBCOL_BankCode extends Csv2Xml {
                 state2 = doc1.createElement("system");
                 codeTableMap1.appendChild(state2);
                 state2.appendChild(doc1.createCDATASection("CDM"));
-                /* cluid = doc1.createElement("CLUID");
-                codeTableMap1.appendChild(cluid);
-                cluid.appendChild(doc1.createCDATASection("cscollateral/CBCOL_BankCode/" + cluidSeznam1 + "/mapping/CDM/" + cluidSeznam1)); */
             }
 
             TransformerFactory transformerFactory1 = TransformerFactory.newInstance();
@@ -276,9 +273,6 @@ public class CBCOL_BankCode extends Csv2Xml {
                 Element description3 = doc3.createElement("description");
                 codeElement3.appendChild(description3);
                 description3.appendChild(doc3.createCDATASection(cluidSeznam3));
-              /*  Element displayCluid = doc3.createElement("displayCluid");
-                codeElement3.appendChild(displayCluid);
-                displayCluid.appendChild(doc3.createCDATASection("cscollateral/CBCOL_BankCode-" + cluidSeznam3)); */
             }
 
             TransformerFactory transformerFactory3 = TransformerFactory.newInstance();
