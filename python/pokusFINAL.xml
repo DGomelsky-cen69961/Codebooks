@@ -1,0 +1,927 @@
+<?xml version="1.0" ?>
+<set>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/0100/mapping/CDM/0100]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[0100]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/0300/mapping/CDM/0300]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[0300]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/0600/mapping/CDM/0600]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[0600]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/0710/mapping/CDM/0710]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[0710]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/0800/mapping/CDM/0800]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[0800]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2010/mapping/CDM/2010]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2010]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2020/mapping/CDM/2020]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2020]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2030/mapping/CDM/2030]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2030]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2050/mapping/CDM/2050]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2050]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2060/mapping/CDM/2060]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2060]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2070/mapping/CDM/2070]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2070]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2100/mapping/CDM/2100]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2100]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2200/mapping/CDM/2200]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2200]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2210/mapping/CDM/2210]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2210]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2220/mapping/CDM/2220]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2220]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2230/mapping/CDM/2230]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2230]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2240/mapping/CDM/2240]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2240]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2250/mapping/CDM/2250]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2250]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2260/mapping/CDM/2260]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2260]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2275/mapping/CDM/2275]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2275]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2310/mapping/CDM/2310]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2310]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2600/mapping/CDM/2600]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2600]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/2700/mapping/CDM/2700]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[2700]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/3020/mapping/CDM/3020]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[3020]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/3030/mapping/CDM/3030]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[3030]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/3050/mapping/CDM/3050]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[3050]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/3060/mapping/CDM/3060]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[3060]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/3500/mapping/CDM/3500]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[3500]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/4000/mapping/CDM/4000]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[4000]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/4300/mapping/CDM/4300]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[4300]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/5000/mapping/CDM/5000]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[5000]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/5400/mapping/CDM/5400]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[5400]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/5500/mapping/CDM/5500]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[5500]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/5800/mapping/CDM/5800]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[5800]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6000/mapping/CDM/6000]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6000]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6100/mapping/CDM/6100]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6100]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6200/mapping/CDM/6200]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6200]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6210/mapping/CDM/6210]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6210]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6300/mapping/CDM/6300]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6300]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6700/mapping/CDM/6700]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6700]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/6800/mapping/CDM/6800]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[6800]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7910/mapping/CDM/7910]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7910]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7940/mapping/CDM/7940]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7940]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7950/mapping/CDM/7950]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7950]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7960/mapping/CDM/7960]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7960]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7970/mapping/CDM/7970]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7970]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7980/mapping/CDM/7980]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7980]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/7990/mapping/CDM/7990]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[7990]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8030/mapping/CDM/8030]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8030]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8040/mapping/CDM/8040]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8040]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8060/mapping/CDM/8060]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8060]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8090/mapping/CDM/8090]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8090]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8150/mapping/CDM/8150]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8150]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8190/mapping/CDM/8190]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8190]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8198/mapping/CDM/8198]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8198]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8199/mapping/CDM/8199]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8199]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8200/mapping/CDM/8200]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8200]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8211/mapping/CDM/8211]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8211]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8215/mapping/CDM/8215]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8215]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8220/mapping/CDM/8220]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8220]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8221/mapping/CDM/8221]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8221]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8225/mapping/CDM/8225]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8225]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8230/mapping/CDM/8230]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8230]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8231/mapping/CDM/8231]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8231]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8240/mapping/CDM/8240]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8240]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8250/mapping/CDM/8250]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8250]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8255/mapping/CDM/8255]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8255]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8260/mapping/CDM/8260]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8260]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8265/mapping/CDM/8265]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8265]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8270/mapping/CDM/8270]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8270]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8272/mapping/CDM/8272]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8272]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8280/mapping/CDM/8280]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8280]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8282/mapping/CDM/8282]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8282]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8283/mapping/CDM/8283]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8283]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8290/mapping/CDM/8290]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8290]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8291/mapping/CDM/8291]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8291]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8292/mapping/CDM/8292]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8292]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8293/mapping/CDM/8293]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8293]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8294/mapping/CDM/8294]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8294]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8295/mapping/CDM/8295]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8295]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8296/mapping/CDM/8296]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8296]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8297/mapping/CDM/8297]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8297]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8298/mapping/CDM/8298]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8298]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+ <cz.csas.colman.model.codetablemap.CodeTableMap>
+  <searchMode>StartsWith</searchMode>
+  <state>&lt;![CDATA[CREATED]]&gt;</state>
+  <id>&lt;![CDATA[cscollateral/CBCOL_BankCode/8500/mapping/CDM/8500]]&gt;</id>
+  <codeTableCode>&lt;![CDATA[CBCOL_BankCode]]&gt;</codeTableCode>
+  <codeTableItemName>&lt;![CDATA[8500]]&gt;</codeTableItemName>
+  <isPrimaryIn>true</isPrimaryIn>
+  <isPrimaryOut>true</isPrimaryOut>
+  <mappedValue>&lt;![CDATA[]] &gt;</mappedValue>
+  <system>&lt;![CDATA[CDM]] &gt;</system>
+ </cz.csas.colman.model.codetablemap.CodeTableMap>
+</set>

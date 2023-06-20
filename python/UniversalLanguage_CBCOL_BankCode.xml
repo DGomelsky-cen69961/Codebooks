@@ -1,0 +1,1095 @@
+<?xml version="1.0" ?>
+<set encodings="utf-8">
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-0100]]></id>
+  <hu><![CDATA[0100 Komerční banka, a.s.]]></hu>
+  <en><![CDATA[0100 Komerční banka, a.s.]]></en>
+  <cz><![CDATA[0100 Komerční banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-0300]]></id>
+  <hu><![CDATA[0300 Československá obchodní banka, a.s.]]></hu>
+  <en><![CDATA[0300 Československá obchodní banka, a.s.]]></en>
+  <cz><![CDATA[0300 Československá obchodní banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-0600]]></id>
+  <hu><![CDATA[0600 MONETA Money Bank, a. s.]]></hu>
+  <en><![CDATA[0600 MONETA Money Bank, a. s.]]></en>
+  <cz><![CDATA[0600 MONETA Money Bank, a. s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-0710]]></id>
+  <hu><![CDATA[0710 Česká národní banka]]></hu>
+  <en><![CDATA[0710 Česká národní banka]]></en>
+  <cz><![CDATA[0710 Česká národní banka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-0800]]></id>
+  <hu><![CDATA[0800 Česká spořitelna, a.s.]]></hu>
+  <en><![CDATA[0800 Česká spořitelna, a.s.]]></en>
+  <cz><![CDATA[0800 Česká spořitelna, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2010]]></id>
+  <hu><![CDATA[2010 Fio banka, a.s.]]></hu>
+  <en><![CDATA[2010 Fio banka, a.s.]]></en>
+  <cz><![CDATA[2010 Fio banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2020]]></id>
+  <hu><![CDATA[2020 MUFG Bank (Europe) N.V. Prague Branch]]></hu>
+  <en><![CDATA[2020 MUFG Bank (Europe) N.V. Prague Branch]]></en>
+  <cz><![CDATA[2020 MUFG Bank (Europe) N.V. Prague Branch]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2030]]></id>
+  <hu><![CDATA[2030 Československé úvěrní druľstvo]]></hu>
+  <en><![CDATA[2030 Československé úvěrní druľstvo]]></en>
+  <cz><![CDATA[2030 Československé úvěrní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2050]]></id>
+  <hu><![CDATA[2050 WPB Capital, spořitelní druľstvo]]></hu>
+  <en><![CDATA[2050 WPB Capital, spořitelní druľstvo]]></en>
+  <cz><![CDATA[2050 WPB Capital, spořitelní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2060]]></id>
+  <hu><![CDATA[2060 Citfin, spořitelní druľstvo]]></hu>
+  <en><![CDATA[2060 Citfin, spořitelní druľstvo]]></en>
+  <cz><![CDATA[2060 Citfin, spořitelní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2070]]></id>
+  <hu><![CDATA[2070 TRINITY BANK a.s.]]></hu>
+  <en><![CDATA[2070 TRINITY BANK a.s.]]></en>
+  <cz><![CDATA[2070 TRINITY BANK a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2100]]></id>
+  <hu><![CDATA[2100 Hypoteční banka, a.s.]]></hu>
+  <en><![CDATA[2100 Hypoteční banka, a.s.]]></en>
+  <cz><![CDATA[2100 Hypoteční banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2200]]></id>
+  <hu><![CDATA[2200 Peněľní dům, spořitelní druľstvo]]></hu>
+  <en><![CDATA[2200 Peněľní dům, spořitelní druľstvo]]></en>
+  <cz><![CDATA[2200 Peněľní dům, spořitelní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2210]]></id>
+  <hu><![CDATA[2210 ERB bank, a.s., v likvidaci]]></hu>
+  <en><![CDATA[2210 ERB bank, a.s., v likvidaci]]></en>
+  <cz><![CDATA[2210 ERB bank, a.s., v likvidaci]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2220]]></id>
+  <hu><![CDATA[2220 Artesa, spořitelní druľstvo]]></hu>
+  <en><![CDATA[2220 Artesa, spořitelní druľstvo]]></en>
+  <cz><![CDATA[2220 Artesa, spořitelní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2230]]></id>
+  <hu><![CDATA[2230 AXA Bank Europe, organizační sloľka]]></hu>
+  <en><![CDATA[2230 AXA Bank Europe, organizační sloľka]]></en>
+  <cz><![CDATA[2230 AXA Bank Europe, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2240]]></id>
+  <hu><![CDATA[2240 Poątová banka, a.s., pobočka Česká republika]]></hu>
+  <en><![CDATA[2240 Poątová banka, a.s., pobočka Česká republika]]></en>
+  <cz><![CDATA[2240 Poątová banka, a.s., pobočka Česká republika]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2250]]></id>
+  <hu><![CDATA[2250 Banka CREDITAS a.s]]></hu>
+  <en><![CDATA[2250 Banka CREDITAS a.s]]></en>
+  <cz><![CDATA[2250 Banka CREDITAS a.s]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2260]]></id>
+  <hu><![CDATA[2260 NEY spořitelní druľstvo]]></hu>
+  <en><![CDATA[2260 NEY spořitelní druľstvo]]></en>
+  <cz><![CDATA[2260 NEY spořitelní druľstvo]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2275]]></id>
+  <hu><![CDATA[2275 Podnikatelská druľstevní záloľna]]></hu>
+  <en><![CDATA[2275 Podnikatelská druľstevní záloľna]]></en>
+  <cz><![CDATA[2275 Podnikatelská druľstevní záloľna]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2310]]></id>
+  <hu><![CDATA[2310 ZUNO BANK AG, organizační sloľka]]></hu>
+  <en><![CDATA[2310 ZUNO BANK AG, organizační sloľka]]></en>
+  <cz><![CDATA[2310 ZUNO BANK AG, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2600]]></id>
+  <hu><![CDATA[2600 Citibank EUROPE plc, organizační sloľka]]></hu>
+  <en><![CDATA[2600 Citibank EUROPE plc, organizační sloľka]]></en>
+  <cz><![CDATA[2600 Citibank EUROPE plc, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-2700]]></id>
+  <hu><![CDATA[2700 UniCredit Bank Czech Republic and Slovakia, a.s.]]></hu>
+  <en><![CDATA[2700 UniCredit Bank Czech Republic and Slovakia, a.s.]]></en>
+  <cz><![CDATA[2700 UniCredit Bank Czech Republic and Slovakia, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-3020]]></id>
+  <hu><![CDATA[3020 MEINL BANK Aktiengesellschaft, pobočka Praha]]></hu>
+  <en><![CDATA[3020 MEINL BANK Aktiengesellschaft, pobočka Praha]]></en>
+  <cz><![CDATA[3020 MEINL BANK Aktiengesellschaft, pobočka Praha]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-3030]]></id>
+  <hu><![CDATA[3030 Air Bank a.s.]]></hu>
+  <en><![CDATA[3030 Air Bank a.s.]]></en>
+  <cz><![CDATA[3030 Air Bank a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-3050]]></id>
+  <hu><![CDATA[3050 BNP Paribas Personal Finance SA, odątěpný závod]]></hu>
+  <en><![CDATA[3050 BNP Paribas Personal Finance SA, odątěpný závod]]></en>
+  <cz><![CDATA[3050 BNP Paribas Personal Finance SA, odątěpný závod]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-3060]]></id>
+  <hu><![CDATA[3060 PKO BP S.A., Czech Branch]]></hu>
+  <en><![CDATA[3060 PKO BP S.A., Czech Branch]]></en>
+  <cz><![CDATA[3060 PKO BP S.A., Czech Branch]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-3500]]></id>
+  <hu><![CDATA[3500 ING Bank N.V.]]></hu>
+  <en><![CDATA[3500 ING Bank N.V.]]></en>
+  <cz><![CDATA[3500 ING Bank N.V.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-4000]]></id>
+  <hu><![CDATA[4000 Max banka a.s.]]></hu>
+  <en><![CDATA[4000 Max banka a.s.]]></en>
+  <cz><![CDATA[4000 Max banka a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-4300]]></id>
+  <hu><![CDATA[4300 Národní rozvojová banka, a.s.]]></hu>
+  <en><![CDATA[4300 Národní rozvojová banka, a.s.]]></en>
+  <cz><![CDATA[4300 Národní rozvojová banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-5000]]></id>
+  <hu><![CDATA[5000 Crédit Agricole Corporate and Investment Bank S.A. Prague, organizační sloľka]]></hu>
+  <en><![CDATA[5000 Crédit Agricole Corporate and Investment Bank S.A. Prague, organizační sloľka]]></en>
+  <cz><![CDATA[5000 Crédit Agricole Corporate and Investment Bank S.A. Prague, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-5400]]></id>
+  <hu><![CDATA[5400 The Royal Bank of Scotland plc, organizační sloľka]]></hu>
+  <en><![CDATA[5400 The Royal Bank of Scotland plc, organizační sloľka]]></en>
+  <cz><![CDATA[5400 The Royal Bank of Scotland plc, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-5500]]></id>
+  <hu><![CDATA[5500 Raiffeisenbank, a.s.]]></hu>
+  <en><![CDATA[5500 Raiffeisenbank, a.s.]]></en>
+  <cz><![CDATA[5500 Raiffeisenbank, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-5800]]></id>
+  <hu><![CDATA[5800 J&amp;T Banka, a.s.]]></hu>
+  <en><![CDATA[5800 J&amp;T Banka, a.s.]]></en>
+  <cz><![CDATA[5800 J&amp;T Banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6000]]></id>
+  <hu><![CDATA[6000 PPF banka, a.s.]]></hu>
+  <en><![CDATA[6000 PPF banka, a.s.]]></en>
+  <cz><![CDATA[6000 PPF banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6100]]></id>
+  <hu><![CDATA[6100  Raiffeisenbank, a.s. (dříve Equa bank)]]></hu>
+  <en><![CDATA[6100  Raiffeisenbank, a.s. (dříve Equa bank)]]></en>
+  <cz><![CDATA[6100  Raiffeisenbank, a.s. (dříve Equa bank)]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6200]]></id>
+  <hu><![CDATA[6200 COMMERZBANK Aktiengesellschaft, pobočka Praha]]></hu>
+  <en><![CDATA[6200 COMMERZBANK Aktiengesellschaft, pobočka Praha]]></en>
+  <cz><![CDATA[6200 COMMERZBANK Aktiengesellschaft, pobočka Praha]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6210]]></id>
+  <hu><![CDATA[6210 mBank S.A., organizační sloľka]]></hu>
+  <en><![CDATA[6210 mBank S.A., organizační sloľka]]></en>
+  <cz><![CDATA[6210 mBank S.A., organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6300]]></id>
+  <hu><![CDATA[6300 BNP Paribas S.A., pobočka Česká republika]]></hu>
+  <en><![CDATA[6300 BNP Paribas S.A., pobočka Česká republika]]></en>
+  <cz><![CDATA[6300 BNP Paribas S.A., pobočka Česká republika]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6700]]></id>
+  <hu><![CDATA[6700 Vąeobecná úverová banka a.s., pobočka Praha, zkráceně: VUB, a.s., pobočka Praha]]></hu>
+  <en><![CDATA[6700 Vąeobecná úverová banka a.s., pobočka Praha, zkráceně: VUB, a.s., pobočka Praha]]></en>
+  <cz><![CDATA[6700 Vąeobecná úverová banka a.s., pobočka Praha, zkráceně: VUB, a.s., pobočka Praha]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-6800]]></id>
+  <hu><![CDATA[6800 Sberbank CZ, a.s. v likvidaci]]></hu>
+  <en><![CDATA[6800 Sberbank CZ, a.s. v likvidaci]]></en>
+  <cz><![CDATA[6800 Sberbank CZ, a.s. v likvidaci]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7910]]></id>
+  <hu><![CDATA[7910 Deutsche Bank Aktiengesellschaft Filiale Prag, organizační sloľka]]></hu>
+  <en><![CDATA[7910 Deutsche Bank Aktiengesellschaft Filiale Prag, organizační sloľka]]></en>
+  <cz><![CDATA[7910 Deutsche Bank Aktiengesellschaft Filiale Prag, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7940]]></id>
+  <hu><![CDATA[7940 Waldviertler Sparkasse Bank AG]]></hu>
+  <en><![CDATA[7940 Waldviertler Sparkasse Bank AG]]></en>
+  <cz><![CDATA[7940 Waldviertler Sparkasse Bank AG]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7950]]></id>
+  <hu><![CDATA[7950 Raiffeisen stavební spořitelna, a.s.]]></hu>
+  <en><![CDATA[7950 Raiffeisen stavební spořitelna, a.s.]]></en>
+  <cz><![CDATA[7950 Raiffeisen stavební spořitelna, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7960]]></id>
+  <hu><![CDATA[7960 ČSOB Stavební spořitelna, a.s.]]></hu>
+  <en><![CDATA[7960 ČSOB Stavební spořitelna, a.s.]]></en>
+  <cz><![CDATA[7960 ČSOB Stavební spořitelna, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7970]]></id>
+  <hu><![CDATA[7970 MONETA Stavební Spořitelna, a.s.]]></hu>
+  <en><![CDATA[7970 MONETA Stavební Spořitelna, a.s.]]></en>
+  <cz><![CDATA[7970 MONETA Stavební Spořitelna, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7980]]></id>
+  <hu><![CDATA[7980 kód uľíván pro doběh plateb ve prospěch MONETA Money Bank, a.s. do 30. 6. 2021]]></hu>
+  <en><![CDATA[7980 kód uľíván pro doběh plateb ve prospěch MONETA Money Bank, a.s. do 30. 6. 2021]]></en>
+  <cz><![CDATA[7980 kód uľíván pro doběh plateb ve prospěch MONETA Money Bank, a.s. do 30. 6. 2021]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-7990]]></id>
+  <hu><![CDATA[7990 Modrá pyramida stavební spořitelna, a.s.]]></hu>
+  <en><![CDATA[7990 Modrá pyramida stavební spořitelna, a.s.]]></en>
+  <cz><![CDATA[7990 Modrá pyramida stavební spořitelna, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8030]]></id>
+  <hu><![CDATA[8030 Volksbank Raiffeisenbank Nordoberpfalz eG pobočka Cheb]]></hu>
+  <en><![CDATA[8030 Volksbank Raiffeisenbank Nordoberpfalz eG pobočka Cheb]]></en>
+  <cz><![CDATA[8030 Volksbank Raiffeisenbank Nordoberpfalz eG pobočka Cheb]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8040]]></id>
+  <hu><![CDATA[8040 Oberbank AG pobočka Česká republika]]></hu>
+  <en><![CDATA[8040 Oberbank AG pobočka Česká republika]]></en>
+  <cz><![CDATA[8040 Oberbank AG pobočka Česká republika]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8060]]></id>
+  <hu><![CDATA[8060 Stavební spořitelna České spořitelny, a.s.]]></hu>
+  <en><![CDATA[8060 Stavební spořitelna České spořitelny, a.s.]]></en>
+  <cz><![CDATA[8060 Stavební spořitelna České spořitelny, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8090]]></id>
+  <hu><![CDATA[8090 Česká exportní banka, a.s.]]></hu>
+  <en><![CDATA[8090 Česká exportní banka, a.s.]]></en>
+  <cz><![CDATA[8090 Česká exportní banka, a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8150]]></id>
+  <hu><![CDATA[8150 HSBC Continental Europe, Czech Republic]]></hu>
+  <en><![CDATA[8150 HSBC Continental Europe, Czech Republic]]></en>
+  <cz><![CDATA[8150 HSBC Continental Europe, Czech Republic]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8190]]></id>
+  <hu><![CDATA[8190 Sparkasse Oberlausitz-Niederschlesien]]></hu>
+  <en><![CDATA[8190 Sparkasse Oberlausitz-Niederschlesien]]></en>
+  <cz><![CDATA[8190 Sparkasse Oberlausitz-Niederschlesien]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8198]]></id>
+  <hu><![CDATA[8198 FAS finance company s.r.o.]]></hu>
+  <en><![CDATA[8198 FAS finance company s.r.o.]]></en>
+  <cz><![CDATA[8198 FAS finance company s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8199]]></id>
+  <hu><![CDATA[8199 MoneyPolo Europe s.r.o.]]></hu>
+  <en><![CDATA[8199 MoneyPolo Europe s.r.o.]]></en>
+  <cz><![CDATA[8199 MoneyPolo Europe s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8200]]></id>
+  <hu><![CDATA[8200 PRIVAT BANK der Raiffeisenlandesbank Oberösterreich Aktiengesellschaft, pobočka Česká republika]]></hu>
+  <en><![CDATA[8200 PRIVAT BANK der Raiffeisenlandesbank Oberösterreich Aktiengesellschaft, pobočka Česká republika]]></en>
+  <cz><![CDATA[8200 PRIVAT BANK der Raiffeisenlandesbank Oberösterreich Aktiengesellschaft, pobočka Česká republika]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8211]]></id>
+  <hu><![CDATA[8211 Saxo Bank A/S, organizační sloľka]]></hu>
+  <en><![CDATA[8211 Saxo Bank A/S, organizační sloľka]]></en>
+  <cz><![CDATA[8211 Saxo Bank A/S, organizační sloľka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8215]]></id>
+  <hu><![CDATA[8215 ALTERNATIVE PAYMENT SOLUTIONS, s.r.o.]]></hu>
+  <en><![CDATA[8215 ALTERNATIVE PAYMENT SOLUTIONS, s.r.o.]]></en>
+  <cz><![CDATA[8215 ALTERNATIVE PAYMENT SOLUTIONS, s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8220]]></id>
+  <hu><![CDATA[8220 Payment Execution s.r.o.]]></hu>
+  <en><![CDATA[8220 Payment Execution s.r.o.]]></en>
+  <cz><![CDATA[8220 Payment Execution s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8221]]></id>
+  <hu><![CDATA[8221 Volksbank Löbau-Zittau eG, pobočka]]></hu>
+  <en><![CDATA[8221 Volksbank Löbau-Zittau eG, pobočka]]></en>
+  <cz><![CDATA[8221 Volksbank Löbau-Zittau eG, pobočka]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8225]]></id>
+  <hu><![CDATA[8225 ORANGETRUST s.r.o.]]></hu>
+  <en><![CDATA[8225 ORANGETRUST s.r.o.]]></en>
+  <cz><![CDATA[8225 ORANGETRUST s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8230]]></id>
+  <hu><![CDATA[8230 ABAPAY s.r.o.]]></hu>
+  <en><![CDATA[8230 ABAPAY s.r.o.]]></en>
+  <cz><![CDATA[8230 ABAPAY s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8231]]></id>
+  <hu><![CDATA[8231 Bank Gutmann Aktiengesellschaft, pobočka Česká republika]]></hu>
+  <en><![CDATA[8231 Bank Gutmann Aktiengesellschaft, pobočka Česká republika]]></en>
+  <cz><![CDATA[8231 Bank Gutmann Aktiengesellschaft, pobočka Česká republika]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8240]]></id>
+  <hu><![CDATA[8240 Druľstevní záloľna Kredit, v likvidaci]]></hu>
+  <en><![CDATA[8240 Druľstevní záloľna Kredit, v likvidaci]]></en>
+  <cz><![CDATA[8240 Druľstevní záloľna Kredit, v likvidaci]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8250]]></id>
+  <hu><![CDATA[8250 Bank of China (CEE) Ltd. Prague Branch]]></hu>
+  <en><![CDATA[8250 Bank of China (CEE) Ltd. Prague Branch]]></en>
+  <cz><![CDATA[8250 Bank of China (CEE) Ltd. Prague Branch]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8255]]></id>
+  <hu><![CDATA[8255 Bank of Communications Co., Ltd., Prague Branch odątěpný závod]]></hu>
+  <en><![CDATA[8255 Bank of Communications Co., Ltd., Prague Branch odątěpný závod]]></en>
+  <cz><![CDATA[8255 Bank of Communications Co., Ltd., Prague Branch odątěpný závod]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8260]]></id>
+  <hu><![CDATA[8260 PAYMASTER a.s.]]></hu>
+  <en><![CDATA[8260 PAYMASTER a.s.]]></en>
+  <cz><![CDATA[8260 PAYMASTER a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8265]]></id>
+  <hu><![CDATA[8265 Industrial and Commercial Bank of China Limited Prague Branch odątěpný závod]]></hu>
+  <en><![CDATA[8265 Industrial and Commercial Bank of China Limited Prague Branch odątěpný závod]]></en>
+  <cz><![CDATA[8265 Industrial and Commercial Bank of China Limited Prague Branch odątěpný závod]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8270]]></id>
+  <hu><![CDATA[8270 Fairplay Pay s.r.o.]]></hu>
+  <en><![CDATA[8270 Fairplay Pay s.r.o.]]></en>
+  <cz><![CDATA[8270 Fairplay Pay s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8272]]></id>
+  <hu><![CDATA[8272 VIVA PAYMENT SERVICES S.A. odątěpný závod]]></hu>
+  <en><![CDATA[8272 VIVA PAYMENT SERVICES S.A. odątěpný závod]]></en>
+  <cz><![CDATA[8272 VIVA PAYMENT SERVICES S.A. odątěpný závod]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8280]]></id>
+  <hu><![CDATA[8280 B-Efekt a.s.]]></hu>
+  <en><![CDATA[8280 B-Efekt a.s.]]></en>
+  <cz><![CDATA[8280 B-Efekt a.s.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8282]]></id>
+  <hu><![CDATA[8282 Beekash Payment Solutions, s.r.o.]]></hu>
+  <en><![CDATA[8282 Beekash Payment Solutions, s.r.o.]]></en>
+  <cz><![CDATA[8282 Beekash Payment Solutions, s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8283]]></id>
+  <hu><![CDATA[8283 Qpay s.r.o.]]></hu>
+  <en><![CDATA[8283 Qpay s.r.o.]]></en>
+  <cz><![CDATA[8283 Qpay s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8290]]></id>
+  <hu><![CDATA[8290 EUROPAY s.r.o.]]></hu>
+  <en><![CDATA[8290 EUROPAY s.r.o.]]></en>
+  <cz><![CDATA[8290 EUROPAY s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8291]]></id>
+  <hu><![CDATA[8291 Business Credit s.r.o.]]></hu>
+  <en><![CDATA[8291 Business Credit s.r.o.]]></en>
+  <cz><![CDATA[8291 Business Credit s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8292]]></id>
+  <hu><![CDATA[8292 Money Change s.r.o.]]></hu>
+  <en><![CDATA[8292 Money Change s.r.o.]]></en>
+  <cz><![CDATA[8292 Money Change s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8293]]></id>
+  <hu><![CDATA[8293 Mercurius partners s.r.o.]]></hu>
+  <en><![CDATA[8293 Mercurius partners s.r.o.]]></en>
+  <cz><![CDATA[8293 Mercurius partners s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8294]]></id>
+  <hu><![CDATA[8294 GrisPayUnion s.r.o.]]></hu>
+  <en><![CDATA[8294 GrisPayUnion s.r.o.]]></en>
+  <cz><![CDATA[8294 GrisPayUnion s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8295]]></id>
+  <hu><![CDATA[8295 NOVARED s.r.o.]]></hu>
+  <en><![CDATA[8295 NOVARED s.r.o.]]></en>
+  <cz><![CDATA[8295 NOVARED s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8296]]></id>
+  <hu><![CDATA[8296 PaySysEU s.r.o.]]></hu>
+  <en><![CDATA[8296 PaySysEU s.r.o.]]></en>
+  <cz><![CDATA[8296 PaySysEU s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8297]]></id>
+  <hu><![CDATA[8297 EUPSProvider s.r.o.]]></hu>
+  <en><![CDATA[8297 EUPSProvider s.r.o.]]></en>
+  <cz><![CDATA[8297 EUPSProvider s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8298]]></id>
+  <hu><![CDATA[8298 Andraste Capital s.r.o.]]></hu>
+  <en><![CDATA[8298 Andraste Capital s.r.o.]]></en>
+  <cz><![CDATA[8298 Andraste Capital s.r.o.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+ <hu.appello.webdp.model.UniversalLanguage>
+  <state>CREATED</state>
+  <id><![CDATA[cscollateral/CBCOL_BankCode-8500]]></id>
+  <hu><![CDATA[8500 Multitude Bank p.l.c.]]></hu>
+  <en><![CDATA[8500 Multitude Bank p.l.c.]]></en>
+  <cz><![CDATA[8500 Multitude Bank p.l.c.]]></cz>
+  <module>
+   <state><![CDATA[CREATED]]></state>
+   <id><![CDATA[cscollateral]]></id>
+   <referenceName><![CDATA[cscollateral]]></referenceName>
+   <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+  </module>
+ </hu.appello.webdp.model.UniversalLanguage>
+</set>

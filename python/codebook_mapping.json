@@ -1,0 +1,6 @@
+{
+  "CB_BankCode.csv": "CBCOL_BankCode",
+  "CB_OrganizationUnit.csv": "CBCOL_OrganizationUnit",
+  "CB_CadastreSite.csv": "CBCOL_CadastreSite",
+  "CB_CadastreTerritory.csv": "CBCOL_CadastreTerritory"
+}

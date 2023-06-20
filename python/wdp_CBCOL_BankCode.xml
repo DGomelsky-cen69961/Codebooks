@@ -1,0 +1,941 @@
+<?xml version="1.0" ?>
+<hu.appello.webdp.model.CodeBase>
+ <searchMode>StartsWith</searchMode>
+ <state><![CDATA[CREATED]]></state>
+ <id><![CDATA[cscollateral/CBCOL_BankCode]]></id>
+ <referenceName><![CDATA[CBCOL_BankCode]]></referenceName>
+ <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode]]></displayNameUniv>
+ <fieldType><![CDATA[StringField]]></fieldType>
+ <module>
+  <state><![CDATA[CREATED]]></state>
+  <id><![CDATA[cscollateral]]></id>
+  <referenceName><![CDATA[cscollateral]]></referenceName>
+  <displayNameUniv><![CDATA[cscollateral/modultitle]]></displayNameUniv>
+ </module>
+ <codeElements>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/0100]]></id>
+   <referenceName><![CDATA[0100]]></referenceName>
+   <sortOrder><![CDATA[1]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-0100]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[P.O.BOX 839]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/0300]]></id>
+   <referenceName><![CDATA[0300]]></referenceName>
+   <sortOrder><![CDATA[2]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-0300]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Akademika Bedrny 365/10]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/0600]]></id>
+   <referenceName><![CDATA[0600]]></referenceName>
+   <sortOrder><![CDATA[3]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-0600]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Rovince 871]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/0710]]></id>
+   <referenceName><![CDATA[0710]]></referenceName>
+   <sortOrder><![CDATA[4]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-0710]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Pøíkopì 28]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/0800]]></id>
+   <referenceName><![CDATA[0800]]></referenceName>
+   <sortOrder><![CDATA[5]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-0800]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[©tefánikova 2115/13]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2010]]></id>
+   <referenceName><![CDATA[2010]]></referenceName>
+   <sortOrder><![CDATA[6]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2010]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[V Celnici 1028/10]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2020]]></id>
+   <referenceName><![CDATA[2020]]></referenceName>
+   <sortOrder><![CDATA[7]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2020]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Klicperova 3208/12]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2030]]></id>
+   <referenceName><![CDATA[2030]]></referenceName>
+   <sortOrder><![CDATA[8]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2030]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Goèárova tøída 312]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2050]]></id>
+   <referenceName><![CDATA[2050]]></referenceName>
+   <sortOrder><![CDATA[9]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2050]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Jeruzalémská 1321/2]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2060]]></id>
+   <referenceName><![CDATA[2060]]></referenceName>
+   <sortOrder><![CDATA[10]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2060]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Radlická 751/113e]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2070]]></id>
+   <referenceName><![CDATA[2070]]></referenceName>
+   <sortOrder><![CDATA[11]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2070]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Senová¾né námìstí 1375/19]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2100]]></id>
+   <referenceName><![CDATA[2100]]></referenceName>
+   <sortOrder><![CDATA[12]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2100]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Radlická 333/150]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2200]]></id>
+   <referenceName><![CDATA[2200]]></referenceName>
+   <sortOrder><![CDATA[13]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2200]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Havlíèkova 1221]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2210]]></id>
+   <referenceName><![CDATA[2210]]></referenceName>
+   <sortOrder><![CDATA[14]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2210]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[©tefánikova 78/50]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2220]]></id>
+   <referenceName><![CDATA[2220]]></referenceName>
+   <sortOrder><![CDATA[15]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2220]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Politických vìzòù 1272/21]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2230]]></id>
+   <referenceName><![CDATA[2230]]></referenceName>
+   <sortOrder><![CDATA[16]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2230]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Lazarská 13/8]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2240]]></id>
+   <referenceName><![CDATA[2240]]></referenceName>
+   <sortOrder><![CDATA[17]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2240]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Sokolovská 17]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2250]]></id>
+   <referenceName><![CDATA[2250]]></referenceName>
+   <sortOrder><![CDATA[18]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2250]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[tø. Svobody 1194/12]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2260]]></id>
+   <referenceName><![CDATA[2260]]></referenceName>
+   <sortOrder><![CDATA[19]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2260]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Rohanské nábøe¾í 671/15]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2275]]></id>
+   <referenceName><![CDATA[2275]]></referenceName>
+   <sortOrder><![CDATA[62]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2275]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Celetná 595/17]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2310]]></id>
+   <referenceName><![CDATA[2310]]></referenceName>
+   <sortOrder><![CDATA[20]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2310]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Hvìzdova 1716/2b]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2600]]></id>
+   <referenceName><![CDATA[2600]]></referenceName>
+   <sortOrder><![CDATA[21]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2600]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Bucharova 2641/14]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/2700]]></id>
+   <referenceName><![CDATA[2700]]></referenceName>
+   <sortOrder><![CDATA[22]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-2700]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[®eletavská 1525/1]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/3020]]></id>
+   <referenceName><![CDATA[3020]]></referenceName>
+   <sortOrder><![CDATA[23]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-3020]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Letenská 121/8]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/3030]]></id>
+   <referenceName><![CDATA[3030]]></referenceName>
+   <sortOrder><![CDATA[24]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-3030]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Evropská 2690/17]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/3050]]></id>
+   <referenceName><![CDATA[3050]]></referenceName>
+   <sortOrder><![CDATA[25]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-3050]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Karla Engli¹e 3208/5]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/3060]]></id>
+   <referenceName><![CDATA[3060]]></referenceName>
+   <sortOrder><![CDATA[26]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-3060]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Klimentská 1216/46]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/3500]]></id>
+   <referenceName><![CDATA[3500]]></referenceName>
+   <sortOrder><![CDATA[27]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-3500]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Èeskomoravská 2420/15]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/4000]]></id>
+   <referenceName><![CDATA[4000]]></referenceName>
+   <sortOrder><![CDATA[28]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-4000]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na str¾i 63]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/4300]]></id>
+   <referenceName><![CDATA[4300]]></referenceName>
+   <sortOrder><![CDATA[29]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-4300]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Jeruzalémská 964/4]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/5000]]></id>
+   <referenceName><![CDATA[5000]]></referenceName>
+   <sortOrder><![CDATA[30]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-5000]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Ovocný trh 8]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/5400]]></id>
+   <referenceName><![CDATA[5400]]></referenceName>
+   <sortOrder><![CDATA[31]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-5400]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Hilleho 6]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/5500]]></id>
+   <referenceName><![CDATA[5500]]></referenceName>
+   <sortOrder><![CDATA[32]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-5500]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Tøída Kosmonautù 1082/29]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/5800]]></id>
+   <referenceName><![CDATA[5800]]></referenceName>
+   <sortOrder><![CDATA[33]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-5800]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Pobøe¾ní 297/14]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6000]]></id>
+   <referenceName><![CDATA[6000]]></referenceName>
+   <sortOrder><![CDATA[34]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6000]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Høebenech II 1718/10]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6100]]></id>
+   <referenceName><![CDATA[6100]]></referenceName>
+   <sortOrder><![CDATA[35]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6100]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Hvìzdova 1716/2b]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6200]]></id>
+   <referenceName><![CDATA[6200]]></referenceName>
+   <sortOrder><![CDATA[36]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6200]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Jugoslávská 1]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6210]]></id>
+   <referenceName><![CDATA[6210]]></referenceName>
+   <sortOrder><![CDATA[37]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6210]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Pernerova 691/42]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6300]]></id>
+   <referenceName><![CDATA[6300]]></referenceName>
+   <sortOrder><![CDATA[38]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6300]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Ovocný trh 1096/8]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6700]]></id>
+   <referenceName><![CDATA[6700]]></referenceName>
+   <sortOrder><![CDATA[39]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6700]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Pobøe¾ní 3]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/6800]]></id>
+   <referenceName><![CDATA[6800]]></referenceName>
+   <sortOrder><![CDATA[40]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-6800]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Her¹pická 5]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7910]]></id>
+   <referenceName><![CDATA[7910]]></referenceName>
+   <sortOrder><![CDATA[41]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7910]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Jungmannova è.or. 34/ 750]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7940]]></id>
+   <referenceName><![CDATA[7940]]></referenceName>
+   <sortOrder><![CDATA[42]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7940]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Klá¹terská 126/II]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7950]]></id>
+   <referenceName><![CDATA[7950]]></referenceName>
+   <sortOrder><![CDATA[43]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7950]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Hvìzdova 1716/2b]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7960]]></id>
+   <referenceName><![CDATA[7960]]></referenceName>
+   <sortOrder><![CDATA[44]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7960]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Radlická 333/150]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7970]]></id>
+   <referenceName><![CDATA[7970]]></referenceName>
+   <sortOrder><![CDATA[45]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7970]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Vyskoèilova 1442/1b]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7980]]></id>
+   <referenceName><![CDATA[7980]]></referenceName>
+   <sortOrder><![CDATA[46]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7980]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Høebenech II 1718/8]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/7990]]></id>
+   <referenceName><![CDATA[7990]]></referenceName>
+   <sortOrder><![CDATA[47]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-7990]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Bìlehradská 128/222]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8030]]></id>
+   <referenceName><![CDATA[8030]]></referenceName>
+   <sortOrder><![CDATA[48]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8030]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Kubelíkova 4]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8040]]></id>
+   <referenceName><![CDATA[8040]]></referenceName>
+   <sortOrder><![CDATA[49]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8040]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[nám. Pøemysla Otakara II 6/3]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8060]]></id>
+   <referenceName><![CDATA[8060]]></referenceName>
+   <sortOrder><![CDATA[50]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8060]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Antala Sta¹ka 1292/32]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8090]]></id>
+   <referenceName><![CDATA[8090]]></referenceName>
+   <sortOrder><![CDATA[51]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8090]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Vodièkova 34/701]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8150]]></id>
+   <referenceName><![CDATA[8150]]></referenceName>
+   <sortOrder><![CDATA[52]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8150]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Florenci 2116/15]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8190]]></id>
+   <referenceName><![CDATA[8190]]></referenceName>
+   <sortOrder><![CDATA[78]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8190]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na pøíkopì 393/11]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8198]]></id>
+   <referenceName><![CDATA[8198]]></referenceName>
+   <sortOrder><![CDATA[79]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8198]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Bulharská 996/20]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8199]]></id>
+   <referenceName><![CDATA[8199]]></referenceName>
+   <sortOrder><![CDATA[80]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8199]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Archeologická 2256/1]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8200]]></id>
+   <referenceName><![CDATA[8200]]></referenceName>
+   <sortOrder><![CDATA[53]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8200]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Dlouhá 733/29]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8211]]></id>
+   <referenceName><![CDATA[8211]]></referenceName>
+   <sortOrder><![CDATA[54]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8211]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Husova 240/5]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8215]]></id>
+   <referenceName><![CDATA[8215]]></referenceName>
+   <sortOrder><![CDATA[67]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8215]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Jeèná 2093/32a]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8220]]></id>
+   <referenceName><![CDATA[8220]]></referenceName>
+   <sortOrder><![CDATA[55]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8220]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[K Lochkovu 30/4]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8221]]></id>
+   <referenceName><![CDATA[8221]]></referenceName>
+   <sortOrder><![CDATA[56]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8221]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Americká 525/23]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8225]]></id>
+   <referenceName><![CDATA[8225]]></referenceName>
+   <sortOrder><![CDATA[68]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8225]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[©tìtkova 1001/5]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8230]]></id>
+   <referenceName><![CDATA[8230]]></referenceName>
+   <sortOrder><![CDATA[57]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8230]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Revoluèní 762/13]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8231]]></id>
+   <referenceName><![CDATA[8231]]></referenceName>
+   <sortOrder><![CDATA[58]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8231]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Václavské námìstí 19]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8240]]></id>
+   <referenceName><![CDATA[8240]]></referenceName>
+   <sortOrder><![CDATA[59]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8240]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[V celnici 1028/10]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8250]]></id>
+   <referenceName><![CDATA[8250]]></referenceName>
+   <sortOrder><![CDATA[60]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8250]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Florenci 2116/15]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8255]]></id>
+   <referenceName><![CDATA[8255]]></referenceName>
+   <sortOrder><![CDATA[77]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8255]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Rohanské nábøe¾í 693/10]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8260]]></id>
+   <referenceName><![CDATA[8260]]></referenceName>
+   <sortOrder><![CDATA[63]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8260]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na Pankráci 1003/53]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8265]]></id>
+   <referenceName><![CDATA[8265]]></referenceName>
+   <sortOrder><![CDATA[61]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8265]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Na str¾i 1702/65]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8270]]></id>
+   <referenceName><![CDATA[8270]]></referenceName>
+   <sortOrder><![CDATA[64]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8270]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Revoluèní 762/13]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8272]]></id>
+   <referenceName><![CDATA[8272]]></referenceName>
+   <sortOrder><![CDATA[83]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8272]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Dìlnická 213/12]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8280]]></id>
+   <referenceName><![CDATA[8280]]></referenceName>
+   <sortOrder><![CDATA[65]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8280]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Italská 1583/24]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8282]]></id>
+   <referenceName><![CDATA[8282]]></referenceName>
+   <sortOrder><![CDATA[81]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8282]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Korunní 2569/108]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8283]]></id>
+   <referenceName><![CDATA[8283]]></referenceName>
+   <sortOrder><![CDATA[82]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8283]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Antala Sta¹ka 1859/34]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8290]]></id>
+   <referenceName><![CDATA[8290]]></referenceName>
+   <sortOrder><![CDATA[66]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8290]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[®itná 1578/52]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8291]]></id>
+   <referenceName><![CDATA[8291]]></referenceName>
+   <sortOrder><![CDATA[69]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8291]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Za Mototechnou 1619,]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8292]]></id>
+   <referenceName><![CDATA[8292]]></referenceName>
+   <sortOrder><![CDATA[70]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8292]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Pelu¹ková 1443,]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8293]]></id>
+   <referenceName><![CDATA[8293]]></referenceName>
+   <sortOrder><![CDATA[71]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8293]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[námìstí I. P. Pavlova 1785/3]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8294]]></id>
+   <referenceName><![CDATA[8294]]></referenceName>
+   <sortOrder><![CDATA[72]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8294]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Konìvova 2660/141]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8295]]></id>
+   <referenceName><![CDATA[8295]]></referenceName>
+   <sortOrder><![CDATA[73]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8295]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Korunní 2569/108]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8296]]></id>
+   <referenceName><![CDATA[8296]]></referenceName>
+   <sortOrder><![CDATA[74]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8296]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Budìjovická 635/69]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8297]]></id>
+   <referenceName><![CDATA[8297]]></referenceName>
+   <sortOrder><![CDATA[75]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8297]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Køemencova 186/7]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8298]]></id>
+   <referenceName><![CDATA[8298]]></referenceName>
+   <sortOrder><![CDATA[76]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8298]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[Vodièkova 791/41]]></description>
+  </hu.appello.webdp.model.CodeElement>
+  <hu.appello.webdp.model.CodeElement>
+   <state>CREATED</state>
+   <id><![CDATA[cscollateral/CBCOL_BankCode/8500]]></id>
+   <referenceName><![CDATA[8500]]></referenceName>
+   <sortOrder><![CDATA[84]]></sortOrder>
+   <active>true</active>
+   <displayNameUniv><![CDATA[cscollateral/CBCOL_BankCode-8500]]></displayNameUniv>
+   <usable>true</usable>
+   <codeBase reference="../../.."/>
+   <description><![CDATA[]]></description>
+  </hu.appello.webdp.model.CodeElement>
+ </codeElements>
+</hu.appello.webdp.model.CodeBase>

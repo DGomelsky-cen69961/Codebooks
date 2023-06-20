@@ -1,0 +1,4 @@
+Indexname; displayName [CZ]; displayName [EN]; description [CZ]; description [EN]; CDM codetable; 
+CBCOL_ApplicationSystemreferenceName; displayName [CZ]; description [CZ]; displayName [EN]; description [EN]; sortOrder; active; CDM: mappedValue; CDM: isPrimaryIn; CDM: isPrimaryOut; Note; User Data; 
+CBCOL_BackendSystemreferenceName; displayName [CZ]; description [CZ]; displayName [EN]; description [EN]; sortOrder; active; CDM: mappedValue; CDM: isPrimaryIn; CDM: isPrimaryOut; Note; User Data; 
+CBCOL_BankCodereferenceName; displayName [CZ]; description [CZ]; displayName [EN]; description [EN]; sortOrder; active; CDM: mappedValue; CDM: isPrimaryIn; CDM: isPrimaryOut; Note; User Data; 

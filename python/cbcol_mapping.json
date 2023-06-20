@@ -1,0 +1,47 @@
+{
+	"CBCOL": [{
+	"CBCOL_BankCode": [{
+		"referenceName": "ID",
+		"displayName [CZ]": "VALUE",
+  		"description [CZ]": "MOBILITASTREETCOMBINED",
+		"displayName [EN]": "VALUE",
+		"description [EN]": "",
+		"sortOrder": "ENTRYORDER",
+		"active":"",
+		"CDM: mappedValue":"",
+		"CDM: isPrimaryIn":"",
+		"CDM: isPrimaryOut":"",
+		"Note":"",
+		"User Data":""
+	}],
+	"CBCOL_OrganizationUnit": [{
+		"referenceName": "ID",
+		"displayName [CZ]": "VALUE",
+  		"description [CZ]": "",
+		"displayName [EN]": "VALUE",
+		"description [EN]": "",
+		"sortOrder": "ENTRYORDER",
+		"active":"",
+		"CDM: mappedValue":"",
+		"CDM: isPrimaryIn":"",
+		"CDM: isPrimaryOut":"",
+		"Note":"",
+		"User Data":""
+	}],
+	"CBCOL_CadastreCity": [{
+		"referenceName": "ID",
+		"displayName [CZ]": "VALUE",
+  		"description [CZ]": "",
+		"displayName [EN]": "VALUE",
+		"description [EN]": "",
+		"sortOrder": "ENTRYORDER",
+		"active":"",
+		"CDM: mappedValue":"",
+		"CDM: isPrimaryIn":"",
+		"CDM: isPrimaryOut":"",
+		"Note":"",
+		"User Data":""
+	}]
+	}]
+}
+
